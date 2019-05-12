@@ -9,6 +9,9 @@ import {
     UIManager
 } from "@playkit-js/playkit-js-ovp-v7";
 
+const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
+const pluginName = `qna${isDev ? "-local" : ""}`;
+
 export class QnaPlugin extends OVPBasePlugin {
     static defaultConfig = {};
 
@@ -48,4 +51,4 @@ export class QnaPlugin extends OVPBasePlugin {
     };
 }
 
-KalturaPlayer.core.registerPlugin("qna", QnaPlugin);
+KalturaPlayer.core.registerPlugin(pluginName, QnaPlugin);
