@@ -2,7 +2,7 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "setup": "npm install && (npm run setup:v2 & npm run setup:v7)",
+    "setup": "npm install && npm run setup:v2 && npm run setup:v7",
     "setup:v2": "npm install --prefix ./packages/plugin-v2",
     "setup:v7": "npm install --prefix ./packages/plugin-v7",
     "reset": "rm -rf node_modules && (npm run reset:v2 & npm run reset:v7)",
