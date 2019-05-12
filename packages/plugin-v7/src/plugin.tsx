@@ -18,9 +18,11 @@ export class QnaPlugin extends OVPBasePlugin {
         endpointUrl: this.getServiceUrl()
     });
 
-    protected _onAddBindings(eventManager: any): void {
-        this.eventManager.listenOnce(this.player, this.player.Event.MEDIA_LOADED, () => {
-            this._loadCuePoints();
+    protected _onAddBindings(eventManager: any): void {}
+
+    protected _onMediaLoaded() {
+        this._kalturaClient.setDefaultRequestOptions({
+            ks: this.getKS()
         });
     }
 
