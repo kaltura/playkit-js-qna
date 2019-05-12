@@ -15,8 +15,8 @@
     "build": "npm run clean && webpack --mode production",
     "serve": "webpack-dev-server -d",
     "analyze": "npm run build && npx source-map-explorer dist/playkit-js-qna.js",
-    "upgrade:latest": "npm i @playkit-js/playkit-js-ovp-v7@latest & npm i @playkit-js/playkit-js-ovp@latest",
-    "upgrade:next": "npm i @playkit-js/playkit-js-ovp-v7@next & npm i @playkit-js/playkit-js-ovp@next"
+    "upgrade:latest": "npm i @playkit-js/playkit-js-ovp-v7@latest",
+    "upgrade:next": "npm i @playkit-js/playkit-js-ovp-v7@next"
   },
   "keywords": [],
   "author": "",
@@ -40,7 +40,6 @@
     "webpack-dev-server": "^3.2.1"
   },
   "dependencies": {
-    "@playkit-js/playkit-js-ovp": "^1.1.0",
     "@playkit-js/playkit-js-ovp-v7": "^1.1.0",
     "kaltura-typescript-client": "file:libs/kaltura-typescript-client-7.0.0-v20190324-101134.tgz",
     "preact": "^8.4.2"

@@ -15,8 +15,8 @@
     "build": "npm run clean && webpack --mode production",
     "serve": "webpack-dev-server --mode development",
     "analyze": "npm run build && npx source-map-explorer dist/playkit-js-qna.js",
-    "upgrade:latest": "npm i @playkit-js/playkit-js-ovp@latest",
-    "upgrade:next": "npm i @playkit-js/playkit-js-ovp@next"
+    "upgrade:latest": "",
+    "upgrade:next": ""
   },
   "keywords": [],
   "author": "",
@@ -40,7 +40,6 @@
     "webpack-dev-server": "^3.2.1"
   },
   "dependencies": {
-    "@playkit-js/playkit-js-ovp": "^1.1.0",
     "preact": "^8.2.5"
   },
   "files": [
