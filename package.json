@@ -1,0 +1,54 @@
+{
+  "name": "root",
+  "private": true,
+  "scripts": {
+    "setup": "npm install && (npm run setup:v2 & npm run setup:v7)",
+    "setup:v2": "npm install --prefix ./packages/plugin-v2",
+    "setup:v7": "npm install --prefix ./packages/plugin-v7",
+    "reset": "rm -rf node_modules && (npm run reset:v2 & npm run reset:v7)",
+    "reset:v2": "npm run reset --prefix ./packages/plugin-v2",
+    "reset:v7": "npm run reset --prefix ./packages/plugin-v7",
+    "serve:v2": "npm run serve --prefix ./packages/plugin-v2",
+    "serve:v7": "npm run serve --prefix ./packages/plugin-v7",
+    "build:v2": "npm run build --prefix ./packages/plugin-v2",
+    "build:v7": "npm run build --prefix ./packages/plugin-v7",
+    "analyze:v2": "npm run analyze --prefix ./packages/plugin-v2",
+    "analyze:v7": "npm run analyze --prefix ./packages/plugin-v7",
+    "upgrade:latest": "npm i @playkit-js/playkit-js-ovp@latest & npm run upgrade:v2:latest & npm run upgrade:v7:latest",
+    "upgrade:next": "npm i @playkit-js/playkit-js-ovp@next & npm run upgrade:v2:next & npm run upgrade:v7:next",
+    "upgrade:v2:latest": "npm run upgrade:latest --prefix ./packages/plugin-v2",
+    "upgrade:v7:latest": "npm run upgrade:latest --prefix ./packages/plugin-v7",
+    "upgrade:v2:next": "npm run upgrade:next --prefix ./packages/plugin-v2",
+    "upgrade:v7:next": "npm run upgrade:next --prefix ./packages/plugin-v7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kaltura/playkit-js-qna.git"
+  },
+  "author": "",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/kaltura/playkit-js-qna/issues"
+  },
+  "homepage": "https://github.com/kaltura/playkit-js-qna#readme",
+  "lint-staged": {
+    "*.{ts,tsx,json,css,html}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "devDependencies": {
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.5",
+    "prettier": "^1.16.4"
+  },
+  "dependencies": {
+    "@playkit-js/playkit-js-ovp": "^1.1.0",
+    "preact": "^8.4.2"
+  }
+}
