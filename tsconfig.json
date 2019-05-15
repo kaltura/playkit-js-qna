@@ -1,21 +1,20 @@
 {
     "compilerOptions": {
         "skipLibCheck": true,
-        "target": "ES3",
+        "target": "es2015",
         "module": "commonjs",
         "allowJs": false,
         "jsx": "react",
         "jsxFactory": "h",
         "sourceMap": true,
         "strict": true,
-        "moduleResolution": "node",
+        "moduleResolution": "Node",
         "baseUrl": "./src",
+        "preserveSymlinks": true,
         "paths": {
-            "@plugin/shared": ["../../shared"],
-            "@plugin/shared/*": ["../../shared/*"]
-        },
-        "preserveSymlinks": true
+            "*": ["../node_modules/*"]
+        }
     },
-    "include": ["src/**/*.tsx", "src/**/*.ts"],
+    "include": ["src/**/*.tsx", "src/**/*.ts", "custom.d.ts"],
     "exclude": ["node_modules"]
 }

@@ -1,13 +1,8 @@
 import { h, Ref } from "preact";
-import Stage, { Props as StageProps } from "@plugin/shared/components/Stage";
+import Stage, { Props as StageProps } from "./components/Stage";
 import { KalturaClient } from "kaltura-typescript-client";
-import {
-    OverlayUI,
-    OverlayUIProps,
-    OverlayUIModes,
-    OVPBasePlugin,
-    UIManager
-} from "@playkit-js/playkit-js-ovp-v7";
+import { OverlayUI, OverlayUIProps, OverlayUIModes } from "@playkit-js/ovp-ui";
+import { OVPBasePlugin, UIManager } from "@playkit-js/ovp-common";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -31,9 +26,10 @@ export class QnaPlugin extends OVPBasePlugin {
 
     protected _onAddOverlays(uiManager: UIManager): void {
         this._overlay = uiManager.add(
-            new OverlayUI<Stage>({
+            new OverlayUI({
                 mode: OverlayUIModes.FirstPlay,
-                renderer: this._renderRoot
+                renderer: this._renderRoot,
+                plugin: this
             })
         );
     }
