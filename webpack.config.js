@@ -33,8 +33,7 @@ module.exports = (env, options) => {
     },
     resolve: {
       extensions: [".ts", ".tsx", ".js"],
-      alias: { "@plugin/shared": path.resolve(__dirname, "../shared/") },
-      modules: [path.resolve(__dirname, "../../node_modules"), path.resolve(__dirname, "node_modules")],
+      modules: [path.resolve(__dirname, "node_modules")],
       symlinks: false
     },
     output: {
