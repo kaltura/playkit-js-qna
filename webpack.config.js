@@ -41,8 +41,7 @@ module.exports = (env, options) => {
       filename: '[name].js',
       library: ['KalturaPlayer', 'plugins', pluginName],
       libraryTarget: 'umd',
-      umdNamedDefine: true,
-      devtoolModuleFilenameTemplate: `./${pluginName}/[resource-path]`
+      umdNamedDefine: true
     },
     devtool: options.mode == "development" ? "eval-source-map" : "source-map",
     module: {
