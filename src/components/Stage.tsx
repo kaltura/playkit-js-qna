@@ -21,6 +21,11 @@ export default class Stage extends Component<Props, State> {
 
     componentDidMount() {
         this.reset();
+        console.log(`>>>>>>>>>>>> REMOVE ME Stage mount`);
+    }
+
+    componentWillUnmount(): void {
+        console.log(`>>>>>>>>>>>> REMOVE ME Stage unmount`);
     }
 
     private reset = () => {

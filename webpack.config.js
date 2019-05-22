@@ -43,9 +43,14 @@ module.exports = (env, options) => {
       libraryTarget: 'umd',
       umdNamedDefine: true
     },
-    devtool: options.mode == "development" ? "eval-source-map" : "source-map",
+    devtool: "source-map",
     module: {
       rules: [
+        {
+          test: /\.js$/,
+          use: ['source-map-loader'],
+          enforce: 'pre'
+        },
         {
           test: /\.tsx?$/,
           loader: "awesome-typescript-loader"
