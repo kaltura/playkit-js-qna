@@ -7,10 +7,16 @@
     <title>Qna - Player V7</title>
 
     <!--
-        TODO add here a url to player v7 for relevant partner / uiconf
+        TEMPORARY DISABLED:
+        add here a url to player v7 for relevant partner / uiconf
         ie:  https://cdnapisec.kaltura.com/p/{partner_id}/embedPlaykitJs/uiconf_id/{uiconf_id}
+        <script src=""></script>
     -->
-    <script src=""></script>
+
+    <!--
+        This plugin is developed against local kaltura player version which expose api not available yet in production!
+    -->
+    <script src="kaltura-ovp-player.js"></script>
 
 
     <% for (var chunk in htmlWebpackPlugin.files.chunks) { %><script id="bundle" async src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script><% } %>
