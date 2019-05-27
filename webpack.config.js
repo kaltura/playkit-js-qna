@@ -32,7 +32,7 @@ module.exports = (env, options) => {
       [`playkit-js-${pluginName}`]: "./src/index.ts"
     },
     resolve: {
-      extensions: [".ts", ".tsx", ".js"],
+      extensions: [".ts", ".tsx", ".js", ".scss", ".svg"],
       modules: [path.resolve(__dirname, "node_modules")],
       symlinks: false
     },
@@ -54,6 +54,32 @@ module.exports = (env, options) => {
         {
           test: /\.tsx?$/,
           loader: "awesome-typescript-loader"
+        },
+        {
+          test: /\.scss$/,
+          use: [
+            {
+              loader: 'style-loader'
+            },
+            {
+              loader: 'css-loader',
+              options: {
+                camelCase: true,
+                modules: true,
+                localIdentName: 'ovp[name]__[local]___[hash:base64:5]'
+              }
+            },
+            {
+              loader: 'sass-loader'
+            }
+          ]
+        },
+        {
+          test: /\.svg/,
+          use: {
+            loader: 'svg-url-loader',
+            options: {}
+          }
         }
       ]
     },

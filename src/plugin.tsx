@@ -6,9 +6,10 @@ import {
     UIManager,
     OverlayUIModes,
     OverlayItemProps,
-    UpperBarUIProps
+    KitchenSinkContentRendererProps
 } from "@playkit-js/ovp-ui";
 import { OVPBasePlugin } from "@playkit-js/ovp-plugin";
+import { KitchenSink } from "./components/kitchenSink";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -34,7 +35,7 @@ export class QnaPlugin extends OVPBasePlugin {
         this._overlay = uiManager.overlay.add({
             name: "hotspots",
             mode: OverlayUIModes.FirstPlay,
-            renderer: this._renderRoot
+            renderer: this._renderOverlay
         });
 
         const icon = (
@@ -53,7 +54,8 @@ export class QnaPlugin extends OVPBasePlugin {
 
         uiManager.kitchenSink.add({
             name: "Q&A",
-            iconRenderer: () => icon
+            iconRenderer: () => icon,
+            contentRenderer: this._renderKitchenSinkContent
         });
     }
 
@@ -61,7 +63,10 @@ export class QnaPlugin extends OVPBasePlugin {
         this._overlay = null;
     }
 
-    private _renderRoot = (overlayUIProps: OverlayItemProps): any => {
+    private _renderKitchenSinkContent(props: KitchenSinkContentRendererProps) {
+        return <KitchenSink {...props} />;
+    }
+    private _renderOverlay = (overlayUIProps: OverlayItemProps): any => {
         const props: StageProps = {
             ...overlayUIProps
         };
