@@ -69,10 +69,10 @@ npm run reset
 ``` 
 
 
-### Update OVP infrastructure dependencies
+### Update Player Contrib libraries
 > Make sure you setup the repository using the `setup` command
 
-This command will update packages to use `latest` or `next` version of the shared ovp infrastructure.
+This command will update packages to use `latest` or `next` version of the player contrib libraries.
 
 To update to `latest` version use one of the following:
 ```$xslt

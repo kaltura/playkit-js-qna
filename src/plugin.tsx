@@ -7,14 +7,14 @@ import {
     OverlayUIModes,
     OverlayItemProps,
     KitchenSinkContentRendererProps
-} from "@playkit-js/ovp-ui";
-import { OVPBasePlugin } from "@playkit-js/ovp-plugin";
+} from "@playkit-js-contrib/ui";
+import { PlayerContribPlugin } from "@playkit-js-contrib/plugin";
 import { KitchenSink } from "./components/kitchenSink";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
 
-export class QnaPlugin extends OVPBasePlugin {
+export class QnaPlugin extends PlayerContribPlugin {
     static defaultConfig = {};
 
     private _overlay: OverlayItem<Stage> | null = null;

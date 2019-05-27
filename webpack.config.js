@@ -66,7 +66,7 @@ module.exports = (env, options) => {
               options: {
                 camelCase: true,
                 modules: true,
-                localIdentName: 'ovp[name]__[local]___[hash:base64:5]'
+                localIdentName: 'contrib[name]__[local]___[hash:base64:5]'
               }
             },
             {

@@ -19,9 +19,9 @@
     "build": "npm run clean && webpack --mode production",
     "serve": "webpack-dev-server -d",
     "analyze": "npm run build && npx source-map-explorer dist/playkit-js-qna.js",
-    "upgrade:latest": "npm i @playkit-js/ovp-common@latest @playkit-js/ovp-ui@latest",
-    "upgrade:next": "npm i @playkit-js/ovp-common@next @playkit-js/ovp-ui@next",
-    "link:contrib": "npm link @playkit-js/ovp-common && npm link @playkit-js/ovp-ui && npm link @playkit-js/ovp-plugin"
+    "upgrade:latest": "npm i @playkit-js-contrib/common@latest @playkit-js-contrib/ui@latest",
+    "upgrade:next": "npm i @playkit-js-contrib/common@next @playkit-js-contrib/ui@next",
+    "link:contrib": "npm link @playkit-js-contrib/common && npm link @playkit-js-contrib/ui && npm link @playkit-js-contrib/plugin"
   },
   "keywords": [],
   "author": "",
@@ -49,8 +49,9 @@
     "webpack-dev-server": "^3.2.1"
   },
   "dependencies": {
-    "@playkit-js/ovp-common": "^0.1.1",
-    "@playkit-js/ovp-ui": "^0.1.1",
+    "@playkit-js-contrib/common": "^0.1.2",
+    "@playkit-js-contrib/plugin": "^0.1.2",
+    "@playkit-js-contrib/ui": "^0.1.2",
     "kaltura-typescript-client": "file:libs/kaltura-typescript-client-7.0.0-v20190324-101134.tgz",
     "preact": "^8.4.2",
     "svg-url-loader": "^2.3.2"
