@@ -3,20 +3,37 @@ import * as styles from "./kitchenSink.scss";
 
 export interface KitchenSinkProps {
     onClose: () => void;
+    test?: string;
 }
 
-export class KitchenSink extends Component<KitchenSinkProps> {
+interface KitchenSinkState {}
+
+export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
+    static defaultProps = {
+        test: "yeaa"
+    };
+
+    state = {};
+
     render(props: KitchenSinkProps) {
         const { onClose } = props;
         return (
             <div className={styles.root}>
-                <div className={styles.header}>
-                    <div className={styles.title}>Notifications</div>
-                    <div className={styles.closeButton} onClick={onClose} />
+                {/* header */}
+                <div className={styles.headerContainer}>
+                    <div className={styles.header}>
+                        <div className={styles.title}>Notifications</div>
+                        <button className={styles.closeButton} onClick={onClose} />
+                    </div>
                 </div>
+
+                {/* body */}
                 <div className={styles.main}>
-                    <div className={styles.mainImage} />
+                    <div className={styles.veryLongList} />
                 </div>
+
+                {/* footer */}
+                <div className={styles.footer} />
             </div>
         );
     }
