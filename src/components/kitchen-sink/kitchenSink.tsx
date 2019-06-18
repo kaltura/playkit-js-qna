@@ -9,9 +9,7 @@ export interface KitchenSinkProps {
 interface KitchenSinkState {}
 
 export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
-    static defaultProps = {
-        test: "yeaa"
-    };
+    static defaultProps = {};
 
     state = {};
 
@@ -28,9 +26,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 </div>
 
                 {/* body */}
-                <div className={styles.main}>
-                    <div className={styles.veryLongList} />
-                </div>
+                <div className={styles.flexibleMain} />
 
                 {/* footer */}
                 <div className={styles.footer} />
