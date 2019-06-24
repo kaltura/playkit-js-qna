@@ -18,11 +18,9 @@ import {
 } from "@playkit-js-contrib/plugin";
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
-import {
-    PushNotifications,
-    PushNotificationsOptions,
-    PrepareRegisterRequest
-} from "@playkit-js-contrib/push-notifications";
+
+import { log } from "@playkit-js-contrib/common";
+import { ThreadManager } from "./ThreadManager";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -31,8 +29,9 @@ export class QnaPlugin extends PlayerContribPlugin
     implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     static defaultConfig = {};
 
+    private _logger = this._getLogger("QnaPlugin");
     private _kalturaClient = new KalturaClient();
-    private _pushNotifications: PushNotifications | null = null;
+    private _threadManager: ThreadManager | null = null;
 
     onPluginSetup(config: ContribConfig): void {
         this._kalturaClient.setOptions({
@@ -44,23 +43,20 @@ export class QnaPlugin extends PlayerContribPlugin
             ks: config.server.ks
         });
 
-        let pushNotificationsOptions: PushNotificationsOptions = {
-            ks: config.server.ks,
-            serviceUrl: config.server.serviceUrl,
-            clientTag: "QnaPlugin_V7", // todo: Is this the clientTag we want
-            playerAPI: {
-                kalturaPlayer: this.player,
-                eventManager: this.eventManager
-            }
-        };
-
-        // Todo: should use plugin instance
-        this._pushNotifications = PushNotifications.getInstance(pushNotificationsOptions);
+        this._threadManager = new ThreadManager({
+            ...config,
+            player: this.player,
+            eventManager: this.eventManager
+        });
     }
 
-    onMediaUnload(): void {}
+    onMediaUnload(): void {
+        if (this._threadManager) this._threadManager.unregister();
+    }
 
-    onMediaLoad(config: OnMediaLoadConfig): void {}
+    onMediaLoad(config: OnMediaLoadConfig): void {
+        if (this._threadManager) this._threadManager.registerToQnaPushNotificationEvents();
+    }
 
     onRegisterUI(uiManager: UIManager): void {
         uiManager.kitchenSink.add({
@@ -72,6 +68,12 @@ export class QnaPlugin extends PlayerContribPlugin
 
     private _renderKitchenSinkContent(props: KitchenSinkContentRendererProps) {
         return <KitchenSink {...props} />;
+    }
+
+    private _getLogger(context: string): Function {
+        return (level: "debug" | "log" | "warn" | "error", message: string, ...args: any[]) => {
+            log(level, context, message, ...args);
+        };
     }
 }
 
