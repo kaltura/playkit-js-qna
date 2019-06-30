@@ -1,10 +1,19 @@
 import {
     KalturaAnnotation,
     KalturaMetadata,
-    KalturaMetadataListResponse
+    KalturaMetadataListResponse,
+    KalturaMetadataProfileStatus,
+    KalturaMetadataStatus
 } from "kaltura-typescript-client/api/types";
+import { Utils } from "./utils";
 
-enum MessageStatusEnum {
+export enum QnaMessageType {
+    QUESTION = "Question",
+    ANNOUNCEMENT = "Announcement",
+    ANSWER = "Answer"
+}
+
+export enum MessageStatusEnum {
     CREATED = "CREATED",
     SENDING = "SENDING",
     SEND_FAILED = "SEND_FAILED",
@@ -19,55 +28,107 @@ export function isWindowHasDomParser(window: any): window is Window {
 
 export class QnaMessage {
     public id: string;
-    public status: MessageStatusEnum;
+    public deliveryStatus: MessageStatusEnum;
     public messageContent: string;
     public time: Date;
-    public parentId: string | null;
+    public parentId: string | null = null;
     public replies: QnaMessage[];
+    public type: QnaMessageType | null = null;
+    public threadCreatorId: string | null = null;
 
     constructor(cuePoint: KalturaAnnotation) {
+        this.addMetadata(cuePoint);
+
         this.id = cuePoint.id;
         this.time = cuePoint.createdAt;
         this.messageContent = cuePoint.text;
-        this.parentId = cuePoint.parentId || null;
         this.replies = [];
-        this.status = cuePoint.createdAt ? MessageStatusEnum.CREATED : MessageStatusEnum.SENDING;
+        this.deliveryStatus = cuePoint.createdAt
+            ? MessageStatusEnum.CREATED
+            : MessageStatusEnum.SENDING;
     }
 
-    public isMasterQuestion(): boolean {
-        return this.parentId === "0";
+    isMasterQuestion(): boolean {
+        return this.parentId === null;
     }
 
-    // private parseMetadata(cuePoint: KalturaAnnotation): Metadata | null {
-    //     const relatedObject = cuePoint.relatedObjects['QandA_ResponseProfile'];
-    //
-    //     if (!(relatedObject instanceof KalturaMetadataListResponse)) {
-    //         // todo
-    //         return null;
-    //     }
-    //
-    //     if (relatedObject.objects.length === 0) {
-    //         return null;
-    //     }
-    //
-    //     const metadata = relatedObject.objects[0];
-    //
-    //     try {
-    //         if (!isWindowHasDomParser(window)) {
-    //             // TODO log
-    //             return null;
-    //         }
-    //
-    //         let parser = new DOMParser();
-    //         let xmlDoc = parser.parseFromString(metadata.xml, "text/xml");
-    //
-    //         return {
-    //             Type: xmlDoc.getElementsByTagName("Type")[0].childNodes[0].nodeValue,
-    //             ThreadCreatorId: xmlDoc.getElementsByTagName("ThreadCreatorId")[0].childNodes[0].nodeValue
-    //         }
-    //     } catch (e) {
-    //         // todo log error
-    //         return null;
-    //     }
-    // }
+    private addMetadata(cuePoint: KalturaAnnotation) {
+        const relatedObject = cuePoint.relatedObjects["QandA_ResponseProfile"];
+
+        if (!(relatedObject instanceof KalturaMetadataListResponse)) {
+            // todo
+            return null;
+        }
+
+        if (relatedObject.objects.length === 0) {
+            return null;
+        }
+
+        const metadata = relatedObject.objects[0];
+
+        try {
+            if (!isWindowHasDomParser(window)) {
+                // TODO log
+                return;
+            }
+
+            let parser = new DOMParser();
+            let xmlDoc = parser.parseFromString(metadata.xml, "text/xml");
+
+            const type = Utils.getValueFromXml(xmlDoc, "Type");
+            this.type = type ? Utils.getEnumByEnumValue(QnaMessageType, type) : null; // noImplicitAny
+
+            this.threadCreatorId = Utils.getValueFromXml(xmlDoc, "ThreadCreatorId");
+
+            // Always reference threadId in metadata for parentId as moderator won't send parentId
+            this.parentId = Utils.getValueFromXml(xmlDoc, "ThreadId");
+        } catch (e) {
+            // todo log error
+            return null;
+        }
+    }
+
+    timeCompareFunction(): number {
+        if (this.type === QnaMessageType.ANNOUNCEMENT) {
+            return this.time.valueOf();
+        }
+
+        let q_time, a_time;
+
+        if (this.type === QnaMessageType.ANSWER) {
+            a_time = this.time.valueOf();
+        }
+
+        if (this.type === QnaMessageType.QUESTION) {
+            q_time = this.time.valueOf();
+        }
+
+        // order the thread that the newest is on top
+        // order the question by time, as newest is last
+        for (let i = 0; i < this.replies.length; ++i) {
+            let reply: QnaMessage = this.replies[i];
+            if (reply.type === QnaMessageType.ANSWER) {
+                if (!a_time) a_time = reply.time.valueOf();
+                else if (reply.time.valueOf() > a_time) a_time = reply.time.valueOf();
+            } else if (reply.type === QnaMessageType.QUESTION) {
+                if (!q_time) q_time = reply.time.valueOf();
+                else if (reply.time.valueOf() < q_time) q_time = reply.time.valueOf();
+            }
+        }
+
+        if (!a_time && !q_time) {
+            // todo log("both a_time and q_time are undefined - data error");
+            return 0;
+        }
+
+        if (!a_time) {
+            return q_time || 0;
+        }
+
+        if (!q_time) {
+            return a_time || 0;
+        }
+
+        return Math.max(a_time, q_time);
+    }
 }

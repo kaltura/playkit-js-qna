@@ -1,9 +1,11 @@
 import { h, Component } from "preact";
 import * as styles from "./kitchenSink.scss";
+import { QnaMessage } from "../../QnaMessage";
+import { ThreadItem } from "../thread-item";
 
 export interface KitchenSinkProps {
     onClose: () => void;
-    test?: string;
+    threads: QnaMessage[];
 }
 
 interface KitchenSinkState {}
@@ -26,7 +28,11 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 </div>
 
                 {/* body */}
-                <div className={styles.flexibleMain} />
+                <div className={styles.flexibleMain}>
+                    {props.threads.map((qnaMessage: QnaMessage) => {
+                        return <ThreadItem thread={qnaMessage} key={qnaMessage.id} />;
+                    })}
+                </div>
 
                 {/* footer */}
                 <div className={styles.footer} />

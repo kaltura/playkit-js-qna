@@ -5,7 +5,8 @@ import {
     UIManager,
     OverlayUIModes,
     OverlayItemProps,
-    KitchenSinkContentRendererProps
+    KitchenSinkContentRendererProps,
+    KitchenSinkItem
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
@@ -19,8 +20,9 @@ import {
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 
-import { log } from "@playkit-js-contrib/common";
+import { log, EventManager } from "@playkit-js-contrib/common";
 import { ThreadManager } from "./ThreadManager";
+import { QnaMessage } from "./QnaMessage";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -32,6 +34,9 @@ export class QnaPlugin extends PlayerContribPlugin
     private _logger = this._getLogger("QnaPlugin");
     private _kalturaClient = new KalturaClient();
     private _threadManager: ThreadManager | null = null;
+    private _messageEventManager: EventManager | null = null;
+    private _kitchenSinkItem: KitchenSinkItem | null = null;
+    private _threads: QnaMessage[] | [] = [];
 
     onPluginSetup(config: ContribConfig): void {
         this._kalturaClient.setOptions({
@@ -43,10 +48,22 @@ export class QnaPlugin extends PlayerContribPlugin
             ks: config.server.ks
         });
 
+        this._messageEventManager = new EventManager();
+        this._messageEventManager.on("OnPrivateMessage", (qnaMessages: QnaMessage[]) => {
+            this._threads = qnaMessages;
+            if (this._kitchenSinkItem) {
+                this._kitchenSinkItem.update();
+            }
+        });
+
         this._threadManager = new ThreadManager({
-            ...config,
-            player: this.player,
-            eventManager: this.eventManager
+            ks: config.server.ks,
+            serviceUrl: config.server.serviceUrl,
+            playerAPI: {
+                player: this.player,
+                eventManager: this.eventManager
+            },
+            messageEventManager: this._messageEventManager
         });
     }
 
@@ -55,20 +72,31 @@ export class QnaPlugin extends PlayerContribPlugin
     }
 
     onMediaLoad(config: OnMediaLoadConfig): void {
-        if (this._threadManager) this._threadManager.registerToQnaPushNotificationEvents();
+        // todo: send this.entryId but it is wrong
+
+        const entryId = "1_s8s12id6"; // this.getEntryId()  // todo wrong config.entryId
+        const userId = "Shimi"; // this.getUserName() // todo
+
+        if (this._threadManager) this._threadManager.register(entryId, userId);
+
+        // TODO remove once replacing this temporary standalond player with support of the new API
+        KalturaPlayer.getPlayer("player-div").setSidePanelMode("EXPANDED");
     }
 
     onRegisterUI(uiManager: UIManager): void {
-        uiManager.kitchenSink.add({
+        this._kitchenSinkItem = uiManager.kitchenSink.add({
             name: "Q&A",
             iconRenderer: () => <MenuIcon />,
             contentRenderer: this._renderKitchenSinkContent
         });
     }
 
-    private _renderKitchenSinkContent(props: KitchenSinkContentRendererProps) {
-        return <KitchenSink {...props} />;
-    }
+    _renderKitchenSinkContent = (props: KitchenSinkContentRendererProps) => {
+        if (!this._threadManager) {
+            return <div />;
+        }
+        return <KitchenSink {...props} threads={this._threads} />;
+    };
 
     private _getLogger(context: string): Function {
         return (level: "debug" | "log" | "warn" | "error", message: string, ...args: any[]) => {

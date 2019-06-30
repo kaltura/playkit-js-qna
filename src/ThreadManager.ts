@@ -4,38 +4,45 @@ import {
     PrepareRegisterRequestConfig,
     RegisterNotificationsParams
 } from "@playkit-js-contrib/push-notifications";
-import { log } from "@playkit-js-contrib/common";
+import { EventManager, log } from "@playkit-js-contrib/common";
 import { QnaMessage } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
 
 export interface ThreadManagerParams {
-    server: {
-        ks: string;
-        partnerId: number;
-        serviceUrl: string;
+    ks: string;
+    serviceUrl: string;
+    playerAPI: {
+        player: any;
+        eventManager: any;
     };
-    player: any;
-    eventManager: any;
+    messageEventManager: EventManager;
 }
 
 export class ThreadManager {
     private _pushNotifications: PushNotifications | null = null;
-    private logger = this._getLogger("QnaPlugin");
     private _qnaMessages: QnaMessage[] = [];
+    private _logger = this._getLogger("QnaPlugin");
+    private _messageEventManager: EventManager | null;
+
+    public get messages(): QnaMessage[] {
+        return this._qnaMessages;
+    }
 
     constructor(config: ThreadManagerParams) {
         let pushNotificationsOptions: PushNotificationsOptions = {
-            ks: config.server.ks,
-            serviceUrl: config.server.serviceUrl,
+            ks: config.ks,
+            serviceUrl: config.serviceUrl,
             clientTag: "QnaPlugin_V7", // todo: Is this the clientTag we want
             playerAPI: {
-                kalturaPlayer: config.player,
-                eventManager: config.eventManager
+                kalturaPlayer: config.playerAPI.player,
+                eventManager: config.playerAPI.eventManager
             }
         };
 
         // Todo: should use plugin instance
         this._pushNotifications = PushNotifications.getInstance(pushNotificationsOptions);
+
+        this._messageEventManager = config.messageEventManager;
     }
 
     private _getLogger(context: string): Function {
@@ -52,31 +59,20 @@ export class ThreadManager {
         this._qnaMessages = [];
     }
 
-    public registerToQnaPushNotificationEvents() {
-        this.logger("log", "registerToQnaPushNotificationEvents");
+    public register(entryId: string, userId: string) {
+        this._logger("log", "registerToQnaPushNotificationEvents");
 
         if (!this._pushNotifications) {
             // TODO change state to error
             return;
         }
 
-        const entryId = "1_s8s12id6"; // this.getEntryId()  // todo wrong config.entryId
-        const userId = "Shimi"; // this.getUserName() // todo
-
-        let codeQnaRequestConfig: PrepareRegisterRequestConfig = {
-            eventName: "CODE_QNA_NOTIFICATIONS",
-            eventParams: {
-                entryId: entryId
-            },
-            onMessage: (cuePoints: KalturaAnnotation[]) => {}
-        };
-
         let publicQnaRequestConfig: PrepareRegisterRequestConfig = {
             eventName: "PUBLIC_QNA_NOTIFICATIONS",
             eventParams: {
                 entryId: entryId
             },
-            onMessage: (cuePoints: KalturaAnnotation[]) => {}
+            onMessage: (response: any[]) => {}
         };
 
         let privateQnaRequestConfig: PrepareRegisterRequestConfig = {
@@ -85,31 +81,38 @@ export class ThreadManager {
                 entryId: entryId,
                 userId: userId
             },
-            onMessage: (cuePoints: KalturaAnnotation[]) => {
-                this._processMessages(cuePoints);
+            onMessage: (response: any[]) => {
+                this._processMessages(response);
+                if (this._messageEventManager) {
+                    this._messageEventManager.emit("OnPrivateMessage", this._qnaMessages);
+                }
             }
         };
 
-        let registerNotifications: RegisterNotificationsParams = {
-            prepareRegisterRequestConfigs: [
-                codeQnaRequestConfig,
-                publicQnaRequestConfig,
-                privateQnaRequestConfig
-            ],
-            onSocketReconnect: () => {}
-        };
-
-        this._pushNotifications.registerNotifications(registerNotifications).then(
-            () => {
-                // todo
-            },
-            (err: any) => {
-                // todo
-            }
-        );
+        this._pushNotifications
+            .registerNotifications({
+                prepareRegisterRequestConfigs: [publicQnaRequestConfig, privateQnaRequestConfig],
+                onSocketReconnect: () => {}
+            })
+            .then(
+                () => {
+                    // todo
+                },
+                (err: any) => {
+                    // todo
+                }
+            );
     }
 
-    private _processMessages(cuePoints: KalturaAnnotation[]): void {
+    private _processMessages(response: any): void {
+        // convert to KalturaAnnotation[] Typescript object
+        let cuePoints: KalturaAnnotation[] = response.map((res: any) => {
+            const result = new KalturaAnnotation();
+            result.fromResponseObject(res);
+            return result;
+        });
+
+        // parse data
         cuePoints.forEach((cuePoint: KalturaAnnotation) => {
             let newMessage: QnaMessage = new QnaMessage(cuePoint);
 
@@ -120,6 +123,10 @@ export class ThreadManager {
 
             this._processReply(newMessage);
         });
+
+        this._qnaMessages.sort((a: QnaMessage, b: QnaMessage) => {
+            return b.timeCompareFunction() - a.timeCompareFunction();
+        });
     }
 
     /**
@@ -128,17 +135,17 @@ export class ThreadManager {
      * @private
      */
     private _processMasterQuestion(newMessage: QnaMessage): void {
-        let indexOfQuestion = this._qnaMessages.findIndex(qnaMessage => {
+        let indexOfMasterQuestion = this._qnaMessages.findIndex(qnaMessage => {
             return qnaMessage.id === newMessage.id;
         });
 
-        if (indexOfQuestion === -1) {
+        if (indexOfMasterQuestion === -1) {
             this._qnaMessages.push(newMessage);
             return;
         }
 
-        newMessage.replies = this._qnaMessages[indexOfQuestion].replies;
-        this._qnaMessages.splice(indexOfQuestion, 1, newMessage); // override to the new element
+        newMessage.replies = this._qnaMessages[indexOfMasterQuestion].replies;
+        this._qnaMessages.splice(indexOfMasterQuestion, 1, newMessage); // override to the new element
     }
 
     /**
@@ -157,7 +164,7 @@ export class ThreadManager {
         });
 
         if (indexOfMaterQuestion === -1) {
-            this.logger(
+            this._logger(
                 "warn",
                 "Dropping reply as there is no matching (master) question",
                 newMessage
