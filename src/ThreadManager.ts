@@ -112,7 +112,7 @@ export class ThreadManager {
             return result;
         });
 
-        // parse data
+        // parse and add message to _qnaMessages threads array
         cuePoints.forEach((cuePoint: KalturaAnnotation) => {
             let newMessage: QnaMessage = new QnaMessage(cuePoint);
 
@@ -124,8 +124,13 @@ export class ThreadManager {
             this._processReply(newMessage);
         });
 
+        // todo throttling to this sort
+        this.sortQnaMessages();
+    }
+
+    private sortQnaMessages() {
         this._qnaMessages.sort((a: QnaMessage, b: QnaMessage) => {
-            return b.timeCompareFunction() - a.timeCompareFunction();
+            return b.threadTimeCompareFunction() - a.threadTimeCompareFunction();
         });
     }
 

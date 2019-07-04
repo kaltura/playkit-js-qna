@@ -15,8 +15,41 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
     state = {};
 
+    private _generateThreadList(props: KitchenSinkProps) {
+        if (!props.threads || props.threads.length === 0) {
+            return (
+                <div className={styles.noQuestionWrapper}>
+                    <div
+                        className={`
+                                    ${styles.emptyListImgProperties}
+                                    ${
+                                        !props.threads
+                                            ? styles.whoopseErrorImage
+                                            : styles.noQuestionYetImage
+                                    }                               
+                                    `}
+                    />
+                    <div className={styles.emptyListTitle}>
+                        {!props.threads ? "Whoops!" : "No Question Yet"}
+                    </div>
+                    <div className={styles.emptyListSubTitle}>
+                        {!props.threads
+                            ? "We couldn’t retrieve your messages. No worries, we’ll try again in few seconds"
+                            : "Type your first question below"}
+                    </div>
+                </div>
+            );
+        } else {
+            return props.threads.map((qnaMessage: QnaMessage) => {
+                return <ThreadItem thread={qnaMessage} key={qnaMessage.id} />;
+            });
+        }
+    }
+
     render(props: KitchenSinkProps) {
         const { onClose } = props;
+        let renderedThreads = this._generateThreadList(props);
+
         return (
             <div className={styles.root}>
                 {/* header */}
@@ -28,10 +61,17 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 </div>
 
                 {/* body */}
-                <div className={styles.flexibleMain}>
-                    {props.threads.map((qnaMessage: QnaMessage) => {
-                        return <ThreadItem thread={qnaMessage} key={qnaMessage.id} />;
-                    })}
+                <div
+                    className={`
+                                ${styles.flexibleMain}
+                                ${
+                                    !props.threads || props.threads.length === 0
+                                        ? styles.noContent
+                                        : ""
+                                }
+                                `}
+                >
+                    {renderedThreads}
                 </div>
 
                 {/* footer */}

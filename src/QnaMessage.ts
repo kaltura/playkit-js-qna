@@ -88,7 +88,10 @@ export class QnaMessage {
         }
     }
 
-    timeCompareFunction(): number {
+    /**
+     * Take the time of the newest QnaMessage
+     */
+    threadTimeCompareFunction(): number {
         if (this.type === QnaMessageType.ANNOUNCEMENT) {
             return this.time.valueOf();
         }
@@ -103,16 +106,11 @@ export class QnaMessage {
             q_time = this.time.valueOf();
         }
 
-        // order the thread that the newest is on top
-        // order the question by time, as newest is last
         for (let i = 0; i < this.replies.length; ++i) {
             let reply: QnaMessage = this.replies[i];
             if (reply.type === QnaMessageType.ANSWER) {
                 if (!a_time) a_time = reply.time.valueOf();
                 else if (reply.time.valueOf() > a_time) a_time = reply.time.valueOf();
-            } else if (reply.type === QnaMessageType.QUESTION) {
-                if (!q_time) q_time = reply.time.valueOf();
-                else if (reply.time.valueOf() < q_time) q_time = reply.time.valueOf();
             }
         }
 
