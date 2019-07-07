@@ -2,9 +2,11 @@ import { h, Component } from "preact";
 import * as styles from "./threadItem.scss";
 import { QnaMessage } from "../../QnaMessage";
 import { Utils } from "../../utils";
+import { DataTimeFormatting } from "../kitchen-sink";
 
 interface ThreadItemProps {
     thread: QnaMessage;
+    formatting: DataTimeFormatting;
 }
 
 interface ThreadItemState {}
@@ -22,7 +24,7 @@ export class ThreadItem extends Component<ThreadItemProps, ThreadItemState> {
                 <div className={styles.secondLineInfo}>
                     {Utils.isDateOlderThan24Hours(props.thread.time) && (
                         <span className={`${styles.dateTimeProp} ${styles.date}`}>
-                            {Utils.getDisplayDate(props.thread.time)}
+                            {Utils.getDisplayDate(props.thread.time, props.formatting)}
                         </span>
                     )}
                     <span className={`${styles.dateTimeProp} ${styles.time}`}>

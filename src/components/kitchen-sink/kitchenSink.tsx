@@ -3,9 +3,14 @@ import * as styles from "./kitchenSink.scss";
 import { QnaMessage } from "../../QnaMessage";
 import { ThreadItem } from "../thread-item";
 
+export interface DataTimeFormatting {
+    dateFormatting: "American" | "European";
+}
+
 export interface KitchenSinkProps {
     onClose: () => void;
-    threads: QnaMessage[];
+    threads: QnaMessage[] | null;
+    formatting: DataTimeFormatting;
 }
 
 interface KitchenSinkState {}
@@ -13,7 +18,9 @@ interface KitchenSinkState {}
 export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     static defaultProps = {};
 
-    state = {};
+    state = {
+        loaded: true
+    };
 
     private _generateThreadList(props: KitchenSinkProps) {
         if (!props.threads || props.threads.length === 0) {
@@ -27,26 +34,32 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                                             ? styles.whoopseErrorImage
                                             : styles.noQuestionYetImage
                                     }                               
-                                    `}
+                                   `}
                     />
                     <div className={styles.emptyListTitle}>
                         {!props.threads ? "Whoops!" : "No Question Yet"}
                     </div>
                     <div className={styles.emptyListSubTitle}>
                         {!props.threads
-                            ? "We couldn’t retrieve your messages. No worries, we’ll try again in few seconds"
+                            ? "We couldn’t retrieve your messages. Please try again later"
                             : "Type your first question below"}
                     </div>
                 </div>
             );
         } else {
             return props.threads.map((qnaMessage: QnaMessage) => {
-                return <ThreadItem thread={qnaMessage} key={qnaMessage.id} />;
+                return (
+                    <ThreadItem
+                        thread={qnaMessage}
+                        formatting={props.formatting}
+                        key={qnaMessage.id}
+                    />
+                );
             });
         }
     }
 
-    render(props: KitchenSinkProps) {
+    render(props: KitchenSinkProps, state: any) {
         const { onClose } = props;
         let renderedThreads = this._generateThreadList(props);
 
@@ -71,7 +84,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                                 }
                                 `}
                 >
-                    {renderedThreads}
+                    {state.loaded && renderedThreads}
                 </div>
 
                 {/* footer */}

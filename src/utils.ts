@@ -1,12 +1,22 @@
+import { DataTimeFormatting } from "./components/kitchen-sink";
+
 export class Utils {
     public static ONE_DAY_IN_MS: number = 1000 * 60 * 60 * 24;
 
-    public static getDisplayDate(date: Date | null) {
+    public static getDisplayDate(date: Date | null, formatting?: DataTimeFormatting) {
         if (!date) {
             return;
         }
 
-        return `${date.getDate()}/${date.getMonth() + 1}`;
+        let dateString: string = "";
+        if (formatting && formatting.dateFormatting === "American") {
+            dateString = `${date.getMonth() + 1}/${date.getDate()}`;
+        } else {
+            // default European (day/month)
+            dateString = `${date.getDate()}/${date.getMonth() + 1}`;
+        }
+
+        return dateString;
     }
 
     public static getDisplayTime(date: Date | null) {

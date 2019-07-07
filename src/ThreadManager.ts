@@ -84,7 +84,7 @@ export class ThreadManager {
             onMessage: (response: any[]) => {
                 this._processMessages(response);
                 if (this._messageEventManager) {
-                    this._messageEventManager.emit("OnPrivateMessage", this._qnaMessages);
+                    this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
                 }
             }
         };
@@ -99,7 +99,10 @@ export class ThreadManager {
                     // todo
                 },
                 (err: any) => {
-                    // todo
+                    // Something bad happen (push server or more are down)
+                    if (this._messageEventManager) {
+                        this._messageEventManager.emit("OnQnaMessage", null);
+                    }
                 }
             );
     }

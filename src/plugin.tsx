@@ -36,7 +36,7 @@ export class QnaPlugin extends PlayerContribPlugin
     private _threadManager: ThreadManager | null = null;
     private _messageEventManager: EventManager | null = null;
     private _kitchenSinkItem: KitchenSinkItem | null = null;
-    private _threads: QnaMessage[] | [] = [];
+    private _threads: QnaMessage[] | [] | null = [];
 
     onPluginSetup(config: ContribConfig): void {
         this._kalturaClient.setOptions({
@@ -49,7 +49,7 @@ export class QnaPlugin extends PlayerContribPlugin
         });
 
         this._messageEventManager = new EventManager();
-        this._messageEventManager.on("OnPrivateMessage", (qnaMessages: QnaMessage[]) => {
+        this._messageEventManager.on("OnQnaMessage", (qnaMessages: QnaMessage[] | null) => {
             this._threads = qnaMessages;
             if (this._kitchenSinkItem) {
                 this._kitchenSinkItem.update();
@@ -68,7 +68,9 @@ export class QnaPlugin extends PlayerContribPlugin
     }
 
     onMediaUnload(): void {
-        if (this._threadManager) this._threadManager.unregister();
+        if (this._threadManager) {
+            this._threadManager.unregister();
+        }
     }
 
     onMediaLoad(config: OnMediaLoadConfig): void {
@@ -77,7 +79,9 @@ export class QnaPlugin extends PlayerContribPlugin
         const entryId = "1_s8s12id6"; // this.getEntryId()  // todo wrong config.entryId
         const userId = "Shimi"; // this.getUserName() // todo
 
-        if (this._threadManager) this._threadManager.register(entryId, userId);
+        if (this._threadManager) {
+            this._threadManager.register(entryId, userId);
+        }
 
         // TODO remove once replacing this temporary standalond player with support of the new API
         KalturaPlayer.getPlayer("player-div").setSidePanelMode("EXPANDED");
@@ -95,7 +99,12 @@ export class QnaPlugin extends PlayerContribPlugin
         if (!this._threadManager) {
             return <div />;
         }
-        return <KitchenSink {...props} threads={this._threads} />;
+
+        const formatting = {
+            dateFormatting: "American" // todo: get this from KMS / KMC etc'...
+        };
+
+        return <KitchenSink {...props} formatting={formatting} threads={this._threads} />;
     };
 
     private _getLogger(context: string): Function {
