@@ -17,7 +17,7 @@ import {
     OnRegisterUI,
     PlayerContribPlugin
 } from "@playkit-js-contrib/plugin";
-import { KitchenSink } from "./components/kitchen-sink";
+import { DateFormattingEnum, KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 
 import { log, EventManager } from "@playkit-js-contrib/common";
@@ -100,8 +100,9 @@ export class QnaPlugin extends PlayerContribPlugin
             return <div />;
         }
 
+        // todo: get this from KMS / KMC etc'...
         const formatting = {
-            dateFormatting: "American" // todo: get this from KMS / KMC etc'...
+            dateFormatting: DateFormattingEnum.European
         };
 
         return <KitchenSink {...props} formatting={formatting} threads={this._threads} />;

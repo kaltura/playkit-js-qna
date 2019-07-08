@@ -2,11 +2,11 @@ import { h, Component } from "preact";
 import * as styles from "./threadItem.scss";
 import { QnaMessage } from "../../QnaMessage";
 import { Utils } from "../../utils";
-import { DataTimeFormatting } from "../kitchen-sink";
+import { DateTimeFormatting } from "../kitchen-sink";
 
 interface ThreadItemProps {
     thread: QnaMessage;
-    formatting: DataTimeFormatting;
+    formatting: DateTimeFormatting;
 }
 
 interface ThreadItemState {}

@@ -3,14 +3,19 @@ import * as styles from "./kitchenSink.scss";
 import { QnaMessage } from "../../QnaMessage";
 import { ThreadItem } from "../thread-item";
 
-export interface DataTimeFormatting {
-    dateFormatting: "American" | "European";
+export interface DateTimeFormatting {
+    dateFormatting: DateFormattingEnum;
+}
+
+export enum DateFormattingEnum {
+    American = "American",
+    European = "European"
 }
 
 export interface KitchenSinkProps {
     onClose: () => void;
     threads: QnaMessage[] | null;
-    formatting: DataTimeFormatting;
+    formatting: DateTimeFormatting;
 }
 
 interface KitchenSinkState {}
