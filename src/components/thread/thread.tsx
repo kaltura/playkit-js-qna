@@ -31,6 +31,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         {Utils.getDisplayTime(props.thread.time)}
                     </span>
                 </div>
+                <div className={styles.thirdLineInfo} />
             </div>
         );
     }
