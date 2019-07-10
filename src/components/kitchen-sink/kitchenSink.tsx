@@ -1,63 +1,68 @@
 import { h, Component } from "preact";
 import * as styles from "./kitchenSink.scss";
 import { QnaMessage } from "../../QnaMessage";
-import { ThreadItem } from "../thread-item";
+import { Thread } from "../thread";
 
 export interface DateTimeFormatting {
-    dateFormatting: DateFormattingEnum;
+    dateFormatting: DateFormats;
 }
 
-export enum DateFormattingEnum {
+export enum DateFormats {
     American = "American",
     European = "European"
 }
 
 export interface KitchenSinkProps {
     onClose: () => void;
-    threads: QnaMessage[] | null;
+    threads: QnaMessage[];
     formatting: DateTimeFormatting;
+    hasError: boolean;
+    loading: boolean;
 }
 
 interface KitchenSinkState {}
 
 export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
-    static defaultProps = {};
-
-    state = {
-        loaded: true
+    // Default values only when values not been sent.
+    static defaultProps = {
+        hasError: false,
+        loading: false
     };
 
+    state = {};
+
     private _generateThreadList(props: KitchenSinkProps) {
-        if (!props.threads || props.threads.length === 0) {
+        if (props.loading) {
+        } else if (props.hasError || props.threads.length === 0) {
             return (
                 <div className={styles.noQuestionWrapper}>
                     <div
                         className={`
                                     ${styles.emptyListImgProperties}
                                     ${
-                                        !props.threads
+                                        props.hasError
                                             ? styles.whoopseErrorImage
                                             : styles.noQuestionYetImage
                                     }                               
                                    `}
                     />
                     <div className={styles.emptyListTitle}>
-                        {!props.threads ? "Whoops!" : "No Question Yet"}
+                        {props.hasError ? "Whoops!" : "No Question Yet"}
                     </div>
                     <div className={styles.emptyListSubTitle}>
-                        {!props.threads
+                        {props.hasError
                             ? "We couldn’t retrieve your messages. Please try again later"
                             : "Type your first question below"}
                     </div>
                 </div>
             );
         } else {
-            return props.threads.map((qnaMessage: QnaMessage) => {
+            return props.threads.map((masterQuestion: QnaMessage) => {
                 return (
-                    <ThreadItem
-                        thread={qnaMessage}
+                    <Thread
+                        thread={masterQuestion}
                         formatting={props.formatting}
-                        key={qnaMessage.id}
+                        key={masterQuestion.id}
                     />
                 );
             });
@@ -80,16 +85,12 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
                 {/* body */}
                 <div
-                    className={`
-                                ${styles.flexibleMain}
-                                ${
-                                    !props.threads || props.threads.length === 0
-                                        ? styles.noContent
-                                        : ""
-                                }
-                                `}
+                    className={` ${styles.flexibleMain}
+                                ${(props.loading || props.hasError || props.threads.length === 0) &&
+                                    styles.noContent} 
+                            `}
                 >
-                    {state.loaded && renderedThreads}
+                    {renderedThreads}
                 </div>
 
                 {/* footer */}

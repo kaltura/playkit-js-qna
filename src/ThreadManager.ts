@@ -5,7 +5,7 @@ import {
     RegisterNotificationsParams
 } from "@playkit-js-contrib/push-notifications";
 import { EventManager, log } from "@playkit-js-contrib/common";
-import { QnaMessage } from "./QnaMessage";
+import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
 
 export interface ThreadManagerParams {
@@ -15,17 +15,16 @@ export interface ThreadManagerParams {
         player: any;
         eventManager: any;
     };
-    messageEventManager: EventManager;
 }
 
 export class ThreadManager {
     private _pushNotifications: PushNotifications | null = null;
     private _qnaMessages: QnaMessage[] = [];
     private _logger = this._getLogger("QnaPlugin");
-    private _messageEventManager: EventManager | null;
+    private _messageEventManager: EventManager = new EventManager();
 
-    public get messages(): QnaMessage[] {
-        return this._qnaMessages;
+    public get messageEventManager(): EventManager {
+        return this._messageEventManager;
     }
 
     constructor(config: ThreadManagerParams) {
@@ -41,8 +40,6 @@ export class ThreadManager {
 
         // Todo: should use plugin instance
         this._pushNotifications = PushNotifications.getInstance(pushNotificationsOptions);
-
-        this._messageEventManager = config.messageEventManager;
     }
 
     private _getLogger(context: string): Function {
@@ -83,9 +80,6 @@ export class ThreadManager {
             },
             onMessage: (response: any[]) => {
                 this._processMessages(response);
-                if (this._messageEventManager) {
-                    this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
-                }
             }
         };
 
@@ -101,40 +95,45 @@ export class ThreadManager {
                 (err: any) => {
                     // Something bad happen (push server or more are down)
                     if (this._messageEventManager) {
-                        this._messageEventManager.emit("OnQnaMessage", null);
+                        this._messageEventManager.emit("OnQnaError");
                     }
                 }
             );
     }
 
     private _processMessages(response: any): void {
-        // convert to KalturaAnnotation[] Typescript object
-        let cuePoints: KalturaAnnotation[] = response.map((res: any) => {
-            const result = new KalturaAnnotation();
-            result.fromResponseObject(res);
-            return result;
-        });
+        response
+            .reduce((filtered: KalturaAnnotation[], res: any) => {
+                if (res.objectType !== "KalturaAnnotation") {
+                    this._logger("warn", "message cuePoint should be of type: KalturaAnnotation");
+                } else {
+                    // Transform the result into KalturaAnnotation object
+                    const result: KalturaAnnotation = new KalturaAnnotation();
+                    result.fromResponseObject(res);
+                    filtered.push(result);
+                }
 
-        // parse and add message to _qnaMessages threads array
-        cuePoints.forEach((cuePoint: KalturaAnnotation) => {
-            let newMessage: QnaMessage = new QnaMessage(cuePoint);
+                return filtered;
+            }, [])
+            .forEach((cuePoint: KalturaAnnotation) => {
+                let newMessage: QnaMessage | null = QnaMessage.create(cuePoint);
 
-            if (newMessage.isMasterQuestion()) {
-                this._processMasterQuestion(newMessage);
-                return;
-            }
+                if (!newMessage) {
+                    // todo we can indicate a small error Just on this render qnaMessage
+                    return;
+                }
 
-            this._processReply(newMessage);
-        });
+                if (newMessage.isMasterQuestion()) {
+                    this._processMasterQuestion(newMessage);
+                    return;
+                }
 
-        // todo throttling to this sort
-        this.sortQnaMessages();
-    }
+                this._processReply(newMessage);
+            });
 
-    private sortQnaMessages() {
-        this._qnaMessages.sort((a: QnaMessage, b: QnaMessage) => {
-            return b.threadTimeCompareFunction() - a.threadTimeCompareFunction();
-        });
+        if (this._messageEventManager) {
+            this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
+        }
     }
 
     /**
@@ -154,6 +153,57 @@ export class ThreadManager {
 
         newMessage.replies = this._qnaMessages[indexOfMasterQuestion].replies;
         this._qnaMessages.splice(indexOfMasterQuestion, 1, newMessage); // override to the new element
+
+        // todo throttling to this sort
+        this.sortMasterQuestions();
+    }
+
+    private sortMasterQuestions() {
+        this._qnaMessages.sort((a: QnaMessage, b: QnaMessage) => {
+            return this.threadTimeCompare(b) - this.threadTimeCompare(a);
+        });
+    }
+
+    /**
+     * Take the time of the newest QnaMessage
+     */
+    threadTimeCompare(qnaMessage: QnaMessage): number {
+        if (qnaMessage.type === QnaMessageType.Announcement) {
+            return qnaMessage.time.valueOf();
+        }
+
+        let q_time, a_time;
+
+        if (qnaMessage.type === QnaMessageType.Answer) {
+            a_time = qnaMessage.time.valueOf();
+        }
+
+        if (qnaMessage.type === QnaMessageType.Question) {
+            q_time = qnaMessage.time.valueOf();
+        }
+
+        for (let i = 0; i < qnaMessage.replies.length; ++i) {
+            let reply: QnaMessage = qnaMessage.replies[i];
+            if (reply.type === QnaMessageType.Announcement) {
+                if (!a_time) a_time = reply.time.valueOf();
+                else if (reply.time.valueOf() > a_time) a_time = reply.time.valueOf();
+            }
+        }
+
+        if (!a_time && !q_time) {
+            // todo log("both a_time and q_time are undefined - data error");
+            return 0;
+        }
+
+        if (!a_time) {
+            return q_time || 0;
+        }
+
+        if (!q_time) {
+            return a_time || 0;
+        }
+
+        return Math.max(a_time, q_time);
     }
 
     /**
@@ -191,5 +241,14 @@ export class ThreadManager {
         }
 
         replies.splice(indexOfReplay, 1, newMessage); // override to the new element
+
+        // todo throttling to this sort
+        this._sortReplies(replies);
+    }
+
+    private _sortReplies(replies: QnaMessage[]) {
+        replies.sort((a: QnaMessage, b: QnaMessage) => {
+            return a.time.valueOf() - b.time.valueOf();
+        });
     }
 }

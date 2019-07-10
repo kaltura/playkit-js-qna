@@ -2,30 +2,26 @@ $background-color: #222222e6;
 
 
 /* Todo? may be remove all fallback fonts */
-* {
+.root {
   font-family: Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
   "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji",
   "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-/* TODO: remove this once 3rd party cross-browser custom scroll bar is Added */
-::-webkit-scrollbar {
+/* TODO: (1) remove this once 3rd party cross-browser custom scroll bar is Added */
+.flexible-main::-webkit-scrollbar {
   width: 4px;
 }
 
-/* Track */
-::-webkit-scrollbar-track {
+/* Track TODO: as (1)*/
+.flexible-main::-webkit-scrollbar-track {
   background: $background-color;
 }
 
-/* Handle */
-::-webkit-scrollbar-thumb {
+/* Handle TODO: as (1) */
+.flexible-main::-webkit-scrollbar-thumb {
   border-radius: 3px;
   background-color: rgba(255, 255, 255, 0.3);
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
 }
 
 .root {

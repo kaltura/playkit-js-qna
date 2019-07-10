@@ -1,16 +1,18 @@
 import {
     KalturaAnnotation,
+    KalturaCuePoint,
     KalturaMetadata,
     KalturaMetadataListResponse,
     KalturaMetadataProfileStatus,
     KalturaMetadataStatus
 } from "kaltura-typescript-client/api/types";
 import { Utils } from "./utils";
+import { log } from "@playkit-js-contrib/common";
 
 export enum QnaMessageType {
-    QUESTION = "Question",
-    ANNOUNCEMENT = "Announcement",
-    ANSWER = "Answer"
+    Question = "Question",
+    Answer = "Answer",
+    Announcement = "Announcement"
 }
 
 export enum MessageStatusEnum {
@@ -20,113 +22,112 @@ export enum MessageStatusEnum {
     SENT = "SENT"
 }
 
-interface Window extends Record<string, any> {}
+interface MetadataInfo {
+    type: QnaMessageType;
+    parentId: string | null; // on masterQuestion the parentId xml metadata not always exits.
+}
 
-export function isWindowHasDomParser(window: any): window is Window {
-    return "DOMParser" in window;
+export interface QnaMessageParams {
+    metadataInfo: MetadataInfo;
+    id: string;
+    time: Date;
 }
 
 export class QnaMessage {
     public id: string;
-    public deliveryStatus: MessageStatusEnum;
-    public messageContent: string;
     public time: Date;
-    public parentId: string | null = null;
+    public messageContent: string | null = null;
+    public type: QnaMessageType;
+    public parentId: string | null;
     public replies: QnaMessage[];
-    public type: QnaMessageType | null = null;
-    public threadCreatorId: string | null = null;
+    public deliveryStatus: MessageStatusEnum | null = null;
 
-    constructor(cuePoint: KalturaAnnotation) {
-        this.addMetadata(cuePoint);
+    private _logger = this._getLogger("QnaPlugin");
 
-        this.id = cuePoint.id;
-        this.time = cuePoint.createdAt;
-        this.messageContent = cuePoint.text;
+    public static create(cuePoint: KalturaAnnotation): QnaMessage | null {
+        try {
+            // throw parsing errors
+            const qnaMessageParams: QnaMessageParams = {
+                metadataInfo: this.getMetadata(cuePoint),
+                id: cuePoint.id,
+                time: cuePoint.createdAt
+            };
+
+            const result = new QnaMessage(qnaMessageParams);
+
+            // add optional if any
+            result.messageContent = cuePoint.text;
+            result.deliveryStatus = cuePoint.createdAt
+                ? MessageStatusEnum.CREATED
+                : MessageStatusEnum.SENDING;
+
+            return result;
+        } catch (e) {
+            // todo static logging to this;
+            console.warn(`Error: couldn't create QnaMessage, mandatory field(s) are missing`, e);
+            return null;
+        }
+    }
+
+    constructor(qnaMessageParams: QnaMessageParams) {
+        this.id = qnaMessageParams.id;
+        this.time = qnaMessageParams.time;
+        this.parentId = qnaMessageParams.metadataInfo.parentId;
+        this.type = qnaMessageParams.metadataInfo.type;
         this.replies = [];
-        this.deliveryStatus = cuePoint.createdAt
-            ? MessageStatusEnum.CREATED
-            : MessageStatusEnum.SENDING;
+    }
+
+    private static getMetadata(cuePoint: KalturaAnnotation): MetadataInfo {
+        if (!cuePoint.relatedObjects || !cuePoint.relatedObjects["QandA_ResponseProfile"]) {
+            throw new Error("Missing QandA_ResponseProfile at cuePoint.relatedObjects");
+        }
+
+        const relatedObject = cuePoint.relatedObjects["QandA_ResponseProfile"];
+
+        if (!(relatedObject instanceof KalturaMetadataListResponse)) {
+            throw new Error("QandA_ResponseProfile expected to be KalturaMetadataListResponse");
+        }
+
+        if (relatedObject.objects.length === 0) {
+            throw new Error("There are no metadata objects xml at KalturaMetadataListResponse");
+        }
+
+        const metadata = relatedObject.objects[0];
+
+        if (!("DOMParser" in window)) {
+            throw new Error("DOMParser is not exits at window, cant parse the metadata xml");
+        }
+
+        let parser = new DOMParser();
+        let xmlDoc = parser.parseFromString(metadata.xml, "text/xml");
+
+        const typeString = Utils.getValueFromXml(xmlDoc, "Type");
+        if (!typeString) {
+            throw new Error("Type is missing at metadata xml");
+        }
+        const type = Utils.getEnumByEnumValue(QnaMessageType, typeString);
+        if (!type) {
+            throw new Error(`Unknown QnA type: ${typeString}`);
+        }
+
+        // Always reference this threadId in metadata for parentId as moderator won't send parentId
+        const parentId = Utils.getValueFromXml(xmlDoc, "ThreadId");
+
+        const metadataInfo: MetadataInfo = {
+            type: type,
+            parentId: Utils.getValueFromXml(xmlDoc, "ThreadId")
+        };
+
+        return metadataInfo;
     }
 
     isMasterQuestion(): boolean {
         return this.parentId === null;
     }
 
-    private addMetadata(cuePoint: KalturaAnnotation) {
-        const relatedObject = cuePoint.relatedObjects["QandA_ResponseProfile"];
-
-        if (!(relatedObject instanceof KalturaMetadataListResponse)) {
-            // todo
-            return null;
-        }
-
-        if (relatedObject.objects.length === 0) {
-            return null;
-        }
-
-        const metadata = relatedObject.objects[0];
-
-        try {
-            if (!isWindowHasDomParser(window)) {
-                // TODO log
-                return;
-            }
-
-            let parser = new DOMParser();
-            let xmlDoc = parser.parseFromString(metadata.xml, "text/xml");
-
-            const type = Utils.getValueFromXml(xmlDoc, "Type");
-            this.type = type ? Utils.getEnumByEnumValue(QnaMessageType, type) : null; // noImplicitAny
-
-            this.threadCreatorId = Utils.getValueFromXml(xmlDoc, "ThreadCreatorId");
-
-            // Always reference threadId in metadata for parentId as moderator won't send parentId
-            this.parentId = Utils.getValueFromXml(xmlDoc, "ThreadId");
-        } catch (e) {
-            // todo log error
-            return null;
-        }
-    }
-
-    /**
-     * Take the time of the newest QnaMessage
-     */
-    threadTimeCompareFunction(): number {
-        if (this.type === QnaMessageType.ANNOUNCEMENT) {
-            return this.time.valueOf();
-        }
-
-        let q_time, a_time;
-
-        if (this.type === QnaMessageType.ANSWER) {
-            a_time = this.time.valueOf();
-        }
-
-        if (this.type === QnaMessageType.QUESTION) {
-            q_time = this.time.valueOf();
-        }
-
-        for (let i = 0; i < this.replies.length; ++i) {
-            let reply: QnaMessage = this.replies[i];
-            if (reply.type === QnaMessageType.ANSWER) {
-                if (!a_time) a_time = reply.time.valueOf();
-                else if (reply.time.valueOf() > a_time) a_time = reply.time.valueOf();
-            }
-        }
-
-        if (!a_time && !q_time) {
-            // todo log("both a_time and q_time are undefined - data error");
-            return 0;
-        }
-
-        if (!a_time) {
-            return q_time || 0;
-        }
-
-        if (!q_time) {
-            return a_time || 0;
-        }
-
-        return Math.max(a_time, q_time);
+    private _getLogger(context: string): Function {
+        return (level: "debug" | "log" | "warn" | "error", message: string, ...args: any[]) => {
+            log(level, context, message, ...args);
+        };
     }
 }

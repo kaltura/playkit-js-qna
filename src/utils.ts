@@ -1,4 +1,4 @@
-import { DateFormattingEnum, DateTimeFormatting } from "./components/kitchen-sink";
+import { DateFormats, DateTimeFormatting } from "./components/kitchen-sink";
 
 export class Utils {
     public static ONE_DAY_IN_MS: number = 1000 * 60 * 60 * 24;
@@ -9,7 +9,7 @@ export class Utils {
         }
 
         let dateString: string = "";
-        if (formatting && formatting.dateFormatting === DateFormattingEnum.American) {
+        if (formatting && formatting.dateFormatting === DateFormats.American) {
             dateString = `${date.getMonth() + 1}/${date.getDate()}`;
         } else {
             // default European (day/month)
