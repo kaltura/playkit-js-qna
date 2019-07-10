@@ -2,6 +2,7 @@ import { h, Component } from "preact";
 import * as styles from "./kitchenSink.scss";
 import { QnaMessage } from "../../QnaMessage";
 import { Thread } from "../thread";
+import { Spinner } from "../spinner";
 
 export interface DateTimeFormatting {
     dateFormatting: DateFormats;
@@ -31,8 +32,9 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
     state = {};
 
-    private _generateThreadList(props: KitchenSinkProps) {
+    private _generateContent(props: KitchenSinkProps) {
         if (props.loading) {
+            return <Spinner />;
         } else if (props.hasError || props.threads.length === 0) {
             return (
                 <div className={styles.noQuestionWrapper}>
@@ -71,7 +73,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
     render(props: KitchenSinkProps, state: any) {
         const { onClose } = props;
-        let renderedThreads = this._generateThreadList(props);
+        let renderedContent = this._generateContent(props);
 
         return (
             <div className={styles.root}>
@@ -90,7 +92,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                                     styles.noContent} 
                             `}
                 >
-                    {renderedThreads}
+                    {renderedContent}
                 </div>
 
                 {/* footer */}
