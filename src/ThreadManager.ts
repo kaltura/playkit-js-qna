@@ -148,11 +148,10 @@ export class ThreadManager {
 
         if (indexOfMasterQuestion === -1) {
             this._qnaMessages.push(newMessage);
-            return;
+        } else {
+            newMessage.replies = this._qnaMessages[indexOfMasterQuestion].replies;
+            this._qnaMessages.splice(indexOfMasterQuestion, 1, newMessage); // override to the new element
         }
-
-        newMessage.replies = this._qnaMessages[indexOfMasterQuestion].replies;
-        this._qnaMessages.splice(indexOfMasterQuestion, 1, newMessage); // override to the new element
 
         // todo throttling to this sort
         this.sortMasterQuestions();

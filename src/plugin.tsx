@@ -99,6 +99,7 @@ export class QnaPlugin extends PlayerContribPlugin
     }
 
     private _onQnaError() {
+        this._loading = false;
         this._hasError = true;
         if (this._kitchenSinkItem) {
             this._kitchenSinkItem.update();
