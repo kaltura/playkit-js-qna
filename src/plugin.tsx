@@ -40,6 +40,8 @@ export class QnaPlugin extends PlayerContribPlugin
     private _hasError: boolean = false;
     private _loading: boolean = true;
 
+    public static readonly LOADING_TIME_END = 3000;
+
     onPluginSetup(config: ContribConfig): void {
         this._kalturaClient.setOptions({
             clientTag: "playkit-js-qna",
@@ -87,23 +89,34 @@ export class QnaPlugin extends PlayerContribPlugin
         // register messages
         this._threadManager.messageEventManager.on("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));
+
+        this._delayedGiveUpLoading();
+    }
+
+    private _delayedGiveUpLoading() {
+        setTimeout(() => {
+            this._loading = false;
+            this._updateKitchenSink();
+        }, QnaPlugin.LOADING_TIME_END);
+    }
+
+    private _updateKitchenSink() {
+        if (this._kitchenSinkItem) {
+            this._kitchenSinkItem.update();
+        }
     }
 
     private _onQnaMessage(qnaMessages: QnaMessage[]) {
         this._hasError = false;
         this._loading = false;
         this._threads = qnaMessages;
-        if (this._kitchenSinkItem) {
-            this._kitchenSinkItem.update();
-        }
+        this._updateKitchenSink();
     }
 
     private _onQnaError() {
         this._loading = false;
         this._hasError = true;
-        if (this._kitchenSinkItem) {
-            this._kitchenSinkItem.update();
-        }
+        this._updateKitchenSink();
     }
 
     onMediaUnload(): void {
