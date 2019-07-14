@@ -159,7 +159,7 @@ export class ThreadManager {
 
     private sortMasterQuestions() {
         this._qnaMessages.sort((a: QnaMessage, b: QnaMessage) => {
-            return this.threadTimeCompare(b) - this.threadTimeCompare(a);
+            return this.threadTimeCompare(a) - this.threadTimeCompare(b);
         });
     }
 
