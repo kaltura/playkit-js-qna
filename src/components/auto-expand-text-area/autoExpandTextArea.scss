@@ -1,0 +1,86 @@
+/* TODO: (2) remove this once 3rd party cross-browser custom scroll bar is Added */
+.textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Track TODO: as (2)*/
+.textarea::-webkit-scrollbar-track {
+  background: #222222e6;
+}
+
+/* Handle TODO: as (2) */
+.textarea::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.textarea-container {
+  position: relative;
+}
+
+.textarea {
+  height: 40px;
+  min-height: 40px;
+  width: 100%;
+
+  padding: 10px 32px 10px 8px;
+  margin: 8px 0 0 0;
+  overflow: hidden;
+  outline: none;
+  resize: none;
+  border: none;
+
+  background-color: #333333;
+  color: #999999;
+  border-radius: 4px;
+  font-size: 14px;
+
+  &::selection {
+    background-color: white;
+    color: black;
+  }
+
+  &:focus {
+    background-color: black;
+    color: white;
+  }
+}
+
+.private-icon {
+  width: 40px;
+  height: 40px;
+  background-size: 30px;
+  position: absolute;
+  top: 5px;
+  right: -3px;
+  background: url(./../../assets/private.svg) no-repeat 7px 7px;
+}
+
+.input-actions-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  align-content: center;
+  flex-flow: row wrap;
+  margin-top: 5px;
+
+  &.not-visible {
+    display: none;
+  }
+}
+
+.send-button {
+  background-color: #008297;
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  margin-left: 8px;
+  padding: 4px 12px;
+
+  &:active {
+    background-color: #01accd;
+  }
+}

@@ -3,6 +3,7 @@ import * as styles from "./kitchenSink.scss";
 import { QnaMessage } from "../../QnaMessage";
 import { Thread } from "../thread";
 import { Spinner } from "../spinner";
+import { AutoExpandTextArea } from "../auto-expand-text-area";
 
 export interface DateTimeFormatting {
     dateFormatting: DateFormats;
@@ -31,6 +32,10 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     };
 
     state = {};
+
+    private handleOnSubmit(text: string) {
+        console.log(text);
+    }
 
     private _generateContent(props: KitchenSinkProps) {
         if (props.loading) {
@@ -96,7 +101,9 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 </div>
 
                 {/* footer */}
-                <div className={styles.footer} />
+                <div className={styles.footer}>
+                    <AutoExpandTextArea onSubmit={this.handleOnSubmit} />
+                </div>
             </div>
         );
     }

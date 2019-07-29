@@ -34,7 +34,6 @@ export class QnaPlugin extends PlayerContribPlugin
     private _logger = this._getLogger("QnaPlugin");
     private _kalturaClient = new KalturaClient();
     private _threadManager: ThreadManager | null = null;
-    private _messageEventManager: EventManager | null = null;
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
