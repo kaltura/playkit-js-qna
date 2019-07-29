@@ -72,6 +72,7 @@ export class AutoExpandTextArea extends Component<
 
     onSendClick = () => {
         this.props.onSubmit(this.state.text);
+        this.setState({ text: "" });
     };
 
     render({ onSubmit }: AutoExpandTextAreaProps, { text }: AutoExpandTextAreaState) {
