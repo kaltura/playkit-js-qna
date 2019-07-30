@@ -1,0 +1,45 @@
+$thread-background-color: #333333e6;
+
+.thread{
+  border-radius: 4px;
+  background-color: $thread-background-color;
+  min-height: 84px;
+  width: 100%;
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.message-content {
+  margin: 8px;
+  font-size: 15px;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.second-line-info {
+  height: 16px;
+  position: relative;
+  border-bottom: 1px solid #222222e6;
+  padding-bottom: 8px;
+  display: block;
+  box-sizing: initial;
+}
+
+.date-time-prop {
+  font-size: 12px;
+  font-weight: bold;
+  color: #cccccc;
+  position: absolute;
+}
+
+.date {
+  right: 68px;
+}
+
+.time {
+  right: 10px;
+}
+
+.third-line-info {
+  height: 32px;
+}
