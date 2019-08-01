@@ -20,6 +20,7 @@ export interface KitchenSinkProps {
     formatting: DateTimeFormatting;
     hasError: boolean;
     loading: boolean;
+    onSubmit: (text: string) => void;
 }
 
 interface KitchenSinkState {}
@@ -28,14 +29,15 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     // Default values only when values not been sent.
     static defaultProps = {
         hasError: false,
-        loading: false
+        loading: false,
+        onSubmit: () => {}
     };
 
     state = {};
 
-    private handleOnSubmit(text: string) {
-        console.log(text);
-    }
+    handleOnSubmit = (text: string) => {
+        this.props.onSubmit(text);
+    };
 
     private _generateContent(props: KitchenSinkProps) {
         if (props.loading) {

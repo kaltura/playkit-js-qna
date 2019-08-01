@@ -1,11 +1,5 @@
-import {
-    KalturaAnnotation,
-    KalturaCuePoint,
-    KalturaMetadata,
-    KalturaMetadataListResponse,
-    KalturaMetadataProfileStatus,
-    KalturaMetadataStatus
-} from "kaltura-typescript-client/api/types";
+import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
+import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
 import { Utils } from "./utils";
 import { log } from "@playkit-js-contrib/common";
 
@@ -22,7 +16,7 @@ export enum MessageStatusEnum {
     SENT = "SENT"
 }
 
-interface MetadataInfo {
+export interface MetadataInfo {
     type: QnaMessageType;
     parentId: string | null; // on masterQuestion the parentId xml metadata not always exits.
 }
@@ -67,6 +61,24 @@ export class QnaMessage {
             console.warn(`Error: couldn't create QnaMessage, mandatory field(s) are missing`, e);
             return null;
         }
+    }
+
+    public static createPendingMessage(cuePoint: KalturaAnnotation) {
+        const qnaMessageParams: QnaMessageParams = {
+            metadataInfo: {
+                type: QnaMessageType.Question,
+                parentId: null
+            },
+            id: cuePoint.id,
+            time: cuePoint.createdAt
+        };
+
+        const result = new QnaMessage(qnaMessageParams);
+
+        result.messageContent = cuePoint.text;
+        result.deliveryStatus = MessageStatusEnum.SENDING;
+
+        return result;
     }
 
     constructor(qnaMessageParams: QnaMessageParams) {
@@ -115,14 +127,14 @@ export class QnaMessage {
 
         const metadataInfo: MetadataInfo = {
             type: type,
-            parentId: Utils.getValueFromXml(xmlDoc, "ThreadId")
+            parentId: parentId
         };
 
         return metadataInfo;
     }
 
     isMasterQuestion(): boolean {
-        return this.parentId === null;
+        return this.parentId == null;
     }
 
     private _getLogger(context: string): Function {

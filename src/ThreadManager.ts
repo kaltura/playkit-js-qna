@@ -1,12 +1,11 @@
 import {
     PushNotifications,
     PushNotificationsOptions,
-    PrepareRegisterRequestConfig,
-    RegisterNotificationsParams
+    PrepareRegisterRequestConfig
 } from "@playkit-js-contrib/push-notifications";
 import { EventManager, log } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
-import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
+import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 
 export interface ThreadManagerParams {
     ks: string;
@@ -79,7 +78,7 @@ export class ThreadManager {
                 userId: userId
             },
             onMessage: (response: any[]) => {
-                this._processMessages(response);
+                this._processResponse(response);
             }
         };
 
@@ -101,7 +100,7 @@ export class ThreadManager {
             );
     }
 
-    private _processMessages(response: any): void {
+    private _processResponse(response: any): void {
         response
             .reduce((filtered: KalturaAnnotation[], res: any) => {
                 if (res.objectType !== "KalturaAnnotation") {
@@ -118,20 +117,30 @@ export class ThreadManager {
             .forEach((cuePoint: KalturaAnnotation) => {
                 let newMessage: QnaMessage | null = QnaMessage.create(cuePoint);
 
-                if (!newMessage) {
-                    // todo we can indicate a small error Just on this render qnaMessage
-                    return;
-                }
-
-                if (newMessage.isMasterQuestion()) {
-                    this._processMasterQuestion(newMessage);
-                    return;
-                }
-
-                this._processReply(newMessage);
+                this.processQnaMessage(newMessage);
             });
 
         if (this._messageEventManager) {
+            this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
+        }
+    }
+
+    private processQnaMessage(
+        newMessage: QnaMessage | null,
+        emitChangeOnMessageAdded: boolean = false
+    ) {
+        if (!newMessage) {
+            // todo we can indicate a small error Just on this render qnaMessage
+            return;
+        }
+
+        if (newMessage.isMasterQuestion()) {
+            this._processMasterQuestion(newMessage);
+        } else {
+            this._processReply(newMessage);
+        }
+
+        if (emitChangeOnMessageAdded && this._messageEventManager) {
             this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
         }
     }
@@ -157,16 +166,21 @@ export class ThreadManager {
         this.sortMasterQuestions();
     }
 
-    private sortMasterQuestions() {
+    private sortMasterQuestions(): void {
         this._qnaMessages.sort((a: QnaMessage, b: QnaMessage) => {
             return this.threadTimeCompare(a) - this.threadTimeCompare(b);
         });
     }
 
+    public addPendingCuePointToThread(cuePoint: KalturaAnnotation): void {
+        let newMessage: QnaMessage | null = QnaMessage.createPendingMessage(cuePoint);
+        this.processQnaMessage(newMessage, true);
+    }
+
     /**
      * Take the time of the newest QnaMessage
      */
-    threadTimeCompare(qnaMessage: QnaMessage): number {
+    public threadTimeCompare(qnaMessage: QnaMessage): number {
         if (qnaMessage.type === QnaMessageType.Announcement) {
             return qnaMessage.time.valueOf();
         }

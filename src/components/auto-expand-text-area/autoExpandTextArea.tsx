@@ -34,7 +34,6 @@ export class AutoExpandTextArea extends Component<
             this.setState({ text: event.target.value });
             this.resize();
         });
-        //event.preventDefault();
     };
 
     resize = () => {
@@ -71,6 +70,10 @@ export class AutoExpandTextArea extends Component<
     }
 
     onSendClick = () => {
+        if (this.state.text === "") {
+            return;
+        }
+
         this.props.onSubmit(this.state.text);
         this.setState({ text: "" });
     };
@@ -114,6 +117,7 @@ export class AutoExpandTextArea extends Component<
                 >
                     <span>{`${text.length}/${AutoExpandTextArea.MAX_NUM_OF_CHARS}`}</span>
                     <button
+                        disabled={!text.length}
                         onClick={this.onSendClick}
                         className={styles.sendButton}
                         type={"button"}

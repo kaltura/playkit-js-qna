@@ -83,4 +83,8 @@
   &:active {
     background-color: #01accd;
   }
+
+  &:disabled {
+    background-color: #999999;
+  }
 }

@@ -1,12 +1,14 @@
-import { h, Ref } from "preact";
-import { KalturaClient } from "kaltura-typescript-client";
+import { h } from "preact";
 import {
-    OverlayItem,
-    UIManager,
-    OverlayUIModes,
-    OverlayItemProps,
+    KalturaClient,
+    KalturaMultiRequest,
+    KalturaMultiResponse,
+    KalturaRequest
+} from "kaltura-typescript-client";
+import {
     KitchenSinkContentRendererProps,
-    KitchenSinkItem
+    KitchenSinkItem,
+    UIManager
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
@@ -20,9 +22,22 @@ import {
 import { DateFormats, KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 
-import { log, EventManager } from "@playkit-js-contrib/common";
+import { log } from "@playkit-js-contrib/common";
 import { ThreadManager } from "./ThreadManager";
-import { QnaMessage } from "./QnaMessage";
+import { QnaMessage, QnaMessageType } from "./QnaMessage";
+import { Utils } from "./utils";
+import { CuePointAddAction } from "kaltura-typescript-client/api/types/CuePointAddAction";
+import { CuePointUpdateAction } from "kaltura-typescript-client/api/types/CuePointUpdateAction";
+import {
+    KalturaAnnotation,
+    KalturaAnnotationArgs
+} from "kaltura-typescript-client/api/types/KalturaAnnotation";
+import { KalturaMetadataObjectType } from "kaltura-typescript-client/api/types/KalturaMetadataObjectType";
+import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataAddAction";
+import {
+    KalturaMetadataProfileFilter,
+    MetadataProfileListAction
+} from "kaltura-typescript-client/api/types";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -38,6 +53,7 @@ export class QnaPlugin extends PlayerContribPlugin
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
     private _loading: boolean = true;
+    private _metadataProfileId: number | null = null;
 
     public static readonly LOADING_TIME_END = 3000;
 
@@ -72,8 +88,8 @@ export class QnaPlugin extends PlayerContribPlugin
             }
         });
 
-        const entryId = "1_s8s12id6"; // this.getEntryId()  // todo wrong config.entryId
-        const userId = "Shimi"; // this.getUserName() // todo
+        const entryId = this._getMockData().entryId; // this.getEntryId()  // todo wrong config.entryId
+        const userId = this._getMockData().userId; // this.getUserName() // todo
 
         // register to events
         this._hasError = false;
@@ -90,6 +106,13 @@ export class QnaPlugin extends PlayerContribPlugin
         this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));
 
         this._delayedGiveUpLoading();
+    }
+
+    private _getMockData(): { entryId: string; userId: string } {
+        return {
+            entryId: "1_s8s12id6",
+            userId: "Shimi"
+        };
     }
 
     private _delayedGiveUpLoading() {
@@ -164,6 +187,7 @@ export class QnaPlugin extends PlayerContribPlugin
                 threads={this._threads}
                 hasError={this._hasError}
                 loading={this._loading}
+                onSubmit={this._submitQuestion}
             />
         );
     };
@@ -173,6 +197,121 @@ export class QnaPlugin extends PlayerContribPlugin
             log(level, context, message, ...args);
         };
     }
+
+    private _submitQuestion = async (question: string, parentId?: string) => {
+        const requests: KalturaRequest<any>[] = [];
+        const missingProfileId = !this._metadataProfileId;
+        const requestIndexCorrection = missingProfileId ? 1 : 0;
+
+        /*
+            1 - Conditional: Prepare get meta data profile request
+         */
+        if (missingProfileId) {
+            const metadataProfileListAction = new MetadataProfileListAction({
+                filter: new KalturaMetadataProfileFilter({
+                    systemNameEqual: "Kaltura-QnA"
+                })
+            });
+
+            requests.push(metadataProfileListAction);
+        }
+
+        /*
+            2 - Prepare to add annotation cuePoint request
+         */
+        const kalturaAnnotationArgs: KalturaAnnotationArgs = {
+            entryId: this._getMockData().entryId,
+            startTime: Date.now(),
+            text: question,
+            isPublic: 1,
+            searchableOnEntry: 0
+        };
+
+        if (parentId) {
+            kalturaAnnotationArgs.parentId = parentId;
+        }
+
+        const addAnnotationCuePointRequest = new CuePointAddAction({
+            cuePoint: new KalturaAnnotation(kalturaAnnotationArgs)
+        });
+
+        /*
+            3 - Prepare to add metadata
+         */
+        const metadata: Record<string, string> = {
+            Type: QnaMessageType.Question,
+            ThreadCreatorId: this._getMockData().userId
+        };
+
+        if (parentId) {
+            metadata.ThreadId = parentId;
+        }
+
+        const xmlData = Utils.createXmlFromObject(metadata);
+
+        const addMetadataRequest = new MetadataAddAction({
+            metadataProfileId: this._metadataProfileId ? this._metadataProfileId : 0,
+            objectType: KalturaMetadataObjectType.annotation,
+            objectId: "",
+            xmlData: xmlData
+        }).setDependency(["objectId", 0 + requestIndexCorrection, "id"]);
+
+        if (missingProfileId) {
+            addMetadataRequest.setDependency(["metadataProfileId", 0, "objects:0:id"]);
+        }
+
+        /*
+            4 - Prepare to update metadata with Tags
+         */
+        const updateCuePointAction = new CuePointUpdateAction({
+            id: "",
+            cuePoint: new KalturaAnnotation({
+                tags: "qna"
+            })
+        }).setDependency(["id", 0 + requestIndexCorrection, "id"]);
+
+        // Prepare the multi request
+        requests.push(...[addAnnotationCuePointRequest, addMetadataRequest, updateCuePointAction]);
+        const multiRequest = new KalturaMultiRequest(...requests);
+
+        try {
+            let responses: KalturaMultiResponse | null = await this._kalturaClient.multiRequest(
+                multiRequest
+            );
+            if (!responses) {
+                this._logger("error", "no response");
+                throw new Error("no response");
+            }
+
+            if (responses.hasErrors() || !responses.length) {
+                this._logger(
+                    "error",
+                    "Add cue point multi-request failed",
+                    responses.getFirstError()
+                );
+                throw new Error("Add cue point multi-request failed");
+            }
+
+            if (missingProfileId) {
+                this._metadataProfileId = responses[0].result.objects[0].id;
+            }
+
+            const index = 0 + requestIndexCorrection;
+            const cuePoint = responses.length > index + 1 && responses[index].result;
+
+            if (!cuePoint || !(cuePoint instanceof KalturaAnnotation)) {
+                throw new Error(
+                    "Add cue-point multi-request error: There is no KalturaAnnotation cue-point object added"
+                );
+            }
+
+            if (this._threadManager) {
+                this._threadManager.addPendingCuePointToThread(cuePoint);
+            }
+        } catch (err) {
+            this._logger("error", err);
+        }
+    };
 
     // Todo need to add onDestroyPlugin lifecycle method
 }
