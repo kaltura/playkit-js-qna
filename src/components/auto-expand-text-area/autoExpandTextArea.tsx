@@ -15,9 +15,9 @@ export class AutoExpandTextArea extends Component<
     AutoExpandTextAreaProps,
     AutoExpandTextAreaState
 > {
-    private textArea: HTMLTextAreaElement | null = null;
-    private inputActionsContainer: any = null;
-    private _focusBlurEffectTime: any = null;
+    private _actionsContainer: any = null;
+    private _textAreaRef: HTMLTextAreaElement | null = null;
+    private _sendButtonRef: HTMLTextAreaElement | null = null;
 
     public static readonly MAX_NUM_OF_CHARS = 500;
 
@@ -26,7 +26,6 @@ export class AutoExpandTextArea extends Component<
     handleChange = (event: any) => {
         this.setState({ text: event.target.value });
         this.resize();
-        //event.preventDefault();
     };
 
     handleDelayedChange = (event: any) => {
@@ -38,71 +37,68 @@ export class AutoExpandTextArea extends Component<
     };
 
     resize = () => {
-        if (!this.textArea) {
+        if (!this._textAreaRef) {
             return;
         }
 
-        this.textArea.style.height = "auto";
-        const isTooBig = this.textArea.scrollHeight > 103;
+        this._textAreaRef.style.height = "auto";
+        const isTooBig = this._textAreaRef.scrollHeight > 103;
         if (isTooBig) {
-            this.textArea.style.height = 103 + "px";
-            this.textArea.style.overflow = "auto";
+            this._textAreaRef.style.height = 103 + "px";
+            this._textAreaRef.style.overflow = "auto";
         } else {
-            this.textArea.style.height = this.textArea.scrollHeight + "px";
+            this._textAreaRef.style.height = this._textAreaRef.scrollHeight + "px";
         }
     };
 
-    toggleActionsContainer(isFocus: boolean) {
-        if (!this.inputActionsContainer) {
+    _toggleActionsContainer(isFocus: boolean) {
+        if (!this._actionsContainer) {
             return;
         }
 
-        if (this._focusBlurEffectTime) {
-            clearTimeout(this._focusBlurEffectTime);
+        if (isFocus) {
+            document.addEventListener("mousedown", this._trackClickOutside);
+            this._actionsContainer.classList.remove(styles.notVisible);
+        } else {
+            document.removeEventListener("mousedown", this._trackClickOutside);
+            this._actionsContainer.classList.add(styles.notVisible);
         }
-
-        this._focusBlurEffectTime = setTimeout(() => {
-            if (isFocus) {
-                this.inputActionsContainer.classList.remove(styles.notVisible);
-            } else {
-                this.inputActionsContainer.classList.add(styles.notVisible);
-            }
-        }, 150);
     }
 
+    _trackClickOutside = (e: any) => {
+        if (
+            [this._textAreaRef, this._sendButtonRef, this._actionsContainer].indexOf(e.target) !==
+            -1
+        ) {
+            return;
+        }
+
+        this._toggleActionsContainer(false);
+    };
+
     onSendClick = () => {
+        if (this.state.text === "") {
+            return;
+        }
+
         this.props.onSubmit(this.state.text);
         this.setState({ text: "" });
     };
 
     render({ onSubmit }: AutoExpandTextAreaProps, { text }: AutoExpandTextAreaState) {
-        //const { text } = this.state;
-
         return (
-            <div
-                onClick={() => {
-                    this.toggleActionsContainer(true);
-                }}
-                onBlur={() => {
-                    this.toggleActionsContainer(false);
-                }}
-                className={styles.textareaContainer}
-                tabIndex={0}
-            >
-                <i className={styles.privateIcon} />
+            <div className={styles.textareaContainer} tabIndex={0}>
+                <i className={classNames(styles.privateIcon, styles.ignoreClicks)} />
                 <textarea
                     value={text}
                     className={styles.textarea}
-                    ref={textArea => (this.textArea = textArea)}
+                    ref={textArea => (this._textAreaRef = textArea)}
                     onChange={this.handleChange}
                     onCut={this.handleDelayedChange}
                     onPaste={this.handleDelayedChange}
                     onKeyDown={this.handleDelayedChange}
                     onFocus={() => {
-                        this.toggleActionsContainer(true);
-                    }}
-                    onBlur={() => {
-                        this.toggleActionsContainer(false);
+                        this._toggleActionsContainer(true);
                     }}
                     placeholder={"Type a private question"}
                     rows={1}
@@ -110,18 +106,26 @@ export class AutoExpandTextArea extends Component<
                 />
                 <div
                     className={classNames(styles.inputActionsContainer, styles.notVisible)}
-                    ref={element => (this.inputActionsContainer = element)}
+                    ref={element => (this._actionsContainer = element)}
                 >
-                    <span>{`${text.length}/${AutoExpandTextArea.MAX_NUM_OF_CHARS}`}</span>
+                    <span className={styles.ignoreClicks}>{`${text.length}/${
+                        AutoExpandTextArea.MAX_NUM_OF_CHARS
+                    }`}</span>
                     <button
                         onClick={this.onSendClick}
                         className={styles.sendButton}
                         type={"button"}
+                        disabled={!text.length}
+                        ref={button => (this._sendButtonRef = button)}
                     >
                         {"Send"}
                     </button>
                 </div>
             </div>
         );
+    }
+
+    componentWillUnmount(): void {
+        document.removeEventListener("mousedown", this._trackClickOutside);
     }
 }

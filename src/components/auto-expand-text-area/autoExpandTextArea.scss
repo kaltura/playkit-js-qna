@@ -69,6 +69,10 @@
   }
 }
 
+.ignore-clicks {
+  pointer-events: none;
+}
+
 .send-button {
   background-color: #008297;
   color: #ffffff;
@@ -82,5 +86,10 @@
 
   &:active {
     background-color: #01accd;
+  }
+
+  &:disabled {
+    background-color: #999999;
+    cursor: default;
   }
 }
