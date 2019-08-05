@@ -18,12 +18,37 @@ export class AutoExpandTextArea extends Component<
     AutoExpandTextAreaProps,
     AutoExpandTextAreaState
 > {
-    private _textareaContainer: HTMLElement | null = null;
+    private _textareaContainer: any = null;
     private _textAreaRef: HTMLTextAreaElement | null = null;
     private _actionsContainer: HTMLElement | null = null;
     private _sendButtonRef: HTMLButtonElement | null = null;
 
     state: AutoExpandTextAreaState = { text: "", isInFocus: false };
+
+    componentDidMount(): void {
+        if (!this._textareaContainer) {
+            return;
+        }
+
+        this._textareaContainer.addEventListener("focusin", this._handleOnFocusIn);
+        this._textareaContainer.addEventListener("focusout", this._handleOnFocusOut);
+    }
+
+    private _handleOnFocusIn = () => {
+        this._toggleActionsContainer(true);
+    };
+
+    private _handleOnFocusOut = (e: any) => {
+        if (this._isElementOfComponent(e.relatedTarget)) {
+            return;
+        }
+
+        this._toggleActionsContainer(false);
+    };
+
+    private _toggleActionsContainer(isFocus: boolean) {
+        this.setState({ isInFocus: isFocus });
+    }
 
     _handleOnInputChange = (event: any) => {
         this.setState({ text: event.target.value });
@@ -45,20 +70,6 @@ export class AutoExpandTextArea extends Component<
         }
     };
 
-    private _toggleActionsContainer(isFocus: boolean) {
-        this.setState({ isInFocus: isFocus });
-
-        if (!this._actionsContainer) {
-            return;
-        }
-
-        if (isFocus) {
-            document.addEventListener("click", this._trackClickOutside);
-        } else {
-            document.removeEventListener("click", this._trackClickOutside);
-        }
-    }
-
     private _isElementOfComponent = (element: any) => {
         return (
             [
@@ -68,14 +79,6 @@ export class AutoExpandTextArea extends Component<
                 this._actionsContainer
             ].indexOf(element) !== -1
         );
-    };
-
-    private _trackClickOutside = (e: any) => {
-        if (this._isElementOfComponent(e.target)) {
-            return;
-        }
-
-        this._toggleActionsContainer(false);
     };
 
     private _handleOnSend = () => {
@@ -98,20 +101,24 @@ export class AutoExpandTextArea extends Component<
         this._textAreaRef.focus();
     }
 
+    private _handleNewLineOrSubmit = (e: any) => {
+        let key = e.key || e.keyCode;
+        if ((key === "Enter" || key == 13) && !e.shiftKey) {
+            this._handleOnSend();
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+        return true;
+    };
+
     render() {
         const { text } = this.state;
 
         return (
             <div
                 className={styles.textareaContainer}
-                tabIndex={0}
                 ref={textareaContainer => (this._textareaContainer = textareaContainer)}
-                onBlur={e => {
-                    if (this._isElementOfComponent(e.relatedTarget)) {
-                        return;
-                    }
-                    this._toggleActionsContainer(false);
-                }}
             >
                 <i className={classNames(styles.privateIcon, styles.ignoreClicks)} />
                 <textarea
@@ -119,19 +126,7 @@ export class AutoExpandTextArea extends Component<
                     className={styles.textarea}
                     ref={textArea => (this._textAreaRef = textArea)}
                     onInput={this._handleOnInputChange}
-                    onFocus={() => {
-                        this._toggleActionsContainer(true);
-                    }}
-                    onKeyDown={e => {
-                        let key = e.key || e.keyCode;
-                        if ((key === "Enter" || key == 13) && !e.shiftKey) {
-                            this._handleOnSend();
-                            e.preventDefault();
-                            e.stopPropagation();
-                            return false;
-                        }
-                        return true;
-                    }}
+                    onKeyDown={this._handleNewLineOrSubmit}
                     placeholder={"Type a private question"}
                     rows={1}
                     maxLength={MAX_NUM_OF_CHARS}
@@ -142,9 +137,7 @@ export class AutoExpandTextArea extends Component<
                     })}
                     ref={element => (this._actionsContainer = element)}
                 >
-                    <span className={styles.ignoreClicks}>{`${
-                        text.length
-                    }/${MAX_NUM_OF_CHARS}`}</span>
+                    <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
                     <button
                         onClick={this._handleOnSend}
                         className={styles.sendButton}
@@ -160,6 +153,7 @@ export class AutoExpandTextArea extends Component<
     }
 
     componentWillUnmount(): void {
-        document.removeEventListener("click", this._trackClickOutside);
+        this._textareaContainer.removeEventListener("focusin", this._handleOnFocusIn);
+        this._textareaContainer.removeEventListener("focusout", this._handleOnFocusOut);
     }
 }
