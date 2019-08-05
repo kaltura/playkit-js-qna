@@ -4,10 +4,10 @@ import {
     PrepareRegisterRequestConfig,
     RegisterNotificationsParams
 } from "@playkit-js-contrib/push-notifications";
-import { EventManager, log } from "@playkit-js-contrib/common";
+import { EventManager } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
-
+import { getContribLogger } from "@playkit-js-contrib/common";
 export interface ThreadManagerParams {
     ks: string;
     serviceUrl: string;
@@ -17,10 +17,14 @@ export interface ThreadManagerParams {
     };
 }
 
+const logger = getContribLogger({
+    class: "ThreadManager",
+    module: "qna-plugin"
+});
+
 export class ThreadManager {
     private _pushNotifications: PushNotifications | null = null;
     private _qnaMessages: QnaMessage[] = [];
-    private _logger = this._getLogger("QnaPlugin");
     private _messageEventManager: EventManager = new EventManager();
 
     public get messageEventManager(): EventManager {
@@ -42,12 +46,6 @@ export class ThreadManager {
         this._pushNotifications = PushNotifications.getInstance(pushNotificationsOptions);
     }
 
-    private _getLogger(context: string): Function {
-        return (level: "debug" | "log" | "warn" | "error", message: string, ...args: any[]) => {
-            log(level, context, message, ...args);
-        };
-    }
-
     public unregister() {
         if (this._pushNotifications) {
             this._pushNotifications.reset();
@@ -57,7 +55,12 @@ export class ThreadManager {
     }
 
     public register(entryId: string, userId: string) {
-        this._logger("log", "registerToQnaPushNotificationEvents");
+        logger.info("register to entry message", {
+            method: "register",
+            data: {
+                entryId
+            }
+        });
 
         if (!this._pushNotifications) {
             // TODO change state to error
@@ -105,7 +108,13 @@ export class ThreadManager {
         response
             .reduce((filtered: KalturaAnnotation[], res: any) => {
                 if (res.objectType !== "KalturaAnnotation") {
-                    this._logger("warn", "message cuePoint should be of type: KalturaAnnotation");
+                    logger.warn(
+                        "invalid message type, message cuePoint should be of type: KalturaAnnotation",
+                        {
+                            method: "_processMessages",
+                            data: {}
+                        }
+                    );
                 } else {
                     // Transform the result into KalturaAnnotation object
                     const result: KalturaAnnotation = new KalturaAnnotation();
@@ -221,11 +230,12 @@ export class ThreadManager {
         });
 
         if (indexOfMaterQuestion === -1) {
-            this._logger(
-                "warn",
-                "Dropping reply as there is no matching (master) question",
-                newMessage
-            );
+            logger.warn("Dropping reply as there is no matching (master) question", {
+                method: "_processReply",
+                data: {
+                    newMessage
+                }
+            });
             return;
         }
 

@@ -6,7 +6,9 @@ import {
     OverlayUIModes,
     OverlayItemProps,
     KitchenSinkContentRendererProps,
-    KitchenSinkItem
+    KitchenSinkItem,
+    KitchenSinkPositions,
+    KitchenSinkExpandModes
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
@@ -20,7 +22,7 @@ import {
 import { DateFormats, KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 
-import { log, EventManager } from "@playkit-js-contrib/common";
+import { EventManager } from "@playkit-js-contrib/common";
 import { ThreadManager } from "./ThreadManager";
 import { QnaMessage } from "./QnaMessage";
 
@@ -31,7 +33,6 @@ export class QnaPlugin extends PlayerContribPlugin
     implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     static defaultConfig = {};
 
-    private _logger = this._getLogger("QnaPlugin");
     private _kalturaClient = new KalturaClient();
     private _threadManager: ThreadManager | null = null;
     private _kitchenSinkItem: KitchenSinkItem | null = null;
@@ -55,9 +56,6 @@ export class QnaPlugin extends PlayerContribPlugin
     onMediaLoad(config: OnMediaLoadConfig): void {
         this._loading = true;
         this._registerThreadManager();
-
-        // TODO remove once replacing this temporary standalond player with support of the new API
-        KalturaPlayer.getPlayer("player-div").setSidePanelMode("EXPANDED");
     }
 
     private _registerThreadManager(): void {
@@ -141,9 +139,12 @@ export class QnaPlugin extends PlayerContribPlugin
 
     onRegisterUI(uiManager: UIManager): void {
         this._kitchenSinkItem = uiManager.kitchenSink.add({
-            name: "Q&A",
-            iconRenderer: () => <MenuIcon />,
-            contentRenderer: this._renderKitchenSinkContent
+            label: "Q&A",
+            expandMode: KitchenSinkExpandModes.OverTheVideo,
+            renderIcon: () => <MenuIcon />,
+            position: KitchenSinkPositions.Right,
+
+            renderContent: this._renderKitchenSinkContent
         });
     }
 
@@ -167,12 +168,6 @@ export class QnaPlugin extends PlayerContribPlugin
             />
         );
     };
-
-    private _getLogger(context: string): Function {
-        return (level: "debug" | "log" | "warn" | "error", message: string, ...args: any[]) => {
-            log(level, context, message, ...args);
-        };
-    }
 
     // Todo need to add onDestroyPlugin lifecycle method
 }
