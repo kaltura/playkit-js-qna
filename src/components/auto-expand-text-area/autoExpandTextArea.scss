@@ -49,10 +49,10 @@
 .private-icon {
   width: 40px;
   height: 40px;
-  background-size: 30px;
+  background-size: 28px;
   position: absolute;
   top: 5px;
-  right: -3px;
+  right: 0;
   background: url(./../../assets/private.svg) no-repeat 7px 7px;
 }
 
@@ -69,6 +69,10 @@
   }
 }
 
+.ignore-clicks {
+  pointer-events: none;
+}
+
 .send-button {
   background-color: #008297;
   color: #ffffff;
@@ -80,11 +84,12 @@
   margin-left: 8px;
   padding: 4px 12px;
 
-  &:active {
+  &:hover, &:active, &:focus {
     background-color: #01accd;
   }
 
   &:disabled {
     background-color: #999999;
+    cursor: default;
   }
 }

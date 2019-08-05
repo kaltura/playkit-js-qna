@@ -1,7 +1,6 @@
 import { h, Component } from "preact";
 import * as styles from "./autoExpandTextArea.scss";
 import classNames from "classnames";
-//import * as throttle from 'lodash.throttle';
 
 interface AutoExpandTextAreaProps {
     onSubmit: (text: string) => void;
@@ -9,123 +8,152 @@ interface AutoExpandTextAreaProps {
 
 interface AutoExpandTextAreaState {
     text: string;
+    isInFocus: boolean;
 }
+
+const MAX_NUM_OF_CHARS = 500;
+const MAX_HEIGHT = 103;
 
 export class AutoExpandTextArea extends Component<
     AutoExpandTextAreaProps,
     AutoExpandTextAreaState
 > {
-    private textArea: HTMLTextAreaElement | null = null;
-    private inputActionsContainer: any = null;
-    private _focusBlurEffectTime: any = null;
+    private _textareaContainer: any = null;
+    private _textAreaRef: HTMLTextAreaElement | null = null;
+    private _actionsContainer: HTMLElement | null = null;
+    private _sendButtonRef: HTMLButtonElement | null = null;
 
-    public static readonly MAX_NUM_OF_CHARS = 500;
+    state: AutoExpandTextAreaState = { text: "", isInFocus: false };
 
-    state: AutoExpandTextAreaState = { text: "" };
-
-    handleChange = (event: any) => {
-        this.setState({ text: event.target.value });
-        this.resize();
-        //event.preventDefault();
-    };
-
-    handleDelayedChange = (event: any) => {
-        setTimeout(() => {
-            this.setState({ text: event.target.value });
-            this.resize();
-        });
-    };
-
-    resize = () => {
-        if (!this.textArea) {
+    componentDidMount(): void {
+        if (!this._textareaContainer) {
             return;
         }
 
-        this.textArea.style.height = "auto";
-        const isTooBig = this.textArea.scrollHeight > 103;
-        if (isTooBig) {
-            this.textArea.style.height = 103 + "px";
-            this.textArea.style.overflow = "auto";
-        } else {
-            this.textArea.style.height = this.textArea.scrollHeight + "px";
-        }
-    };
-
-    toggleActionsContainer(isFocus: boolean) {
-        if (!this.inputActionsContainer) {
-            return;
-        }
-
-        if (this._focusBlurEffectTime) {
-            clearTimeout(this._focusBlurEffectTime);
-        }
-
-        this._focusBlurEffectTime = setTimeout(() => {
-            if (isFocus) {
-                this.inputActionsContainer.classList.remove(styles.notVisible);
-            } else {
-                this.inputActionsContainer.classList.add(styles.notVisible);
-            }
-        }, 150);
+        this._textareaContainer.addEventListener("focusin", this._handleOnFocusIn);
+        this._textareaContainer.addEventListener("focusout", this._handleOnFocusOut);
     }
 
-    onSendClick = () => {
+    private _handleOnFocusIn = () => {
+        this._toggleActionsContainer(true);
+    };
+
+    private _handleOnFocusOut = (e: any) => {
+        if (this._isElementOfComponent(e.relatedTarget)) {
+            return;
+        }
+
+        this._toggleActionsContainer(false);
+    };
+
+    private _toggleActionsContainer(isFocus: boolean) {
+        this.setState({ isInFocus: isFocus });
+    }
+
+    _handleOnInputChange = (event: any) => {
+        this.setState({ text: event.target.value });
+        this._resize();
+    };
+
+    private _resize = () => {
+        if (!this._textAreaRef) {
+            return;
+        }
+
+        this._textAreaRef.style.height = "auto";
+        const isTooBig = this._textAreaRef.scrollHeight > MAX_HEIGHT;
+        if (isTooBig) {
+            this._textAreaRef.style.height = MAX_HEIGHT + "px";
+            this._textAreaRef.style.overflow = "auto";
+        } else {
+            this._textAreaRef.style.height = this._textAreaRef.scrollHeight + "px";
+        }
+    };
+
+    private _isElementOfComponent = (element: any) => {
+        return (
+            [
+                this._textareaContainer,
+                this._textAreaRef,
+                this._sendButtonRef,
+                this._actionsContainer
+            ].indexOf(element) !== -1
+        );
+    };
+
+    private _handleOnSend = () => {
         if (this.state.text === "") {
             return;
         }
 
         this.props.onSubmit(this.state.text);
-        this.setState({ text: "" });
+        this._resetTextAreaAfterSend();
     };
 
-    render({ onSubmit }: AutoExpandTextAreaProps, { text }: AutoExpandTextAreaState) {
-        //const { text } = this.state;
+    private _resetTextAreaAfterSend() {
+        this.setState({ text: "" });
+
+        if (!this._textAreaRef) {
+            return;
+        }
+
+        this._textAreaRef.style.height = "auto";
+        this._textAreaRef.focus();
+    }
+
+    private _handleNewLineOrSubmit = (e: any) => {
+        let key = e.key || e.which || e.keyCode;
+        if ((key === "Enter" || key == 13) && !e.shiftKey) {
+            this._handleOnSend();
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+        return true;
+    };
+
+    render() {
+        const { text } = this.state;
 
         return (
             <div
-                onClick={() => {
-                    this.toggleActionsContainer(true);
-                }}
-                onBlur={() => {
-                    this.toggleActionsContainer(false);
-                }}
                 className={styles.textareaContainer}
-                tabIndex={0}
+                ref={textareaContainer => (this._textareaContainer = textareaContainer)}
             >
-                <i className={styles.privateIcon} />
+                <i className={classNames(styles.privateIcon, styles.ignoreClicks)} />
                 <textarea
                     value={text}
                     className={styles.textarea}
-                    ref={textArea => (this.textArea = textArea)}
-                    onChange={this.handleChange}
-                    onCut={this.handleDelayedChange}
-                    onPaste={this.handleDelayedChange}
-                    onKeyDown={this.handleDelayedChange}
-                    onFocus={() => {
-                        this.toggleActionsContainer(true);
-                    }}
-                    onBlur={() => {
-                        this.toggleActionsContainer(false);
-                    }}
+                    ref={textArea => (this._textAreaRef = textArea)}
+                    onInput={this._handleOnInputChange}
+                    onKeyDown={this._handleNewLineOrSubmit}
                     placeholder={"Type a private question"}
                     rows={1}
-                    maxLength={AutoExpandTextArea.MAX_NUM_OF_CHARS}
+                    maxLength={MAX_NUM_OF_CHARS}
                 />
                 <div
-                    className={classNames(styles.inputActionsContainer, styles.notVisible)}
-                    ref={element => (this.inputActionsContainer = element)}
+                    className={classNames(styles.inputActionsContainer, {
+                        [styles.notVisible]: !this.state.isInFocus
+                    })}
+                    ref={element => (this._actionsContainer = element)}
                 >
-                    <span>{`${text.length}/${AutoExpandTextArea.MAX_NUM_OF_CHARS}`}</span>
+                    <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
                     <button
-                        disabled={!text.length}
-                        onClick={this.onSendClick}
+                        onClick={this._handleOnSend}
                         className={styles.sendButton}
                         type={"button"}
+                        disabled={!text.length}
+                        ref={button => (this._sendButtonRef = button)}
                     >
                         {"Send"}
                     </button>
                 </div>
             </div>
         );
+    }
+
+    componentWillUnmount(): void {
+        this._textareaContainer.removeEventListener("focusin", this._handleOnFocusIn);
+        this._textareaContainer.removeEventListener("focusout", this._handleOnFocusOut);
     }
 }
