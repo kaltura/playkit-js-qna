@@ -1,7 +1,6 @@
 import { h, Component } from "preact";
 import * as styles from "./autoExpandTextArea.scss";
 import classNames from "classnames";
-//import * as throttle from 'lodash.throttle';
 
 interface AutoExpandTextAreaProps {
     onSubmit: (text: string) => void;
@@ -13,6 +12,7 @@ interface AutoExpandTextAreaState {
 }
 
 const MAX_NUM_OF_CHARS = 500;
+const MAX_HEIGHT = 103;
 
 export class AutoExpandTextArea extends Component<
     AutoExpandTextAreaProps,
@@ -61,9 +61,9 @@ export class AutoExpandTextArea extends Component<
         }
 
         this._textAreaRef.style.height = "auto";
-        const isTooBig = this._textAreaRef.scrollHeight > 103;
+        const isTooBig = this._textAreaRef.scrollHeight > MAX_HEIGHT;
         if (isTooBig) {
-            this._textAreaRef.style.height = 103 + "px";
+            this._textAreaRef.style.height = MAX_HEIGHT + "px";
             this._textAreaRef.style.overflow = "auto";
         } else {
             this._textAreaRef.style.height = this._textAreaRef.scrollHeight + "px";
@@ -102,7 +102,7 @@ export class AutoExpandTextArea extends Component<
     }
 
     private _handleNewLineOrSubmit = (e: any) => {
-        let key = e.key || e.keyCode;
+        let key = e.key || e.which || e.keyCode;
         if ((key === "Enter" || key == 13) && !e.shiftKey) {
             this._handleOnSend();
             e.preventDefault();
