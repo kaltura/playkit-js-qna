@@ -5,7 +5,7 @@ import {
 } from "@playkit-js-contrib/push-notifications";
 import { EventManager } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
-import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
+import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { getContribLogger } from "@playkit-js-contrib/common";
 
 export interface ThreadManagerParams {
