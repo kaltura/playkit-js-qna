@@ -260,7 +260,7 @@ export class QnaPlugin extends PlayerContribPlugin
         }
 
         /*
-            4 - Prepare to update metadata with Tags
+            4 - Prepare to update cuePoint with Tags
          */
         const updateCuePointAction = new CuePointUpdateAction({
             id: "",
@@ -315,6 +315,7 @@ export class QnaPlugin extends PlayerContribPlugin
                 this._threadManager.addPendingCuePointToThread(cuePoint);
             }
         } catch (err) {
+            // TODO handle Error then submitting a question
             logger.error("Failed to submit new question", {
                 method: "_submitQuestion",
                 data: {
