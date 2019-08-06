@@ -1,7 +1,6 @@
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
 import { Utils } from "./utils";
-import { log } from "@playkit-js-contrib/common";
 
 export enum QnaMessageType {
     Question = "Question",
@@ -35,8 +34,6 @@ export class QnaMessage {
     public parentId: string | null;
     public replies: QnaMessage[];
     public deliveryStatus: MessageStatusEnum | null = null;
-
-    private _logger = this._getLogger("QnaPlugin");
 
     public static create(cuePoint: KalturaAnnotation): QnaMessage | null {
         try {
@@ -135,11 +132,5 @@ export class QnaMessage {
 
     isMasterQuestion(): boolean {
         return this.parentId == null;
-    }
-
-    private _getLogger(context: string): Function {
-        return (level: "debug" | "log" | "warn" | "error", message: string, ...args: any[]) => {
-            log(level, context, message, ...args);
-        };
     }
 }

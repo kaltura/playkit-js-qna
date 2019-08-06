@@ -1,28 +1,29 @@
 import { h } from "preact";
 import {
     KalturaClient,
+    KalturaRequest,
     KalturaMultiRequest,
-    KalturaMultiResponse,
-    KalturaRequest
+    KalturaMultiResponse
 } from "kaltura-typescript-client";
 import {
-    KitchenSinkContentRendererProps,
+    UIManager,
     KitchenSinkItem,
-    UIManager
+    KitchenSinkPositions,
+    KitchenSinkExpandModes,
+    KitchenSinkContentRendererProps
 } from "@playkit-js-contrib/ui";
 import {
-    ContribConfig,
+    OnPluginSetup,
+    OnRegisterUI,
     OnMediaLoad,
     OnMediaLoadConfig,
     OnMediaUnload,
-    OnPluginSetup,
-    OnRegisterUI,
+    ContribConfig,
     PlayerContribPlugin
 } from "@playkit-js-contrib/plugin";
 import { DateFormats, KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 
-import { log } from "@playkit-js-contrib/common";
 import { ThreadManager } from "./ThreadManager";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { Utils } from "./utils";
@@ -38,15 +39,20 @@ import {
     KalturaMetadataProfileFilter,
     MetadataProfileListAction
 } from "kaltura-typescript-client/api/types";
+import { getContribLogger } from "@playkit-js-contrib/common";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
+
+const logger = getContribLogger({
+    class: "QnaPlugin",
+    module: "qna-plugin"
+});
 
 export class QnaPlugin extends PlayerContribPlugin
     implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     static defaultConfig = {};
 
-    private _logger = this._getLogger("QnaPlugin");
     private _kalturaClient = new KalturaClient();
     private _threadManager: ThreadManager | null = null;
     private _kitchenSinkItem: KitchenSinkItem | null = null;
@@ -71,9 +77,6 @@ export class QnaPlugin extends PlayerContribPlugin
     onMediaLoad(config: OnMediaLoadConfig): void {
         this._loading = true;
         this._registerThreadManager();
-
-        // TODO remove once replacing this temporary standalond player with support of the new API
-        KalturaPlayer.getPlayer("player-div").setSidePanelMode("EXPANDED");
     }
 
     private _registerThreadManager(): void {
@@ -164,9 +167,11 @@ export class QnaPlugin extends PlayerContribPlugin
 
     onRegisterUI(uiManager: UIManager): void {
         this._kitchenSinkItem = uiManager.kitchenSink.add({
-            name: "Q&A",
-            iconRenderer: () => <MenuIcon />,
-            contentRenderer: this._renderKitchenSinkContent
+            label: "Q&A",
+            expandMode: KitchenSinkExpandModes.OverTheVideo,
+            renderIcon: () => <MenuIcon />,
+            position: KitchenSinkPositions.Right,
+            renderContent: this._renderKitchenSinkContent
         });
     }
 
@@ -191,12 +196,6 @@ export class QnaPlugin extends PlayerContribPlugin
             />
         );
     };
-
-    private _getLogger(context: string): Function {
-        return (level: "debug" | "log" | "warn" | "error", message: string, ...args: any[]) => {
-            log(level, context, message, ...args);
-        };
-    }
 
     private _submitQuestion = async (question: string, parentId?: string) => {
         const requests: KalturaRequest<any>[] = [];
@@ -279,16 +278,23 @@ export class QnaPlugin extends PlayerContribPlugin
                 multiRequest
             );
             if (!responses) {
-                this._logger("error", "no response");
+                logger.error("no response", {
+                    method: "_submitQuestion",
+                    data: {
+                        responses
+                    }
+                });
                 throw new Error("no response");
             }
 
             if (responses.hasErrors() || !responses.length) {
-                this._logger(
-                    "error",
-                    "Add cue point multi-request failed",
-                    responses.getFirstError()
-                );
+                const firstError = responses.getFirstError();
+                logger.error("Add cue point multi-request failed", {
+                    method: "_submitQuestion",
+                    data: {
+                        firstError
+                    }
+                });
                 throw new Error("Add cue point multi-request failed");
             }
 
@@ -309,7 +315,12 @@ export class QnaPlugin extends PlayerContribPlugin
                 this._threadManager.addPendingCuePointToThread(cuePoint);
             }
         } catch (err) {
-            this._logger("error", err);
+            logger.error("Failed to submit new question", {
+                method: "_submitQuestion",
+                data: {
+                    err
+                }
+            });
         }
     };
 
