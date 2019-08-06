@@ -113,7 +113,7 @@ export class AutoExpandTextArea extends Component<
     };
 
     render() {
-        const { text } = this.state;
+        const { text, isInFocus } = this.state;
 
         return (
             <div
@@ -133,7 +133,7 @@ export class AutoExpandTextArea extends Component<
                 />
                 <div
                     className={classNames(styles.inputActionsContainer, {
-                        [styles.notVisible]: !this.state.isInFocus
+                        [styles.notVisible]: !isInFocus
                     })}
                     ref={element => (this._actionsContainer = element)}
                 >
