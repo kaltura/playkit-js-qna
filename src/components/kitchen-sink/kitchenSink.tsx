@@ -35,6 +35,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
     private handleOnSubmit(text: string) {
         console.log(text);
+        // Todo  Next task cont' here to add a cuePoint message
     }
 
     private _generateContent(props: KitchenSinkProps) {

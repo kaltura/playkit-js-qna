@@ -1,8 +1,7 @@
 import {
     PushNotifications,
     PushNotificationsOptions,
-    PrepareRegisterRequestConfig,
-    RegisterNotificationsParams
+    PrepareRegisterRequestConfig
 } from "@playkit-js-contrib/push-notifications";
 import { EventManager } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
