@@ -1,19 +1,20 @@
-$thread-background-color: #333333e6;
 
 .thread{
   border-radius: 4px;
-  background-color: $thread-background-color;
+  background-color: #333333cc;
+  color: #ffffffe6;
   min-height: 84px;
   width: 100%;
-  margin-top: 16px;
+  margin-top: 12px;
   overflow: hidden;
 }
 
 .message-content {
+  min-height: 15px;
   margin: 8px;
   font-size: 15px;
   line-height: 1;
-  color: #ffffff;
+  color: #ffffffe6;
 }
 
 .second-line-info {
@@ -28,7 +29,6 @@ $thread-background-color: #333333e6;
 .date-time-prop {
   font-size: 12px;
   font-weight: bold;
-  color: #cccccc;
   position: absolute;
 }
 
