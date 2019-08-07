@@ -1,14 +1,11 @@
-import { h, Ref } from "preact";
+import { h } from "preact";
 import { KalturaClient } from "kaltura-typescript-client";
 import {
-    OverlayItem,
     UIManager,
-    OverlayUIModes,
-    OverlayItemProps,
     KitchenSinkContentRendererProps,
     KitchenSinkItem,
-    KitchenSinkPositions,
-    KitchenSinkExpandModes
+    KitchenSinkExpandModes,
+    KitchenSinkPositions
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
@@ -22,7 +19,6 @@ import {
 import { DateFormats, KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 
-import { EventManager } from "@playkit-js-contrib/common";
 import { ThreadManager } from "./ThreadManager";
 import { QnaMessage } from "./QnaMessage";
 
@@ -35,7 +31,6 @@ export class QnaPlugin extends PlayerContribPlugin
 
     private _kalturaClient = new KalturaClient();
     private _threadManager: ThreadManager | null = null;
-    private _messageEventManager: EventManager | null = null;
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
@@ -144,7 +139,6 @@ export class QnaPlugin extends PlayerContribPlugin
             expandMode: KitchenSinkExpandModes.OverTheVideo,
             renderIcon: () => <MenuIcon />,
             position: KitchenSinkPositions.Right,
-
             renderContent: this._renderKitchenSinkContent
         });
     }

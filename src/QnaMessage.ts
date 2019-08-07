@@ -1,11 +1,5 @@
-import {
-    KalturaAnnotation,
-    KalturaCuePoint,
-    KalturaMetadata,
-    KalturaMetadataListResponse,
-    KalturaMetadataProfileStatus,
-    KalturaMetadataStatus
-} from "kaltura-typescript-client/api/types";
+import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
+import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
 import { Utils } from "./utils";
 
 export enum QnaMessageType {
