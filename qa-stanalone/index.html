@@ -17,10 +17,13 @@
             .test-form {
                 font-family: Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
                     "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+                display: flex;
+                flex-flow: row wrap;
+                max-width: 800px;
             }
 
             .test-form div {
-                margin: 0 0 4px 4px;
+                margin: 0 22px 4px 4px;
             }
 
             .test-form .field-name {
@@ -35,23 +38,25 @@
                 padding: 2px 8px;
             }
 
-            .test-form .submit {
+            .submit {
                 background-color: #008297;
                 color: #ffffff;
                 font-size: 12px;
                 border: none;
                 cursor: pointer;
                 padding: 4px 12px;
+                margin-top: 6px;
             }
 
-            .test-form .submit:hover,
-            .test-form .submit:active,
-            .test-form .submit:focus {
+            .submit:hover,
+            .submit:active,
+            .submit:focus {
                 background-color: #01accd;
             }
 
-            .test-form .submit {
-                margin-top: 6px;
+            .action-buttons {
+                flex-basis: 100%;
+                max-width: 100%;
             }
         </style>
     </head>
@@ -95,13 +100,16 @@
                 <input type="text" id="uiConfId" name="uiConfId" placeholder="uiConfId" /><br />
             </div>
 
-            <input type="submit" value="Submit" class="submit" />
+            <div class="action-buttons">
+                <input type="submit" value="Submit" class="submit" />
+            </div>
         </form>
         <br />
         <div id="errorMsg" style="display: none; color: darkred; margin-left: 4px;">
             Error: missing params!
         </div>
 
+        <!-- Player -->
         <div style="position:relative;margin-top:10px">
             <div id="player-div"></div>
         </div>
@@ -172,8 +180,6 @@
                     player.play();
                 });
             }
-
-            //}
         </script>
     </body>
 </html>
