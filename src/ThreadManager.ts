@@ -111,7 +111,7 @@ export class ThreadManager {
                     logger.warn(
                         "invalid message type, message cuePoint should be of type: KalturaAnnotation",
                         {
-                            method: "_processMessages",
+                            method: "_processResponse",
                             data: {}
                         }
                     );
@@ -135,12 +135,15 @@ export class ThreadManager {
         }
     }
 
-    private processQnaMessage(
-        newMessage: QnaMessage | null,
-        emitChangeOnMessageAdded: boolean = false
-    ) {
+    private processQnaMessage(newMessage: QnaMessage | null) {
         if (!newMessage) {
-            // todo we can indicate a small error Just on this render qnaMessage
+            logger.warn(
+                "No newMessage to process - Create QnaMessage from cuePoint return nothing",
+                {
+                    method: "processQnaMessage",
+                    data: {}
+                }
+            );
             return;
         }
 
@@ -148,10 +151,6 @@ export class ThreadManager {
             this._processMasterQuestion(newMessage);
         } else {
             this._processReply(newMessage);
-        }
-
-        if (emitChangeOnMessageAdded && this._messageEventManager) {
-            this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
         }
     }
 
@@ -184,7 +183,11 @@ export class ThreadManager {
 
     public addPendingCuePointToThread(cuePoint: KalturaAnnotation): void {
         let newMessage: QnaMessage | null = QnaMessage.createPendingMessage(cuePoint);
-        this.processQnaMessage(newMessage, true);
+        this.processQnaMessage(newMessage);
+
+        if (this._messageEventManager) {
+            this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
+        }
     }
 
     /**
