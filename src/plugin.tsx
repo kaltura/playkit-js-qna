@@ -76,6 +76,8 @@ export class QnaPlugin extends PlayerContribPlugin
 
     onMediaLoad(config: OnMediaLoadConfig): void {
         this._loading = true;
+        this._hasError = false;
+        this._metadataProfileId = null;
         this._registerThreadManager();
     }
 
@@ -91,31 +93,18 @@ export class QnaPlugin extends PlayerContribPlugin
             }
         });
 
-        const entryId = this._getMockData().entryId; // this.getEntryId()  // todo wrong config.entryId
-        const userId = this._getMockData().userId; // this.getUserName() // todo
-
-        // register to events
-        this._hasError = false;
-
         if (!this._threadManager) {
             return;
         }
 
         // register socket ans event names
-        this._threadManager.register(entryId, userId);
+        this._threadManager.register(this.entryId, contribConfig.server.userId!); // TODO temp solutions for userId need to handle anonymous user id
 
         // register messages
         this._threadManager.messageEventManager.on("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));
 
         this._delayedGiveUpLoading();
-    }
-
-    private _getMockData(): { entryId: string; userId: string } {
-        return {
-            entryId: "1_s8s12id6",
-            userId: "Shimi"
-        };
     }
 
     private _delayedGiveUpLoading() {
@@ -201,6 +190,7 @@ export class QnaPlugin extends PlayerContribPlugin
         const requests: KalturaRequest<any>[] = [];
         const missingProfileId = !this._metadataProfileId;
         const requestIndexCorrection = missingProfileId ? 1 : 0;
+        const contribConfig: ContribConfig = this.getContribConfig();
 
         /*
             1 - Conditional: Prepare get meta data profile request
@@ -219,10 +209,10 @@ export class QnaPlugin extends PlayerContribPlugin
             2 - Prepare to add annotation cuePoint request
          */
         const kalturaAnnotationArgs: KalturaAnnotationArgs = {
-            entryId: this._getMockData().entryId,
-            startTime: Date.now(),
+            entryId: this.entryId,
+            startTime: Date.now(), // TODO get server/player time
             text: question,
-            isPublic: 1,
+            isPublic: 1, // TODO verify with backend team
             searchableOnEntry: 0
         };
 
@@ -239,7 +229,7 @@ export class QnaPlugin extends PlayerContribPlugin
          */
         const metadata: Record<string, string> = {
             Type: QnaMessageType.Question,
-            ThreadCreatorId: this._getMockData().userId
+            ThreadCreatorId: contribConfig.server.userId! // TODO temp solutions for userId need to handle anonymous user id
         };
 
         if (parentId) {
@@ -277,6 +267,7 @@ export class QnaPlugin extends PlayerContribPlugin
             let responses: KalturaMultiResponse | null = await this._kalturaClient.multiRequest(
                 multiRequest
             );
+
             if (!responses) {
                 logger.error("no response", {
                     method: "_submitQuestion",
@@ -303,12 +294,31 @@ export class QnaPlugin extends PlayerContribPlugin
             }
 
             const index = 0 + requestIndexCorrection;
-            const cuePoint = responses.length > index + 1 && responses[index].result;
+            const hasCuePoint = responses.length > index + 1;
+
+            if (!hasCuePoint) {
+                throw new Error(
+                    "Add cue-point multi-request error: There is no cue-point object added"
+                );
+            }
+
+            const cuePoint = responses[index].result;
 
             if (!cuePoint || !(cuePoint instanceof KalturaAnnotation)) {
                 throw new Error(
                     "Add cue-point multi-request error: There is no KalturaAnnotation cue-point object added"
                 );
+            }
+
+            if (this.entryId !== cuePoint.entryId) {
+                // drop this cuePoint as it doesn't belong to this entryId
+                logger.info("dropping cuePoint as it it doesn't belong to this entryId", {
+                    method: "_submitQuestion",
+                    data: {
+                        entryId: cuePoint.entryId,
+                        cuePointEntryId: cuePoint.entryId
+                    }
+                });
             }
 
             if (this._threadManager) {
