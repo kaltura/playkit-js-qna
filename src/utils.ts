@@ -56,4 +56,13 @@ export class Utils {
 
         return node.childNodes[0].nodeValue;
     }
+
+    public static createXmlFromObject(obj: Record<string, any>): string {
+        let xml = "<metadata>";
+        for (let propertyName in obj) {
+            xml += `<${propertyName}>${obj[propertyName]}</${propertyName}>`;
+        }
+        xml += "</metadata>";
+        return xml;
+    }
 }
