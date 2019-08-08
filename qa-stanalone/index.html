@@ -39,19 +39,23 @@
             }
 
             .submit {
-                background-color: #008297;
-                color: #ffffff;
+                border: 2px solid #008297;
+                border-radius: 12px;
+                color: #008297;
                 font-size: 12px;
-                border: none;
+                font-weight: bolder;
                 cursor: pointer;
-                padding: 4px 12px;
+                padding: 2px 12px;
                 margin-top: 6px;
+                outline: none;
             }
 
             .submit:hover,
             .submit:active,
             .submit:focus {
                 background-color: #01accd;
+                color: #ffffff;
+                border-color: #01accd;
             }
 
             .action-buttons {
@@ -101,12 +105,12 @@
             </div>
 
             <div class="action-buttons">
-                <input type="submit" value="Submit" class="submit" />
+                <button type="submit" class="submit">Submit</button>
             </div>
         </form>
         <br />
         <div id="errorMsg" style="display: none; color: darkred; margin-left: 4px;">
-            Error: missing params!
+            Please fill all the params above!
         </div>
 
         <!-- Player -->
@@ -152,6 +156,7 @@
             * uiConfId: 44188961
             * serviceUrl:"http://www.kaltura.com/api_v3"
             * ks: "MzQyOTA3ZDQyMWMyNGI4NTM1NTQwYmQ2YWE1NWVkOTBlMDRiMGU4M3wyNzAxNzsyNzAxNzsxMTU1NzkwNzE0NzsyOzE1NTc5MDcxNDguOTg2NDthZG1pbjtkaXNhYmxlZW50aXRsZW1lbnQ7Ow=="
+            * userId: 'Shimi'
             * */
 
 
@@ -166,6 +171,9 @@
                             serviceUrl: serviceUrl
                         },
                         ks: ks
+                    },
+                    session: {
+                        userId: userId
                     },
                     plugins: {
                         'qna-local': {
