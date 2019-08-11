@@ -1,12 +1,11 @@
 import {
-    PushNotifications,
-    PushNotificationsOptions,
-    PrepareRegisterRequestConfig
+    PrepareRegisterRequestConfig,
+    PushNotifications
 } from "@playkit-js-contrib/push-notifications";
-import { EventManager } from "@playkit-js-contrib/common";
+import { EventManager, getContribLogger } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
-import { getContribLogger } from "@playkit-js-contrib/common";
+import { PushNotificationEvents, QnAPushNotificationManager } from "./QnAPushNotificationManager";
 
 export interface ThreadManagerParams {
     ks: string;
@@ -23,7 +22,6 @@ const logger = getContribLogger({
 });
 
 export class ThreadManager {
-    private _pushNotifications: PushNotifications | null = null;
     private _qnaMessages: QnaMessage[] = [];
     private _messageEventManager: EventManager = new EventManager();
 
@@ -31,77 +29,15 @@ export class ThreadManager {
         return this._messageEventManager;
     }
 
-    constructor(config: ThreadManagerParams) {
-        let pushNotificationsOptions: PushNotificationsOptions = {
-            ks: config.ks,
-            serviceUrl: config.serviceUrl,
-            clientTag: "QnaPlugin_V7", // todo: Is this the clientTag we want
-            playerAPI: {
-                kalturaPlayer: config.playerAPI.player,
-                eventManager: config.playerAPI.eventManager
-            }
-        };
-
-        // Todo: should use plugin instance
-        this._pushNotifications = PushNotifications.getInstance(pushNotificationsOptions);
+    constructor(qnaPushManger: QnAPushNotificationManager) {
+        qnaPushManger.registerEventHandler(
+            PushNotificationEvents.UserNotifications,
+            this._processResponse.bind(this)
+        );
     }
 
     public unregister() {
-        if (this._pushNotifications) {
-            this._pushNotifications.reset();
-        }
-
         this._qnaMessages = [];
-    }
-
-    public register(entryId: string, userId: string) {
-        logger.info("register to entry message", {
-            method: "register",
-            data: {
-                entryId
-            }
-        });
-
-        if (!this._pushNotifications) {
-            // TODO change state to error
-            return;
-        }
-
-        let publicQnaRequestConfig: PrepareRegisterRequestConfig = {
-            eventName: "PUBLIC_QNA_NOTIFICATIONS",
-            eventParams: {
-                entryId: entryId
-            },
-            onMessage: (response: any[]) => {}
-        };
-
-        let privateQnaRequestConfig: PrepareRegisterRequestConfig = {
-            eventName: "USER_QNA_NOTIFICATIONS",
-            eventParams: {
-                entryId: entryId,
-                userId: userId
-            },
-            onMessage: (response: any[]) => {
-                this._processResponse(response);
-            }
-        };
-
-        this._pushNotifications
-            .registerNotifications({
-                prepareRegisterRequestConfigs: [publicQnaRequestConfig, privateQnaRequestConfig],
-                onSocketReconnect: () => {}
-            })
-            .then(
-                () => {
-                    // todo
-                },
-                (err: any) => {
-                    // Something bad happen (push server or more are down)
-                    if (this._messageEventManager) {
-                        this._messageEventManager.emit("OnQnaError");
-                    }
-                }
-            );
     }
 
     private _processResponse(response: any): void {
