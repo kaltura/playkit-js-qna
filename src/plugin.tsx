@@ -35,10 +35,8 @@ import {
 } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataObjectType } from "kaltura-typescript-client/api/types/KalturaMetadataObjectType";
 import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataAddAction";
-import {
-    KalturaMetadataProfileFilter,
-    MetadataProfileListAction
-} from "kaltura-typescript-client/api/types";
+import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/types/KalturaMetadataProfileFilter";
+import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { getContribLogger } from "@playkit-js-contrib/common";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
