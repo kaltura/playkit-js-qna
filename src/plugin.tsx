@@ -88,7 +88,7 @@ export class QnaPlugin extends PlayerContribPlugin
     private _initPluginManagers(): void {
         const { server }: ContribConfig = this.getContribConfig();
 
-        this._qnaPushNotificationManager = new QnAPushNotificationManager({
+        this._qnaPushNotificationManager = QnAPushNotificationManager.getInstance({
             ks: server.ks,
             serviceUrl: server.serviceUrl,
             clientTag: "QnaPlugin_V7", // todo: Is this the clientTag we want
@@ -98,7 +98,8 @@ export class QnaPlugin extends PlayerContribPlugin
             }
         });
 
-        this._threadManager = new ThreadManager(this._qnaPushNotificationManager);
+        this._threadManager = new ThreadManager();
+        this._threadManager.registerPushNotification(this._qnaPushNotificationManager);
         // register messages
         this._threadManager.messageEventManager.on("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));

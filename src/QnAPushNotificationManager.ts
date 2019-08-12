@@ -24,14 +24,23 @@ const logger = getContribLogger({
  * handles push notification registration and results.
  */
 export class QnAPushNotificationManager {
+    private static _instance: QnAPushNotificationManager | null = null;
+
     private _pushNotifications: PushNotifications | null = null;
     private _notificationsHandlers: Map<
         PushNotificationEvents,
         Array<pushNotificationHandler>
     > = new Map<PushNotificationEvents, Array<pushNotificationHandler>>();
 
-    constructor(options: PushNotificationsOptions) {
+    private constructor(options: PushNotificationsOptions) {
         this._pushNotifications = PushNotifications.getInstance(options);
+    }
+
+    public static getInstance(options: PushNotificationsOptions) {
+        if (!QnAPushNotificationManager._instance) {
+            QnAPushNotificationManager._instance = new QnAPushNotificationManager(options);
+        }
+        return QnAPushNotificationManager._instance;
     }
 
     public unregisterPushNotification() {
@@ -87,7 +96,9 @@ export class QnAPushNotificationManager {
             eventParams: {
                 entryId: entryId
             },
-            onMessage: (response: any[]) => {}
+            onMessage: (response: any[]) => {
+                this._callRegisteredHandlers(PushNotificationEvents.PublicNotifications, response);
+            }
         };
     }
 
