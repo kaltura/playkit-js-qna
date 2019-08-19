@@ -2,6 +2,7 @@ import { EventManager, getContribLogger } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { PushNotificationEvents, QnAPushNotificationManager } from "./QnAPushNotificationManager";
+import { Utils } from "./utils";
 
 const logger = getContribLogger({
     class: "ThreadManager",
@@ -34,24 +35,7 @@ export class ThreadManager {
 
     private _processResponse(response: any): void {
         response
-            .reduce((filtered: KalturaAnnotation[], res: any) => {
-                if (res.objectType !== "KalturaAnnotation") {
-                    logger.warn(
-                        "invalid message type, message cuePoint should be of type: KalturaAnnotation",
-                        {
-                            method: "_processResponse",
-                            data: {}
-                        }
-                    );
-                } else {
-                    // Transform the result into KalturaAnnotation object
-                    const result: KalturaAnnotation = new KalturaAnnotation();
-                    result.fromResponseObject(res);
-                    filtered.push(result);
-                }
-
-                return filtered;
-            }, [])
+            .reduce(Utils.getkalturaAnnotationReducer(logger), [])
             .forEach((cuePoint: KalturaAnnotation) => {
                 let newMessage: QnaMessage | null = QnaMessage.create(cuePoint);
 
