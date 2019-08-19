@@ -1,24 +1,24 @@
 import { h } from "preact";
 import {
     KalturaClient,
-    KalturaRequest,
     KalturaMultiRequest,
-    KalturaMultiResponse
+    KalturaMultiResponse,
+    KalturaRequest
 } from "kaltura-typescript-client";
 import {
-    UIManager,
+    KitchenSinkContentRendererProps,
+    KitchenSinkExpandModes,
     KitchenSinkItem,
     KitchenSinkPositions,
-    KitchenSinkExpandModes,
-    KitchenSinkContentRendererProps
+    UIManager
 } from "@playkit-js-contrib/ui";
 import {
-    OnPluginSetup,
-    OnRegisterUI,
+    ContribConfig,
     OnMediaLoad,
     OnMediaLoadConfig,
     OnMediaUnload,
-    ContribConfig,
+    OnPluginSetup,
+    OnRegisterUI,
     PlayerContribPlugin
 } from "@playkit-js-contrib/plugin";
 import { DateFormats, KitchenSink } from "./components/kitchen-sink";
@@ -35,12 +35,10 @@ import {
 } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataObjectType } from "kaltura-typescript-client/api/types/KalturaMetadataObjectType";
 import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataAddAction";
-import {
-    KalturaMetadataProfileFilter,
-    MetadataProfileListAction
-} from "kaltura-typescript-client/api/types";
-import { getContribLogger } from "@playkit-js-contrib/common";
-import { QnAPushNotificationManager } from "./QnAPushNotificationManager";
+import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
+import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/types/KalturaMetadataProfileFilter";
+import { getContribLogger, CuepointEngine } from "@playkit-js-contrib/common";
+import { PushNotificationEvents, QnAPushNotificationManager } from "./QnAPushNotificationManager";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -99,14 +97,14 @@ export class QnaPlugin extends PlayerContribPlugin
         });
 
         this._threadManager = new ThreadManager();
-        this._threadManager.registerPushNotification(this._qnaPushNotificationManager);
+        this._threadManager.addPushNotificationEventHandlers(this._qnaPushNotificationManager);
         // register messages
         this._threadManager.messageEventManager.on("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));
 
         this._delayedGiveUpLoading();
 
-        this._qnaPushNotificationManager.registerPushNotification(this.entryId, server.userId);
+        this._qnaPushNotificationManager.initPushRegistration(this.entryId, server.userId);
     }
 
     private _delayedGiveUpLoading() {

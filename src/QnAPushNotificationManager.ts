@@ -49,7 +49,7 @@ export class QnAPushNotificationManager {
         if (this._pushNotifications) this._pushNotifications.reset();
     }
 
-    public registerPushNotification(entryId: string, userId: string | undefined) {
+    public initPushRegistration(entryId: string, userId: string | undefined) {
         // TODO [am] temp solutions for userId need to handle anonymous user id
         if (!this._pushNotifications) {
             return; // TODO [am] change state to error
@@ -75,10 +75,7 @@ export class QnAPushNotificationManager {
             );
     }
 
-    public registerEventHandler(
-        event: PushNotificationEvents,
-        handler: pushNotificationHandler
-    ): void {
+    public addEventHandler(event: PushNotificationEvents, handler: pushNotificationHandler): void {
         if (!this._notificationsHandlers.has(event)) {
             this._notificationsHandlers.set(event, []);
         }

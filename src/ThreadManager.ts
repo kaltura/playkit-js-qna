@@ -2,14 +2,13 @@ import { EventManager, getContribLogger } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { PushNotificationEvents, QnAPushNotificationManager } from "./QnAPushNotificationManager";
-import { QnAPushNotificationHandler } from "./QnAPushNotificationHandler";
 
 const logger = getContribLogger({
     class: "ThreadManager",
     module: "qna-plugin"
 });
 
-export class ThreadManager implements QnAPushNotificationHandler {
+export class ThreadManager {
     private _qnaMessages: QnaMessage[] = [];
     private _messageEventManager: EventManager = new EventManager();
 
@@ -17,13 +16,13 @@ export class ThreadManager implements QnAPushNotificationHandler {
         return this._messageEventManager;
     }
 
-    public registerPushNotification(qnaPushManger: QnAPushNotificationManager): void {
-        qnaPushManger.registerEventHandler(
+    public addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
+        qnaPushManger.addEventHandler(
             PushNotificationEvents.UserNotifications,
             this._processResponse.bind(this)
         );
 
-        qnaPushManger.registerEventHandler(
+        qnaPushManger.addEventHandler(
             PushNotificationEvents.PublicNotifications,
             this._processResponse.bind(this)
         );
