@@ -38,6 +38,10 @@
                 padding: 2px 8px;
             }
 
+            .test-form input:focus {
+                border-color: #01accd;
+            }
+
             .submit {
                 border: 2px solid #01accd;
                 border-radius: 12px;
@@ -120,18 +124,17 @@
 
         <script>
             var player;
-            let errorMsg = document.getElementById("errorMsg");
-
-            let isValid = false;
+            var errorMsg = document.getElementById("errorMsg");
+            var isValid = false;
 
             // get search params from url string
-            let urlParams = new URLSearchParams(window.location.search);
-            let entryId = urlParams.get('entryId');
-            let userId = urlParams.get('userId');
-            let ks = urlParams.get('ks');
-            let serviceUrl = urlParams.get('serviceUrl');
-            let partnerId = urlParams.get('partnerId');
-            let uiConfId = urlParams.get('uiConfId');
+            var urlParams = new urlParamParse(window.location.search);
+            var entryId = urlParams.get('entryId');
+            var userId = urlParams.get('userId');
+            var ks = urlParams.get('ks');
+            var serviceUrl = urlParams.get('serviceUrl');
+            var partnerId = urlParams.get('partnerId');
+            var uiConfId = urlParams.get('uiConfId');
 
             // load params to the form
             entryId   ? document.getElementById("entryId").value      = entryId : null;
@@ -149,16 +152,6 @@
             else {
                 errorMsg.style.display = "block";
             }
-
-            /*
-            * entryId: 1_s8s12id6
-            * partnerId: 27017
-            * uiConfId: 44188961
-            * serviceUrl:"http://www.kaltura.com/api_v3"
-            * ks: "MzQyOTA3ZDQyMWMyNGI4NTM1NTQwYmQ2YWE1NWVkOTBlMDRiMGU4M3wyNzAxNzsyNzAxNzsxMTU1NzkwNzE0NzsyOzE1NTc5MDcxNDguOTg2NDthZG1pbjtkaXNhYmxlZW50aXRsZW1lbnQ7Ow=="
-            * userId: 'Shimi'
-            * */
-
 
             if (isValid) {
                 var config = {
@@ -188,6 +181,24 @@
                     player.play();
                 });
             }
+
+            /*
+            * Get url params
+            * replace the URLSearchParams as IE doesn't support it
+            * */
+            function urlParamParse(url) {
+                this.url = url;
+
+                this.get = function (name) {
+                    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(this.url);
+                    if (results == null){
+                        return null;
+                    }
+                    else {
+                        return unescape(decodeURI(results[1]) || 0);
+                    }
+                };
+            };
         </script>
     </body>
 </html>

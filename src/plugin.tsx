@@ -35,9 +35,9 @@ import {
 } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataObjectType } from "kaltura-typescript-client/api/types/KalturaMetadataObjectType";
 import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataAddAction";
-import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/types/KalturaMetadataProfileFilter";
-import { getContribLogger, CuepointEngine } from "@playkit-js-contrib/common";
+import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
+import { getContribLogger } from "@playkit-js-contrib/common";
 import { PushNotificationEvents, QnAPushNotificationManager } from "./QnAPushNotificationManager";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
