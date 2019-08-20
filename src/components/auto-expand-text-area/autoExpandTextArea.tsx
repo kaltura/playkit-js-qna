@@ -131,23 +131,23 @@ export class AutoExpandTextArea extends Component<
                     rows={1}
                     maxLength={MAX_NUM_OF_CHARS}
                 />
-                <div
-                    className={classNames(styles.inputActionsContainer, {
-                        [styles.notVisible]: !isInFocus
-                    })}
-                    ref={element => (this._actionsContainer = element)}
-                >
-                    <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
-                    <button
-                        onClick={this._handleOnSend}
-                        className={styles.sendButton}
-                        type={"button"}
-                        disabled={!text.length}
-                        ref={button => (this._sendButtonRef = button)}
+                {isInFocus && (
+                    <div
+                        className={styles.inputActionsContainer}
+                        ref={element => (this._actionsContainer = element)}
                     >
-                        {"Send"}
-                    </button>
-                </div>
+                        <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
+                        <button
+                            onClick={this._handleOnSend}
+                            className={styles.sendButton}
+                            type={"button"}
+                            disabled={!text.length}
+                            ref={button => (this._sendButtonRef = button)}
+                        >
+                            {"Send"}
+                        </button>
+                    </div>
+                )}
             </div>
         );
     }

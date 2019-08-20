@@ -63,10 +63,6 @@
   align-content: center;
   flex-flow: row wrap;
   margin-top: 5px;
-
-  &.not-visible {
-    display: none;
-  }
 }
 
 .ignore-clicks {
