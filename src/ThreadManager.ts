@@ -22,11 +22,6 @@ export class ThreadManager {
             PushNotificationEvents.UserNotifications,
             this._processResponse.bind(this)
         );
-
-        qnaPushManger.addEventHandler(
-            PushNotificationEvents.PublicNotifications,
-            this._processResponse.bind(this)
-        );
     }
 
     public unregister() {

@@ -89,7 +89,7 @@ export class QnaPlugin extends PlayerContribPlugin
         this._qnaPushNotificationManager = QnAPushNotificationManager.getInstance({
             ks: server.ks,
             serviceUrl: server.serviceUrl,
-            clientTag: "QnaPlugin_V7", // todo: Is this the clientTag we want
+            clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
             playerAPI: {
                 kalturaPlayer: this.player,
                 eventManager: this.eventManager
@@ -104,6 +104,7 @@ export class QnaPlugin extends PlayerContribPlugin
 
         this._delayedGiveUpLoading();
 
+        //registering only after all handlers were added to make sure all data will be handled
         this._qnaPushNotificationManager.initPushRegistration(this.entryId, server.userId);
     }
 
