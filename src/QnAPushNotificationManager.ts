@@ -32,6 +32,8 @@ export class QnAPushNotificationManager {
         Array<pushNotificationHandler>
     > = new Map<PushNotificationEvents, Array<pushNotificationHandler>>();
 
+    private _registeredToPushServer = false;
+
     private constructor(options: PushNotificationsOptions) {
         this._pushNotifications = PushNotifications.getInstance(options);
     }
@@ -43,13 +45,20 @@ export class QnAPushNotificationManager {
         return QnAPushNotificationManager._instance;
     }
 
-    public unregisterPushNotification() {
-        logger.info("Unregister push notification", { method: "unregister" });
-
-        if (this._pushNotifications) this._pushNotifications.reset();
+    public destroyPushServerRegistration() {
+        logger.info("Unregister push notification", { method: "destroyPushServerRegistration" });
+        if (this._pushNotifications) {
+            this._pushNotifications.reset();
+            this._registeredToPushServer = false;
+        }
     }
 
-    public initPushRegistration(entryId: string, userId: string | undefined) {
+    public registerToPushServer(entryId: string, userId: string | undefined) {
+        if (this._registeredToPushServer) {
+            logger.error("Multiple registration error", { method: "registerToPushServer" });
+            throw new Error("Already register to push server");
+        }
+
         // TODO [am] temp solutions for userId need to handle anonymous user id
         if (!this._pushNotifications) {
             return; // TODO [am] change state to error
@@ -65,7 +74,9 @@ export class QnAPushNotificationManager {
                 onSocketReconnect: () => {}
             })
             .then(
-                () => {}, // todo [am]
+                () => {
+                    this._registeredToPushServer = true;
+                },
                 (err: any) => {
                     // todo [am] Something bad happen (push server or more are down)
                     // if (this._messageEventManager) {
@@ -75,6 +86,12 @@ export class QnAPushNotificationManager {
             );
     }
 
+    /**
+     * event handlers that will register after 'registerToPushServer'
+     * will get only future push notifications (ont the initial bulk).
+     * @param event
+     * @param handler
+     */
     public addEventHandler(event: PushNotificationEvents, handler: pushNotificationHandler): void {
         if (!this._notificationsHandlers.has(event)) {
             this._notificationsHandlers.set(event, []);

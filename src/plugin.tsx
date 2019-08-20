@@ -105,7 +105,7 @@ export class QnaPlugin extends PlayerContribPlugin
         this._delayedGiveUpLoading();
 
         //registering only after all handlers were added to make sure all data will be handled
-        this._qnaPushNotificationManager.initPushRegistration(this.entryId, server.userId);
+        this._qnaPushNotificationManager.registerToPushServer(this.entryId, server.userId);
     }
 
     private _delayedGiveUpLoading() {
