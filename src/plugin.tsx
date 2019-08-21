@@ -38,7 +38,8 @@ import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataA
 import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/types/KalturaMetadataProfileFilter";
 import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { PushNotificationEvents, QnAPushNotificationManager } from "./QnAPushNotificationManager";
+import { QnAPushNotificationManager } from "./QnAPushNotificationManager";
+import { InPlayerNotificationsManager } from "./InPlayerNotificationsManager";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -56,6 +57,7 @@ export class QnaPlugin extends PlayerContribPlugin
 
     private _qnaPushNotificationManager: QnAPushNotificationManager | null = null;
 
+    private _uiManager: UIManager | null = null;
     private _threadManager: ThreadManager | null = null;
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
@@ -102,10 +104,28 @@ export class QnaPlugin extends PlayerContribPlugin
         this._threadManager.messageEventManager.on("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));
 
-        this._delayedGiveUpLoading();
+        let announcementManger = new InPlayerNotificationsManager({
+            kalturaPlayer: this.player,
+            eventManager: this.eventManager
+        });
+        announcementManger.addPushNotificationEventHandlers(this._qnaPushNotificationManager);
+        // register messages
+        announcementManger.messageEventManager.on("showAnnouncement", (data: QnaMessage) => {
+            if (this._uiManager)
+                this._uiManager.announcement.add({
+                    content: {
+                        text: data.messageContent ? data.messageContent : ""
+                    }
+                });
+        });
+        announcementManger.messageEventManager.on("hideAnnouncement", () => {
+            if (this._uiManager) this._uiManager.announcement.remove();
+        });
 
         //registering only after all handlers were added to make sure all data will be handled
         this._qnaPushNotificationManager.registerToPushServer(this.entryId, server.userId);
+
+        this._delayedGiveUpLoading();
     }
 
     private _delayedGiveUpLoading() {
@@ -153,9 +173,12 @@ export class QnaPlugin extends PlayerContribPlugin
         if (this._threadManager) {
             this._threadManager.unregister();
         }
+
+        //TODO destroy inPlayerNotificaitons....
     }
 
     onRegisterUI(uiManager: UIManager): void {
+        this._uiManager = uiManager;
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
             expandMode: KitchenSinkExpandModes.OverTheVideo,

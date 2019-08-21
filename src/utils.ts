@@ -1,5 +1,5 @@
 import { DateFormats, DateTimeFormatting } from "./components/kitchen-sink";
-import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
+import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { ContribLogger } from "@playkit-js-contrib/common";
 
 export class Utils {
