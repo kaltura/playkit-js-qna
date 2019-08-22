@@ -47,6 +47,13 @@ export class InPlayerNotificationsManager {
         );
     }
 
+    public unregister() {
+        this._notifications = [];
+        this._cuePointEngine = new CuepointEngine<QnaMessage>([]);
+        //todo unregister push notification
+        //todo unregister from player event
+    }
+
     private _handlePushResponse(response: any) {
         let wasUpdated = false;
         response

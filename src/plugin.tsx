@@ -59,6 +59,7 @@ export class QnaPlugin extends PlayerContribPlugin
 
     private _uiManager: UIManager | null = null;
     private _threadManager: ThreadManager | null = null;
+    private _inPlayerNotificationsManager: InPlayerNotificationsManager | null = null;
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
@@ -104,23 +105,22 @@ export class QnaPlugin extends PlayerContribPlugin
         this._threadManager.messageEventManager.on("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));
 
-        let announcementManger = new InPlayerNotificationsManager({
+        this._inPlayerNotificationsManager = new InPlayerNotificationsManager({
             kalturaPlayer: this.player,
             eventManager: this.eventManager
         });
-        announcementManger.addPushNotificationEventHandlers(this._qnaPushNotificationManager);
+        this._inPlayerNotificationsManager.addPushNotificationEventHandlers(
+            this._qnaPushNotificationManager
+        );
         // register messages
-        announcementManger.messageEventManager.on("showAnnouncement", (data: QnaMessage) => {
-            if (this._uiManager)
-                this._uiManager.announcement.add({
-                    content: {
-                        text: data.messageContent ? data.messageContent : ""
-                    }
-                });
-        });
-        announcementManger.messageEventManager.on("hideAnnouncement", () => {
-            if (this._uiManager) this._uiManager.announcement.remove();
-        });
+        this._inPlayerNotificationsManager.messageEventManager.on(
+            "showAnnouncement",
+            this._onInPlayerNotificationShow.bind(this)
+        );
+        this._inPlayerNotificationsManager.messageEventManager.on(
+            "hideAnnouncement",
+            this._onInPlayerNotificationHide.bind(this)
+        );
 
         //registering only after all handlers were added to make sure all data will be handled
         this._qnaPushNotificationManager.registerToPushServer(this.entryId, server.userId);
@@ -154,10 +154,24 @@ export class QnaPlugin extends PlayerContribPlugin
         this._updateKitchenSink();
     }
 
+    private _onInPlayerNotificationShow(data: QnaMessage) {
+        if (this._uiManager)
+            this._uiManager.announcement.add({
+                content: {
+                    text: data.messageContent ? data.messageContent : ""
+                }
+            });
+    }
+
+    private _onInPlayerNotificationHide() {
+        if (this._uiManager) this._uiManager.announcement.remove();
+    }
+
     onMediaUnload(): void {
         this._hasError = false;
         this._loading = true;
         this._destroyThreadManager();
+        this._destroyInPlayerNotificationsManager();
     }
 
     private _destroyThreadManager(): void {
@@ -166,15 +180,34 @@ export class QnaPlugin extends PlayerContribPlugin
         }
 
         // unregister to messages
-        this._threadManager.messageEventManager.off("OnQnaMessage", this._onQnaMessage);
-        this._threadManager.messageEventManager.off("OnQnaError", this._onQnaError);
+        this._threadManager.messageEventManager.off("OnQnaMessage", this._onQnaMessage.bind(this));
+        this._threadManager.messageEventManager.off("OnQnaError", this._onQnaError.bind(this));
 
         // unregister socket and event name
         if (this._threadManager) {
             this._threadManager.unregister();
         }
+    }
 
-        //TODO destroy inPlayerNotificaitons....
+    private _destroyInPlayerNotificationsManager(): void {
+        if (!this._inPlayerNotificationsManager) {
+            return;
+        }
+
+        // unregister to messages
+        this._inPlayerNotificationsManager.messageEventManager.off(
+            "showAnnouncement",
+            this._onInPlayerNotificationShow.bind(this)
+        );
+        this._inPlayerNotificationsManager.messageEventManager.off(
+            "hideAnnouncement",
+            this._onInPlayerNotificationHide.bind(this)
+        );
+
+        // unregister socket and event name
+        if (this._inPlayerNotificationsManager) {
+            this._inPlayerNotificationsManager.unregister();
+        }
     }
 
     onRegisterUI(uiManager: UIManager): void {
