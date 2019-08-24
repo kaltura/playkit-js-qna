@@ -1,0 +1,24 @@
+.iconImage {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  left: calc(50% - 16px);
+  top: calc(50% - 16px);
+  background-image: url('./assets/someone_asks_large.svg');
+  background-repeat: no-repeat;
+  transition: all .5s ease;
+}
+
+:global {
+  .playkit-size-md {
+    :local {
+      .iconImage {
+        width: 20px;
+        height: 20px;
+        left: calc(50% - 10px);
+        top: calc(50% - 10px);
+        background-image: url('./assets/someone_asks_small.svg');
+      }
+    }
+  }
+}
