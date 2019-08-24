@@ -62,7 +62,11 @@ export class InPlayerNotificationsManager {
                 return QnaMessage.create(cuePoint);
             })
             .forEach((newMessage: QnaMessage) => {
-                if (newMessage.type === QnaMessageType.Announcement) {
+                if (
+                    [QnaMessageType.Announcement, QnaMessageType.AnswerOnAir].includes(
+                        newMessage.type
+                    )
+                ) {
                     wasUpdated = wasUpdated || this._handleQnaMessage(newMessage);
                 }
             });

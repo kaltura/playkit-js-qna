@@ -5,7 +5,8 @@ import { Utils } from "./utils";
 export enum QnaMessageType {
     Question = "Question",
     Answer = "Answer",
-    Announcement = "Announcement"
+    Announcement = "Announcement",
+    AnswerOnAir = "AnswerOnAir"
 }
 
 export enum MessageStatusEnum {

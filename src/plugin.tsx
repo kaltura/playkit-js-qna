@@ -40,6 +40,7 @@ import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/M
 import { getContribLogger } from "@playkit-js-contrib/common";
 import { QnAPushNotificationManager } from "./QnAPushNotificationManager";
 import { InPlayerNotificationsManager } from "./InPlayerNotificationsManager";
+import { AnswerOnAirIcon } from "./components/answer-on-air-icon";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -158,6 +159,9 @@ export class QnaPlugin extends PlayerContribPlugin
         if (this._uiManager)
             this._uiManager.announcement.add({
                 content: {
+                    title: data.type === QnaMessageType.AnswerOnAir ? "Audience asks:" : undefined,
+                    icon:
+                        data.type === QnaMessageType.AnswerOnAir ? <AnswerOnAirIcon /> : undefined,
                     text: data.messageContent ? data.messageContent : ""
                 }
             });
