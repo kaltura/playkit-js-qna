@@ -1,24 +1,24 @@
 import { h } from "preact";
 import {
     KalturaClient,
-    KalturaRequest,
     KalturaMultiRequest,
-    KalturaMultiResponse
+    KalturaMultiResponse,
+    KalturaRequest
 } from "kaltura-typescript-client";
 import {
-    UIManager,
+    KitchenSinkContentRendererProps,
+    KitchenSinkExpandModes,
     KitchenSinkItem,
     KitchenSinkPositions,
-    KitchenSinkExpandModes,
-    KitchenSinkContentRendererProps
+    UIManager
 } from "@playkit-js-contrib/ui";
 import {
-    OnPluginSetup,
-    OnRegisterUI,
+    ContribConfig,
     OnMediaLoad,
     OnMediaLoadConfig,
     OnMediaUnload,
-    ContribConfig,
+    OnPluginSetup,
+    OnRegisterUI,
     PlayerContribPlugin
 } from "@playkit-js-contrib/plugin";
 import { DateFormats, KitchenSink } from "./components/kitchen-sink";
@@ -38,6 +38,7 @@ import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataA
 import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/types/KalturaMetadataProfileFilter";
 import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { getContribLogger } from "@playkit-js-contrib/common";
+import { PushNotificationEvents, QnAPushNotificationManager } from "./QnAPushNotificationManager";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -52,6 +53,9 @@ export class QnaPlugin extends PlayerContribPlugin
     static defaultConfig = {};
 
     private _kalturaClient = new KalturaClient();
+
+    private _qnaPushNotificationManager: QnAPushNotificationManager | null = null;
+
     private _threadManager: ThreadManager | null = null;
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
@@ -76,33 +80,32 @@ export class QnaPlugin extends PlayerContribPlugin
         this._loading = true;
         this._hasError = false;
         this._metadataProfileId = null;
-        this._registerThreadManager();
+        this._initPluginManagers();
     }
 
-    private _registerThreadManager(): void {
-        const contribConfig: ContribConfig = this.getContribConfig();
+    private _initPluginManagers(): void {
+        const { server }: ContribConfig = this.getContribConfig();
 
-        this._threadManager = new ThreadManager({
-            ks: contribConfig.server.ks,
-            serviceUrl: contribConfig.server.serviceUrl,
+        this._qnaPushNotificationManager = QnAPushNotificationManager.getInstance({
+            ks: server.ks,
+            serviceUrl: server.serviceUrl,
+            clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
             playerAPI: {
-                player: this.player,
+                kalturaPlayer: this.player,
                 eventManager: this.eventManager
             }
         });
 
-        if (!this._threadManager) {
-            return;
-        }
-
-        // register socket ans event names
-        this._threadManager.register(this.entryId, contribConfig.server.userId!); // TODO temp solutions for userId need to handle anonymous user id
-
+        this._threadManager = new ThreadManager();
+        this._threadManager.addPushNotificationEventHandlers(this._qnaPushNotificationManager);
         // register messages
         this._threadManager.messageEventManager.on("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));
 
         this._delayedGiveUpLoading();
+
+        //registering only after all handlers were added to make sure all data will be handled
+        this._qnaPushNotificationManager.registerToPushServer(this.entryId, server.userId);
     }
 
     private _delayedGiveUpLoading() {
