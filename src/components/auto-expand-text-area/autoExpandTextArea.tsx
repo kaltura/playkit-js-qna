@@ -3,7 +3,10 @@ import * as styles from "./autoExpandTextArea.scss";
 import classNames from "classnames";
 
 interface AutoExpandTextAreaProps {
+    placeholder?: string;
     onSubmit: (text: string) => void;
+    enableBlackInputTheme?: boolean;
+    enableFocusOut?: boolean;
 }
 
 interface AutoExpandTextAreaState {
@@ -23,6 +26,13 @@ export class AutoExpandTextArea extends Component<
     private _actionsContainer: HTMLElement | null = null;
     private _sendButtonRef: HTMLButtonElement | null = null;
 
+    static defaultProps = {
+        placeholder: "",
+        onsubmit: () => {},
+        enableBlackInputTheme: false,
+        enableFocusOut: true
+    };
+
     state: AutoExpandTextAreaState = { text: "", isInFocus: false };
 
     componentDidMount(): void {
@@ -30,15 +40,18 @@ export class AutoExpandTextArea extends Component<
             return;
         }
 
-        this._textareaContainer.addEventListener("focusin", this._handleOnFocusIn);
-        this._textareaContainer.addEventListener("focusout", this._handleOnFocusOut);
+        this._textareaContainer.addEventListener("focusin", this._handleFocusIn);
+
+        if (this.props.enableFocusOut) {
+            this._textareaContainer.addEventListener("focusout", this._handleFocusOut);
+        }
     }
 
-    private _handleOnFocusIn = () => {
+    private _handleFocusIn = () => {
         this._toggleActionsContainer(true);
     };
 
-    private _handleOnFocusOut = (e: any) => {
+    private _handleFocusOut = (e: any) => {
         if (this._isElementOfComponent(e.relatedTarget)) {
             return;
         }
@@ -114,6 +127,7 @@ export class AutoExpandTextArea extends Component<
 
     render() {
         const { text, isInFocus } = this.state;
+        const { enableBlackInputTheme, placeholder } = this.props;
 
         return (
             <div
@@ -123,11 +137,13 @@ export class AutoExpandTextArea extends Component<
                 <i className={classNames(styles.privateIcon, styles.ignoreClicks)} />
                 <textarea
                     value={text}
-                    className={styles.textarea}
+                    className={classNames(styles.textarea, {
+                        [styles.blackInputTheme]: enableBlackInputTheme
+                    })}
                     ref={textArea => (this._textAreaRef = textArea)}
                     onInput={this._handleOnInputChange}
                     onKeyDown={this._handleNewLineOrSubmit}
-                    placeholder={"Type a private question"}
+                    placeholder={placeholder}
                     rows={1}
                     maxLength={MAX_NUM_OF_CHARS}
                 />
@@ -153,7 +169,10 @@ export class AutoExpandTextArea extends Component<
     }
 
     componentWillUnmount(): void {
-        this._textareaContainer.removeEventListener("focusin", this._handleOnFocusIn);
-        this._textareaContainer.removeEventListener("focusout", this._handleOnFocusOut);
+        this._textareaContainer.removeEventListener("focusin", this._handleFocusIn);
+
+        if (this.props.enableFocusOut) {
+            this._textareaContainer.removeEventListener("focusout", this._handleFocusOut);
+        }
     }
 }

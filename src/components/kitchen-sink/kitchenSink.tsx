@@ -104,7 +104,10 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
                 {/* footer */}
                 <div className={styles.footer}>
-                    <AutoExpandTextArea onSubmit={this.handleOnSubmit} />
+                    <AutoExpandTextArea
+                        onSubmit={this.handleOnSubmit}
+                        placeholder={"Type a private question"}
+                    />
                 </div>
             </div>
         );

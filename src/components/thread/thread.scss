@@ -7,7 +7,6 @@
 
 .thread{
   border-radius: 4px;
-  background-color: #333333cc;
   color: #ffffffe6;
   min-height: 84px;
   width: 100%;
@@ -16,8 +15,9 @@
 }
 
 .message-content {
+  background-color: #333333cc;
+  padding: 8px;
   min-height: 15px;
-  margin: 8px;
   font-size: 15px;
   line-height: 1;
   color: #ffffffe6;
@@ -25,6 +25,7 @@
 }
 
 .second-info-line {
+  background-color: #333333cc;
   height: 16px;
   border-bottom: 1px solid #222222e6;
   padding: 0 8px 8px 8px;
@@ -32,6 +33,7 @@
 }
 
 .collapsed-area {
+  background-color: #333333cc;
   border-bottom: 1px solid #222222e6;
   padding: 16px 8px;
   box-sizing: initial;
@@ -101,6 +103,7 @@
 }
 
 .last-info-line {
+  background-color: #333333cc;
   height: 32px;
   padding: 6px 8px;
 }

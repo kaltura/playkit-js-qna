@@ -1,0 +1,19 @@
+.text {
+  margin-right: 4px;
+  user-select: text;
+}
+
+.show-more-or-less {
+  font-size: 15px;
+  color: #a3f0ffe6;
+
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

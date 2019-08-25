@@ -4,6 +4,8 @@ import { QnaMessage, QnaMessageType } from "../../QnaMessage";
 import { DateTimeFormatting } from "../kitchen-sink";
 import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
+import { TrimmedText } from "../trimmed-text";
+import { AutoExpandTextArea } from "../auto-expand-text-area";
 
 interface ThreadProps {
     thread: QnaMessage;
@@ -12,33 +14,45 @@ interface ThreadProps {
 
 interface ThreadState {
     isThreadOpen: boolean;
+    showInputText: boolean;
 }
 
 export class Thread extends Component<ThreadProps, ThreadState> {
     static defaultProps = {};
 
     state = {
-        isThreadOpen: false
+        isThreadOpen: false,
+        showInputText: false
     };
 
-    onCollapsedClick = () => {
+    handleOnShowMoreClick = () => {
         this.setState({ isThreadOpen: !this.state.isThreadOpen });
+    };
+
+    handleOnReplyButtonClick = () => {
+        this.setState({ showInputText: !this.state.showInputText });
+    };
+
+    handleOnSubmit = (text: string) => {
+        console.log(text);
     };
 
     render() {
         const { thread, formatting } = this.props;
         const { replies } = thread;
-        const { isThreadOpen } = this.state;
+        const { isThreadOpen, showInputText } = this.state;
 
         return (
             <div className={styles.thread}>
-                <div className={styles.messageContent}>{thread.messageContent}</div>
+                <div className={styles.messageContent}>
+                    <TrimmedText maxLength={120} text={thread.messageContent} />
+                </div>
                 <div className={styles.secondInfoLine}>
                     {/*    Show More/Less button and thread time  */
                     replies.length > 0 && (
                         <button
                             className={styles.clearStyledButton}
-                            onClick={this.onCollapsedClick}
+                            onClick={this.handleOnShowMoreClick}
                             type={"button"}
                         >
                             <span
@@ -47,7 +61,10 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                 })}
                             />
                             <span className={styles.numOfReplies}>
-                                {isThreadOpen ? "Show less" : `${replies.length} Replies`}
+                                {isThreadOpen
+                                    ? "Show less"
+                                    : replies.length +
+                                      (replies.length === 1 ? " Reply" : " Replies")}
                             </span>
                         </button>
                     )}
@@ -75,7 +92,10 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                                 </div>
                                             )}
                                             <div className={styles.replyMessage}>
-                                                {reply.messageContent}
+                                                <TrimmedText
+                                                    maxLength={120}
+                                                    text={reply.messageContent}
+                                                />
                                             </div>
                                         </div>
                                         <div>
@@ -92,13 +112,26 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                     </div>
                 )}
 
-                {/*    Reply button and Input  */}
-                <div className={styles.lastInfoLine}>
-                    <button type={"button"} className={styles.clearStyledButton}>
-                        <span className={styles.replyIcon} />
-                        <span className={styles.replyText}>{"Reply"}</span>
-                    </button>
-                </div>
+                {/*  Reply button and Input  */
+                showInputText ? (
+                    <AutoExpandTextArea
+                        onSubmit={this.handleOnSubmit}
+                        placeholder={"Reply"}
+                        enableBlackInputTheme={true}
+                        enableFocusOut={false}
+                    />
+                ) : (
+                    <div className={styles.lastInfoLine}>
+                        <button
+                            onClick={this.handleOnReplyButtonClick}
+                            className={styles.clearStyledButton}
+                            type={"button"}
+                        >
+                            <span className={styles.replyIcon} />
+                            <span className={styles.replyText}>{"Reply"}</span>
+                        </button>
+                    </div>
+                )}
             </div>
         );
     }
