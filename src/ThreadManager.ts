@@ -12,16 +12,29 @@ const logger = getContribLogger({
 export class ThreadManager {
     private _qnaMessages: QnaMessage[] = [];
     private _messageEventManager: EventManager = new EventManager();
+    private _eventHandlersUUIds: [string, PushNotificationEvents][] = [];
 
     public get messageEventManager(): EventManager {
         return this._messageEventManager;
     }
 
     public addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
-        qnaPushManger.addEventHandler(
-            PushNotificationEvents.UserNotifications,
-            this._processResponse.bind(this)
-        );
+        this._eventHandlersUUIds.push([
+            qnaPushManger.addEventHandler(
+                PushNotificationEvents.UserNotifications,
+                this._processResponse.bind(this)
+            ),
+            PushNotificationEvents.UserNotifications
+        ]);
+    }
+
+    public removePushNotificationEventHandlers(
+        qnaPushManger: QnAPushNotificationManager | null
+    ): void {
+        if (qnaPushManger)
+            this._eventHandlersUUIds.forEach(eventTuple => {
+                qnaPushManger.removeEventHandler(...eventTuple);
+            });
     }
 
     public unregister() {

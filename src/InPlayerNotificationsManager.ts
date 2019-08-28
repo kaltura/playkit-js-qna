@@ -34,6 +34,7 @@ export class InPlayerNotificationsManager {
     private _announcements: QnaMessage[] = [];
     private _answersOnAir: QnaMessage[] = [];
     private _currentNotification: QnaMessage | null = null;
+    private _eventHandlersUUIds: [string, PushNotificationEvents][] = [];
 
     public get messageEventManager(): EventManager {
         return this._messageEventManager;
@@ -51,12 +52,19 @@ export class InPlayerNotificationsManager {
         );
     }
 
+    public removePushNotificationEventHandlers(
+        qnaPushManger: QnAPushNotificationManager | null
+    ): void {
+        if (qnaPushManger)
+            this._eventHandlersUUIds.forEach(eventTuple => {
+                qnaPushManger.removeEventHandler(...eventTuple);
+            });
+    }
+
     public unregister() {
         this._announcements = [];
         this._answersOnAir = [];
         this._cuePointEngine = new CuepointEngine<QnaMessage>([]);
-        //todo unregister push notification
-        //todo unregister from player event
     }
 
     private _handlePushResponse(response: any) {

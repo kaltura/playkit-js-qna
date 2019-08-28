@@ -1,4 +1,5 @@
 import { getContribLogger } from "@playkit-js-contrib/common";
+const uuidv1 = require("uuid/v1");
 
 import {
     PushNotifications,
@@ -29,9 +30,8 @@ export class QnAPushNotificationManager {
     private _pushNotifications: PushNotifications | null = null;
     private _notificationsHandlers: Map<
         PushNotificationEvents,
-        Array<pushNotificationHandler>
-    > = new Map<PushNotificationEvents, Array<pushNotificationHandler>>();
-
+        Array<[string, pushNotificationHandler]>
+    > = new Map<PushNotificationEvents, Array<[string, pushNotificationHandler]>>();
     private _registeredToPushServer = false;
 
     private constructor(options: PushNotificationsOptions) {
@@ -91,12 +91,40 @@ export class QnAPushNotificationManager {
      * will get only future push notifications (ont the initial bulk).
      * @param event
      * @param handler
+     * @return uuid - unique id for current handler
      */
-    public addEventHandler(event: PushNotificationEvents, handler: pushNotificationHandler): void {
+    public addEventHandler(
+        event: PushNotificationEvents,
+        handler: pushNotificationHandler
+    ): string {
+        let uuid: string = uuidv1();
         if (!this._notificationsHandlers.has(event)) {
             this._notificationsHandlers.set(event, []);
         }
-        this._notificationsHandlers.get(event)!.push(handler);
+        let notificationsGroup = this._notificationsHandlers.get(event);
+        if (notificationsGroup) {
+            notificationsGroup.push([uuid, handler]);
+        }
+        return uuid;
+    }
+
+    /**
+     * remove event handler
+     * @param event event type
+     * @param uuid event unique id
+     */
+    public removeEventHandler(uuid: string, event: PushNotificationEvents) {
+        let eventHandlersTuples = this._notificationsHandlers.get(event);
+        if (eventHandlersTuples) {
+            let handlerIndex = eventHandlersTuples.findIndex(
+                (handlerTuple: [string, pushNotificationHandler]) => {
+                    return uuid === handlerTuple[0];
+                }
+            );
+            if (handlerIndex > -1) {
+                eventHandlersTuples.splice(handlerIndex, 1);
+            }
+        }
     }
 
     private _registerPublicQnaNotification(entryId: string): PrepareRegisterRequestConfig {
@@ -139,8 +167,9 @@ export class QnAPushNotificationManager {
     }
 
     private _callRegisteredHandlers(event: PushNotificationEvents, pushResponse: any[]) {
-        const handlers = this._notificationsHandlers.get(event) || [];
-        handlers.forEach((handler: pushNotificationHandler) => {
+        const handlersTuples = this._notificationsHandlers.get(event) || [];
+        handlersTuples.forEach((handlerTuple: [string, pushNotificationHandler]) => {
+            let handler = handlerTuple[1];
             handler(pushResponse);
         });
     }

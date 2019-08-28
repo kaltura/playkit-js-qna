@@ -186,11 +186,9 @@ export class QnaPlugin extends PlayerContribPlugin
         // unregister to messages
         this._threadManager.messageEventManager.off("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.off("OnQnaError", this._onQnaError.bind(this));
+        this._threadManager.unregister();
 
-        // unregister socket and event name
-        if (this._threadManager) {
-            this._threadManager.unregister();
-        }
+        this._threadManager.removePushNotificationEventHandlers(this._qnaPushNotificationManager);
     }
 
     private _destroyInPlayerNotificationsManager(): void {
@@ -207,11 +205,11 @@ export class QnaPlugin extends PlayerContribPlugin
             "hideAnnouncement",
             this._onInPlayerNotificationHide.bind(this)
         );
+        this._inPlayerNotificationsManager.unregister();
 
-        // unregister socket and event name
-        if (this._inPlayerNotificationsManager) {
-            this._inPlayerNotificationsManager.unregister();
-        }
+        this._inPlayerNotificationsManager.removePushNotificationEventHandlers(
+            this._qnaPushNotificationManager
+        );
     }
 
     onRegisterUI(uiManager: UIManager): void {
