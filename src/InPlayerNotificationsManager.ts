@@ -29,7 +29,6 @@ const ReasonableSeekThreshold: number = 7 * 1000;
 
 const AnnouncementAutoCloseDuration: number = 60 * 1000;
 
-//TODO [sa] add log messages
 export class InPlayerNotificationsManager {
     private _messageEventManager: EventManager = new EventManager();
     private _cuePointEngine: CuepointEngine<QnaMessage> | null = null;
@@ -49,11 +48,13 @@ export class InPlayerNotificationsManager {
     }
 
     public init(qnaPushManger: QnAPushNotificationManager): void {
+        logger.info("init InPlayerNotificationsManager", { method: "init" });
         this._addPlayerListeners();
         this._addPushNotificationEventHandlers(qnaPushManger);
     }
 
     public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
+        logger.info("destroy InPlayerNotificationsManager", { method: "destroy" });
         if (qnaPushManger) {
             this._removePushNotificationEventHandlers(qnaPushManger);
         }
@@ -95,6 +96,13 @@ export class InPlayerNotificationsManager {
                 }
             });
         if (wasUpdated) {
+            logger.info("Notifications array was updated by QnaPushNotificationManger", {
+                method: _handlePushResponse
+            });
+            logger.debug(
+                "Create new cuepoint engine with updated data (push notification update)",
+                { method: "_handlePushResponse", data: this._getNotificationsForHandling() }
+            );
             this._cuePointEngine = new CuepointEngine<QnaMessage>(
                 this._getNotificationsForHandling(),
                 ReasonableSeekThreshold
@@ -108,6 +116,10 @@ export class InPlayerNotificationsManager {
             this._onTimedMetadataLoaded(event);
         });
         eventManager.listen(kalturaPlayer, kalturaPlayer.Event.SEEKING, (event: any) => {
+            logger.debug("Create new cuepoint engine with updated data (player SEEKING event)", {
+                method: "_addPlayerListeners",
+                data: this._getNotificationsForHandling()
+            });
             this._cuePointEngine = new CuepointEngine<QnaMessage>(
                 this._getNotificationsForHandling(),
                 ReasonableSeekThreshold
