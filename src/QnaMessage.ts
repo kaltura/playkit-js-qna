@@ -47,7 +47,7 @@ export class QnaMessage {
                 metadataInfo: this.getMetadata(cuePoint),
                 id: cuePoint.id,
                 time: cuePoint.createdAt,
-                tags: cuePoint.tags ? cuePoint.tags.split(",") : []
+                tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
             };
 
             const result = new QnaMessage(qnaMessageParams);

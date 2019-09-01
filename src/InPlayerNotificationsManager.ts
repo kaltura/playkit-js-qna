@@ -136,10 +136,20 @@ export class InPlayerNotificationsManager {
         );
 
         if (notificationIndex === -1) {
+            // add new qna message (cuepoint)
             this._updateQnaMessageEndTime(newQnaMessage);
             this._getRelevantNotificationArray(newQnaMessage).push(newQnaMessage);
             wasUpdated = true;
+        } else if (newQnaMessage.tags.indexOf("Annotation_Deleted") > -1) {
+            //update only relevant fields in current qnaMessage
+            this._getRelevantNotificationArray(newQnaMessage)[notificationIndex].tags =
+                newQnaMessage.tags;
+            this._updateQnaMessageEndTime(
+                this._getRelevantNotificationArray(newQnaMessage)[notificationIndex]
+            );
+            wasUpdated = true;
         }
+
         return wasUpdated;
     }
 
