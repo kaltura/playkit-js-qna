@@ -34,6 +34,9 @@ export class ThreadManager {
     }
 
     private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
+        logger.info("Adding user notifications event handler", {
+            method: "_addPushNotificationEventHandlers"
+        });
         this._eventHandlersUUIds.push([
             qnaPushManger.addEventHandler(
                 PushNotificationEventsTypes.UserNotifications,

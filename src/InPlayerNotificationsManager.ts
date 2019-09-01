@@ -64,6 +64,9 @@ export class InPlayerNotificationsManager {
     }
 
     private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
+        logger.info("Adding in player notifications event handler", {
+            method: "_addPushNotificationEventHandlers"
+        });
         this._eventHandlersUUIds.push([
             qnaPushManger.addEventHandler(
                 PushNotificationEventsTypes.PublicNotifications,
@@ -169,6 +172,13 @@ export class InPlayerNotificationsManager {
                 try {
                     let timestamp = JSON.parse(id3TagCues[id3TagCues.length - 1].value.data)
                         .timestamp;
+                    logger.debug(
+                        `Calling cuepoint engine updateTime with id3 timestamp: ${timestamp}`,
+                        {
+                            method: "_onTimedMetadataLoaded",
+                            data: this._getNotificationsForHandling()
+                        }
+                    );
                     this._handleCuepointEngineData(this._cuePointEngine.updateTime(timestamp));
                 } catch (e) {
                     console.log(e); //TODO [sa] handle errors

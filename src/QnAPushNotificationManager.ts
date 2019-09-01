@@ -60,6 +60,10 @@ export class QnAPushNotificationManager {
             throw new Error("Already register to push server");
         }
 
+        logger.info("Registering for push notifications server", {
+            method: "registerToPushServer"
+        });
+
         // TODO [am] temp solutions for userId need to handle anonymous user id
         if (!this._pushNotifications) {
             return; // TODO [am] change state to error
@@ -83,6 +87,10 @@ export class QnAPushNotificationManager {
                     // if (this._messageEventManager) {
                     //     this._messageEventManager.emit("OnQnaError");
                     // }
+                    logger.error("Registration for push notification error", {
+                        method: "registerToPushServer",
+                        data: err
+                    });
                 }
             );
     }
