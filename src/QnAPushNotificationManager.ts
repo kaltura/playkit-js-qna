@@ -7,7 +7,7 @@ import {
     PrepareRegisterRequestConfig
 } from "@playkit-js-contrib/push-notifications";
 
-export enum PushNotificationEvents {
+export enum PushNotificationEventsTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
     UserNotifications = "USER_QNA_NOTIFICATIONS"
 }
@@ -28,10 +28,11 @@ export class QnAPushNotificationManager {
     private static _instance: QnAPushNotificationManager | null = null;
 
     private _pushNotifications: PushNotifications | null = null;
+    //map of push notifications events types and an array of tuples containing a UUID and an event handler
     private _notificationsHandlers: Map<
-        PushNotificationEvents,
+        PushNotificationEventsTypes,
         Array<[string, pushNotificationHandler]>
-    > = new Map<PushNotificationEvents, Array<[string, pushNotificationHandler]>>();
+    > = new Map<PushNotificationEventsTypes, Array<[string, pushNotificationHandler]>>();
     private _registeredToPushServer = false;
 
     private constructor(options: PushNotificationsOptions) {
@@ -94,7 +95,7 @@ export class QnAPushNotificationManager {
      * @return uuid - unique id for current handler
      */
     public addEventHandler(
-        event: PushNotificationEvents,
+        event: PushNotificationEventsTypes,
         handler: pushNotificationHandler
     ): string {
         let uuid: string = uuidv1();
@@ -113,7 +114,7 @@ export class QnAPushNotificationManager {
      * @param event event type
      * @param uuid event unique id
      */
-    public removeEventHandler(uuid: string, event: PushNotificationEvents) {
+    public removeEventHandler(uuid: string, event: PushNotificationEventsTypes) {
         let eventHandlersTuples = this._notificationsHandlers.get(event);
         if (eventHandlersTuples) {
             let handlerIndex = eventHandlersTuples.findIndex(
@@ -139,7 +140,10 @@ export class QnAPushNotificationManager {
                 entryId: entryId
             },
             onMessage: (response: any[]) => {
-                this._callRegisteredHandlers(PushNotificationEvents.PublicNotifications, response);
+                this._callRegisteredHandlers(
+                    PushNotificationEventsTypes.PublicNotifications,
+                    response
+                );
             }
         };
     }
@@ -161,12 +165,15 @@ export class QnAPushNotificationManager {
                 userId: userId // TODO [am] temp solutions for userId need to handle anonymous user id
             },
             onMessage: (response: any[]) => {
-                this._callRegisteredHandlers(PushNotificationEvents.UserNotifications, response);
+                this._callRegisteredHandlers(
+                    PushNotificationEventsTypes.UserNotifications,
+                    response
+                );
             }
         };
     }
 
-    private _callRegisteredHandlers(event: PushNotificationEvents, pushResponse: any[]) {
+    private _callRegisteredHandlers(event: PushNotificationEventsTypes, pushResponse: any[]) {
         const handlersTuples = this._notificationsHandlers.get(event) || [];
         handlersTuples.forEach((handlerTuple: [string, pushNotificationHandler]) => {
             let handler = handlerTuple[1];

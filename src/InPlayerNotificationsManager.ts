@@ -5,7 +5,10 @@ import {
     PlayerAPI
 } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
-import { PushNotificationEvents, QnAPushNotificationManager } from "./QnAPushNotificationManager";
+import {
+    PushNotificationEventsTypes,
+    QnAPushNotificationManager
+} from "./QnAPushNotificationManager";
 import { Utils } from "./utils";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 
@@ -35,7 +38,7 @@ export class InPlayerNotificationsManager {
     private _answersOnAir: QnaMessage[] = [];
     private _currentNotification: QnaMessage | null = null;
     //holds tuples of eventUUID and eventType for easy removal from our QNAPushNotificaitonManager
-    private _eventHandlersUUIds: [string, PushNotificationEvents][] = [];
+    private _eventHandlersUUIds: [string, PushNotificationEventsTypes][] = [];
 
     public get messageEventManager(): EventManager {
         return this._messageEventManager;
@@ -62,10 +65,10 @@ export class InPlayerNotificationsManager {
     private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
         this._eventHandlersUUIds.push([
             qnaPushManger.addEventHandler(
-                PushNotificationEvents.PublicNotifications,
+                PushNotificationEventsTypes.PublicNotifications,
                 this._handlePushResponse.bind(this)
             ),
-            PushNotificationEvents.PublicNotifications
+            PushNotificationEventsTypes.PublicNotifications
         ]);
     }
 
