@@ -12,13 +12,25 @@ const logger = getContribLogger({
 export class ThreadManager {
     private _qnaMessages: QnaMessage[] = [];
     private _messageEventManager: EventManager = new EventManager();
+    //holds tuples of eventUUID and eventType for easy removal from our QNAPushNotificaitonManager
     private _eventHandlersUUIds: [string, PushNotificationEvents][] = [];
 
     public get messageEventManager(): EventManager {
         return this._messageEventManager;
     }
 
-    public addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
+    public init(qnaPushManger: QnAPushNotificationManager): void {
+        this._addPushNotificationEventHandlers(qnaPushManger);
+    }
+
+    public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
+        this._qnaMessages = [];
+        if (qnaPushManger) {
+            this._removePushNotificationEventHandlers(qnaPushManger);
+        }
+    }
+
+    private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
         this._eventHandlersUUIds.push([
             qnaPushManger.addEventHandler(
                 PushNotificationEvents.UserNotifications,
@@ -28,17 +40,10 @@ export class ThreadManager {
         ]);
     }
 
-    public removePushNotificationEventHandlers(
-        qnaPushManger: QnAPushNotificationManager | null
-    ): void {
-        if (qnaPushManger)
-            this._eventHandlersUUIds.forEach(eventTuple => {
-                qnaPushManger.removeEventHandler(...eventTuple);
-            });
-    }
-
-    public unregister() {
-        this._qnaMessages = [];
+    private _removePushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
+        this._eventHandlersUUIds.forEach(eventTuple => {
+            qnaPushManger.removeEventHandler(...eventTuple);
+        });
     }
 
     private _processResponse(response: any): void {

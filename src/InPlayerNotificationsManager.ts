@@ -34,6 +34,7 @@ export class InPlayerNotificationsManager {
     private _announcements: QnaMessage[] = [];
     private _answersOnAir: QnaMessage[] = [];
     private _currentNotification: QnaMessage | null = null;
+    //holds tuples of eventUUID and eventType for easy removal from our QNAPushNotificaitonManager
     private _eventHandlersUUIds: [string, PushNotificationEvents][] = [];
 
     public get messageEventManager(): EventManager {
@@ -42,10 +43,23 @@ export class InPlayerNotificationsManager {
 
     constructor(playerApi: PlayerAPI) {
         this._playerApi = playerApi;
-        this._addPlayerListeners();
     }
 
-    public addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
+    public init(qnaPushManger: QnAPushNotificationManager): void {
+        this._addPlayerListeners();
+        this._addPushNotificationEventHandlers(qnaPushManger);
+    }
+
+    public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
+        if (qnaPushManger) {
+            this._removePushNotificationEventHandlers(qnaPushManger);
+        }
+        this._announcements = [];
+        this._answersOnAir = [];
+        this._cuePointEngine = new CuepointEngine<QnaMessage>([]);
+    }
+
+    private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
         this._eventHandlersUUIds.push([
             qnaPushManger.addEventHandler(
                 PushNotificationEvents.PublicNotifications,
@@ -55,19 +69,10 @@ export class InPlayerNotificationsManager {
         ]);
     }
 
-    public removePushNotificationEventHandlers(
-        qnaPushManger: QnAPushNotificationManager | null
-    ): void {
-        if (qnaPushManger)
-            this._eventHandlersUUIds.forEach(eventTuple => {
-                qnaPushManger.removeEventHandler(...eventTuple);
-            });
-    }
-
-    public unregister() {
-        this._announcements = [];
-        this._answersOnAir = [];
-        this._cuePointEngine = new CuepointEngine<QnaMessage>([]);
+    private _removePushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
+        this._eventHandlersUUIds.forEach(eventTuple => {
+            qnaPushManger.removeEventHandler(...eventTuple);
+        });
     }
 
     private _handlePushResponse(response: any) {

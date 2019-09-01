@@ -101,7 +101,7 @@ export class QnaPlugin extends PlayerContribPlugin
         });
 
         this._threadManager = new ThreadManager();
-        this._threadManager.addPushNotificationEventHandlers(this._qnaPushNotificationManager);
+        this._threadManager.init(this._qnaPushNotificationManager);
         // register messages
         this._threadManager.messageEventManager.on("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));
@@ -110,9 +110,7 @@ export class QnaPlugin extends PlayerContribPlugin
             kalturaPlayer: this.player,
             eventManager: this.eventManager
         });
-        this._inPlayerNotificationsManager.addPushNotificationEventHandlers(
-            this._qnaPushNotificationManager
-        );
+        this._inPlayerNotificationsManager.init(this._qnaPushNotificationManager);
         // register messages
         this._inPlayerNotificationsManager.messageEventManager.on(
             "showAnnouncement",
@@ -182,13 +180,10 @@ export class QnaPlugin extends PlayerContribPlugin
         if (!this._threadManager) {
             return;
         }
-
         // unregister to messages
         this._threadManager.messageEventManager.off("OnQnaMessage", this._onQnaMessage.bind(this));
         this._threadManager.messageEventManager.off("OnQnaError", this._onQnaError.bind(this));
-        this._threadManager.unregister();
-
-        this._threadManager.removePushNotificationEventHandlers(this._qnaPushNotificationManager);
+        this._threadManager.destroy(this._qnaPushNotificationManager);
     }
 
     private _destroyInPlayerNotificationsManager(): void {
@@ -205,11 +200,7 @@ export class QnaPlugin extends PlayerContribPlugin
             "hideAnnouncement",
             this._onInPlayerNotificationHide.bind(this)
         );
-        this._inPlayerNotificationsManager.unregister();
-
-        this._inPlayerNotificationsManager.removePushNotificationEventHandlers(
-            this._qnaPushNotificationManager
-        );
+        this._inPlayerNotificationsManager.destroy(this._qnaPushNotificationManager);
     }
 
     onRegisterUI(uiManager: UIManager): void {
