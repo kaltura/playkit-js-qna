@@ -46,10 +46,13 @@ export class InPlayerNotificationsManager {
     }
 
     public addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
-        qnaPushManger.addEventHandler(
-            PushNotificationEvents.PublicNotifications,
-            this._handlePushResponse.bind(this)
-        );
+        this._eventHandlersUUIds.push([
+            qnaPushManger.addEventHandler(
+                PushNotificationEvents.PublicNotifications,
+                this._handlePushResponse.bind(this)
+            ),
+            PushNotificationEvents.PublicNotifications
+        ]);
     }
 
     public removePushNotificationEventHandlers(
