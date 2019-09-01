@@ -97,7 +97,7 @@ export class InPlayerNotificationsManager {
             });
         if (wasUpdated) {
             logger.info("Notifications array was updated by QnaPushNotificationManger", {
-                method: _handlePushResponse
+                method: "_handlePushResponse"
             });
             logger.debug(
                 "Create new cuepoint engine with updated data (push notification update)",
