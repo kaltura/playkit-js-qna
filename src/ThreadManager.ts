@@ -5,7 +5,6 @@ import {
     PushNotificationEventsTypes,
     QnAPushNotificationManager
 } from "./QnAPushNotificationManager";
-import { Utils } from "./utils";
 
 const logger = getContribLogger({
     class: "ThreadManager",
