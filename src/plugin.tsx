@@ -200,7 +200,7 @@ export class QnaPlugin extends PlayerContribPlugin
             "hideAnnouncement",
             this._onInPlayerNotificationHide.bind(this)
         );
-        this._inPlayerNotificationsManager.destroy(this._qnaPushNotificationManager);
+        this._inPlayerNotificationsManager.reset(this._qnaPushNotificationManager);
     }
 
     onRegisterUI(uiManager: UIManager): void {

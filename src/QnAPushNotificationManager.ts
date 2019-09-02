@@ -6,14 +6,22 @@ import {
     PushNotificationsOptions,
     PrepareRegisterRequestConfig
 } from "@playkit-js-contrib/push-notifications";
+import { QnaMessage } from "./QnaMessage";
+import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
 
 export enum PushNotificationEventsTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
     UserNotifications = "USER_QNA_NOTIFICATIONS"
 }
 
-export interface pushNotificationHandler {
-    (pushResponse: any[]): void;
+export interface Handler {
+    uuid: string;
+    handlerObj: PushNotificationHandler;
+}
+
+export interface PushNotificationHandler {
+    type: PushNotificationEventsTypes;
+    handleFunc: (qnaMessages: QnaMessage[]) => void;
 }
 
 const logger = getContribLogger({
@@ -27,16 +35,12 @@ const logger = getContribLogger({
 export class QnAPushNotificationManager {
     private static _instance: QnAPushNotificationManager | null = null;
 
-    private _pushNotifications: PushNotifications | null = null;
-    //map of push notifications events types and an array of tuples containing a UUID and an event handler
-    private _notificationsHandlers: Map<
-        PushNotificationEventsTypes,
-        Array<[string, pushNotificationHandler]>
-    > = new Map<PushNotificationEventsTypes, Array<[string, pushNotificationHandler]>>();
+    private _pushServerNotifications: PushNotifications | null = null;
+    private _handlers: Handler[] = [];
     private _registeredToPushServer = false;
 
     private constructor(options: PushNotificationsOptions) {
-        this._pushNotifications = PushNotifications.getInstance(options);
+        this._pushServerNotifications = PushNotifications.getInstance(options);
     }
 
     public static getInstance(options: PushNotificationsOptions) {
@@ -44,14 +48,6 @@ export class QnAPushNotificationManager {
             QnAPushNotificationManager._instance = new QnAPushNotificationManager(options);
         }
         return QnAPushNotificationManager._instance;
-    }
-
-    public destroyPushServerRegistration() {
-        logger.info("Unregister push notification", { method: "destroyPushServerRegistration" });
-        if (this._pushNotifications) {
-            this._pushNotifications.reset();
-            this._registeredToPushServer = false;
-        }
     }
 
     public registerToPushServer(entryId: string, userId: string | undefined) {
@@ -65,7 +61,7 @@ export class QnAPushNotificationManager {
         });
 
         // TODO [am] temp solutions for userId need to handle anonymous user id
-        if (!this._pushNotifications) {
+        if (!this._pushServerNotifications) {
             return; // TODO [am] change state to error
         }
         // Announcement objects
@@ -73,7 +69,7 @@ export class QnAPushNotificationManager {
         // user related QnA objects
         const privateQnaRequestConfig = this._registerUserQnaNotification(entryId, userId);
 
-        this._pushNotifications
+        this._pushServerNotifications
             .registerNotifications({
                 prepareRegisterRequestConfigs: [publicQnaRequestConfig, privateQnaRequestConfig],
                 onSocketReconnect: () => {}
@@ -98,41 +94,26 @@ export class QnAPushNotificationManager {
     /**
      * event handlers that will register after 'registerToPushServer'
      * will get only future push notifications (ont the initial bulk).
-     * @param event
-     * @param handler
+     * @param type
+     * @param handlerObj
      * @return uuid - unique id for current handler
      */
-    public addEventHandler(
-        event: PushNotificationEventsTypes,
-        handler: pushNotificationHandler
-    ): string {
+    public addEventHandler(handlerObj: PushNotificationHandler): string {
         let uuid: string = uuidv1();
-        if (!this._notificationsHandlers.has(event)) {
-            this._notificationsHandlers.set(event, []);
-        }
-        let notificationsGroup = this._notificationsHandlers.get(event);
-        if (notificationsGroup) {
-            notificationsGroup.push([uuid, handler]);
-        }
+        this._handlers.push({ uuid, handlerObj });
         return uuid;
     }
 
     /**
      * remove event handler
-     * @param event event type
      * @param uuid event unique id
      */
-    public removeEventHandler(uuid: string, event: PushNotificationEventsTypes) {
-        let eventHandlersTuples = this._notificationsHandlers.get(event);
-        if (eventHandlersTuples) {
-            let handlerIndex = eventHandlersTuples.findIndex(
-                (handlerTuple: [string, pushNotificationHandler]) => {
-                    return uuid === handlerTuple[0];
-                }
-            );
-            if (handlerIndex > -1) {
-                eventHandlersTuples.splice(handlerIndex, 1);
-            }
+    public removeEventHandler(uuid: string) {
+        let handlerIndex = this._handlers.findIndex((handlerObj: Handler) => {
+            return handlerObj.uuid === uuid;
+        });
+        if (handlerIndex > -1) {
+            this._handlers.splice(handlerIndex, 1);
         }
     }
 
@@ -150,7 +131,7 @@ export class QnAPushNotificationManager {
             onMessage: (response: any[]) => {
                 this._callRegisteredHandlers(
                     PushNotificationEventsTypes.PublicNotifications,
-                    response
+                    this._createQnaMessagesArray(response)
                 );
             }
         };
@@ -175,17 +156,33 @@ export class QnAPushNotificationManager {
             onMessage: (response: any[]) => {
                 this._callRegisteredHandlers(
                     PushNotificationEventsTypes.UserNotifications,
-                    response
+                    this._createQnaMessagesArray(response)
                 );
             }
         };
     }
 
-    private _callRegisteredHandlers(event: PushNotificationEventsTypes, pushResponse: any[]) {
-        const handlersTuples = this._notificationsHandlers.get(event) || [];
-        handlersTuples.forEach((handlerTuple: [string, pushNotificationHandler]) => {
-            let handler = handlerTuple[1];
-            handler(pushResponse);
+    private _callRegisteredHandlers(type: PushNotificationEventsTypes, pushResponse: QnaMessage[]) {
+        const handlers = this._handlers.filter((handler: Handler) => {
+            return handler.handlerObj.type === type;
         });
+
+        handlers.forEach((handler: Handler) => {
+            handler.handlerObj.handleFunc(pushResponse);
+        });
+    }
+
+    private _createQnaMessagesArray(pushResponse: any[]): QnaMessage[] {
+        return pushResponse.reduce((qnaMessages: QnaMessage[], item: any) => {
+            if (item.objectType === "KalturaAnnotation") {
+                const kalturaAnnotation: KalturaAnnotation = new KalturaAnnotation();
+                kalturaAnnotation.fromResponseObject(item);
+                let qnaMessage = QnaMessage.create(kalturaAnnotation);
+                if (qnaMessage) {
+                    qnaMessages.push(qnaMessage);
+                }
+            }
+            return qnaMessages;
+        }, []);
     }
 }

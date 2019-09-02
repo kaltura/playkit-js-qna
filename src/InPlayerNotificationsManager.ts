@@ -1,5 +1,6 @@
 import {
     CuepointEngine,
+    UpdateTimeResponse,
     EventManager,
     getContribLogger,
     PlayerAPI
@@ -9,35 +10,26 @@ import {
     PushNotificationEventsTypes,
     QnAPushNotificationManager
 } from "./QnAPushNotificationManager";
-import { Utils } from "./utils";
-import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
-
-export interface CuepointEngineResponse {
-    snapshot?: any[];
-    delta?: {
-        show: any[];
-        hide: any[];
-    };
-}
 
 const logger = getContribLogger({
     class: "InPlayerNotificationsManager",
     module: "qna-plugin"
 });
 
-const ReasonableSeekThreshold: number = 7 * 1000;
+const SeekThreshold: number = 7 * 1000;
 
 const AnnouncementAutoCloseDuration: number = 60 * 1000;
 
+const AnnotationDeleted = "Annotation_Deleted";
+
 export class InPlayerNotificationsManager {
+    private _initialized = false;
     private _messageEventManager: EventManager = new EventManager();
     private _cuePointEngine: CuepointEngine<QnaMessage> | null = null;
     private _playerApi: PlayerAPI;
-    private _announcements: QnaMessage[] = [];
-    private _answersOnAir: QnaMessage[] = [];
     private _currentNotification: QnaMessage | null = null;
-    //holds tuples of eventUUID and eventType for easy removal from our QNAPushNotificaitonManager
-    private _eventHandlersUUIds: [string, PushNotificationEventsTypes][] = [];
+    private _eventHandlersUUIds: string[] = [];
+    private _lastIdsTimestamp: number | null = null;
 
     public get messageEventManager(): EventManager {
         return this._messageEventManager;
@@ -48,146 +40,156 @@ export class InPlayerNotificationsManager {
     }
 
     public init(qnaPushManger: QnAPushNotificationManager): void {
+        if (this._initialized) return;
         logger.info("init InPlayerNotificationsManager", { method: "init" });
         this._addPlayerListeners();
         this._addPushNotificationEventHandlers(qnaPushManger);
+        this._initialized = true;
     }
 
-    public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
+    public reset(qnaPushManger: QnAPushNotificationManager | null): void {
         logger.info("destroy InPlayerNotificationsManager", { method: "destroy" });
         if (qnaPushManger) {
             this._removePushNotificationEventHandlers(qnaPushManger);
         }
-        this._announcements = [];
-        this._answersOnAir = [];
+        this._removePlayerListeners();
         this._cuePointEngine = new CuepointEngine<QnaMessage>([]);
+        this._initialized = false;
     }
 
     private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
+        if (this._initialized) return;
         logger.info("Adding in player notifications event handler", {
             method: "_addPushNotificationEventHandlers"
         });
-        this._eventHandlersUUIds.push([
-            qnaPushManger.addEventHandler(
-                PushNotificationEventsTypes.PublicNotifications,
-                this._handlePushResponse.bind(this)
-            ),
-            PushNotificationEventsTypes.PublicNotifications
-        ]);
+
+        let uuid = qnaPushManger.addEventHandler({
+            type: PushNotificationEventsTypes.PublicNotifications,
+            handleFunc: this._handlePushResponse.bind(this)
+        });
+        this._eventHandlersUUIds.push(uuid);
     }
 
     private _removePushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
-        this._eventHandlersUUIds.forEach(eventTuple => {
-            qnaPushManger.removeEventHandler(...eventTuple);
+        this._eventHandlersUUIds.forEach(uuid => {
+            qnaPushManger.removeEventHandler(uuid);
         });
     }
 
-    private _handlePushResponse(response: any) {
-        let wasUpdated = false;
-        response
-            .reduce(Utils.getkalturaAnnotationReducer(logger), [])
-            .map((cuePoint: KalturaAnnotation) => {
-                return QnaMessage.create(cuePoint);
-            })
-            .forEach((newMessage: QnaMessage) => {
-                if (
-                    [QnaMessageType.Announcement, QnaMessageType.AnswerOnAir].includes(
-                        newMessage.type
-                    )
-                ) {
-                    wasUpdated = wasUpdated || this._handleQnaMessage(newMessage);
-                }
-            });
-        if (wasUpdated) {
-            logger.info("Notifications array was updated by QnaPushNotificationManger", {
-                method: "_handlePushResponse"
-            });
-            logger.debug(
-                "Create new cuepoint engine with updated data (push notification update)",
-                { method: "_handlePushResponse", data: this._getNotificationsForHandling() }
+    private _handlePushResponse(qnaMessages: QnaMessage[]): void {
+        let notifications: QnaMessage[] = qnaMessages.filter((qnaMessage: QnaMessage) => {
+            this._updateQnaMessageEndTime(qnaMessage);
+            return [QnaMessageType.Announcement, QnaMessageType.AnswerOnAir].includes(
+                qnaMessage.type
             );
-            this._cuePointEngine = new CuepointEngine<QnaMessage>(
-                this._getNotificationsForHandling(),
-                ReasonableSeekThreshold
-            );
-        }
+        });
+        this._createCuePointEngine(notifications);
     }
 
     private _addPlayerListeners() {
+        if (this._initialized) return;
         const { kalturaPlayer, eventManager } = this._playerApi;
-        eventManager.listen(kalturaPlayer, kalturaPlayer.Event.TIMED_METADATA, (event: any) => {
-            this._onTimedMetadataLoaded(event);
-        });
-        eventManager.listen(kalturaPlayer, kalturaPlayer.Event.SEEKING, (event: any) => {
-            logger.debug("Create new cuepoint engine with updated data (player SEEKING event)", {
-                method: "_addPlayerListeners",
-                data: this._getNotificationsForHandling()
-            });
-            this._cuePointEngine = new CuepointEngine<QnaMessage>(
-                this._getNotificationsForHandling(),
-                ReasonableSeekThreshold
-            );
-        });
+        eventManager.listen(
+            kalturaPlayer,
+            kalturaPlayer.Event.TIMED_METADATA,
+            this._onTimedMetadataLoaded
+        );
     }
 
-    private _handleQnaMessage(newQnaMessage: QnaMessage): boolean {
-        let wasUpdated = false;
-        let notificationIndex = this._getRelevantNotificationArray(newQnaMessage).findIndex(
-            qnaMessage => {
-                return qnaMessage.id === newQnaMessage.id;
-            }
+    private _removePlayerListeners() {
+        const { kalturaPlayer, eventManager } = this._playerApi;
+        eventManager.unlisten(
+            kalturaPlayer,
+            kalturaPlayer.Event.TIMED_METADATA,
+            this._onTimedMetadataLoaded
         );
+    }
 
-        if (notificationIndex === -1) {
-            // add new qna message (cuepoint)
-            this._updateQnaMessageEndTime(newQnaMessage);
-            this._getRelevantNotificationArray(newQnaMessage).push(newQnaMessage);
-            wasUpdated = true;
-        } else if (newQnaMessage.tags.indexOf("Annotation_Deleted") > -1) {
-            //update only relevant fields in current qnaMessage
-            this._getRelevantNotificationArray(newQnaMessage)[notificationIndex].tags =
-                newQnaMessage.tags;
-            this._updateQnaMessageEndTime(
-                this._getRelevantNotificationArray(newQnaMessage)[notificationIndex]
-            );
-            wasUpdated = true;
+    private _onTimedMetadataLoaded = (event: any): void => {
+        const id3TagCues = event.payload.cues.filter(
+            (cue: any) => cue.value && cue.value.key === "TEXT"
+        );
+        if (id3TagCues.length) {
+            try {
+                this._lastIdsTimestamp = JSON.parse(
+                    id3TagCues[id3TagCues.length - 1].value.data
+                ).timestamp;
+                logger.debug(
+                    `Calling cuepoint engine updateTime with id3 timestamp: ${
+                        this._lastIdsTimestamp
+                    }`,
+                    {
+                        method: "_onTimedMetadataLoaded"
+                    }
+                );
+                this._triggerCuepointsUpdateTime();
+            } catch (e) {
+                console.log(e); //TODO [sa] handle errors
+            }
+        }
+    };
+
+    private _createCuePointEngine(notifications: QnaMessage[]): void {
+        if (!this._cuePointEngine || this._cuePointEngine.cuepoints.length === 0) {
+            this._cuePointEngine = new CuepointEngine<QnaMessage>(notifications, {
+                reasonableSeekThreshold: SeekThreshold
+            });
+        } else {
+            let engineMessages: QnaMessage[] = this._cuePointEngine.cuepoints;
+            let wasUpdated = false;
+            notifications.forEach((notification: QnaMessage) => {
+                let existingIndex = engineMessages.findIndex((item: QnaMessage) => {
+                    return item.id === notification.id;
+                });
+                if (existingIndex === -1) {
+                    //add new QnaMessage
+                    wasUpdated = true;
+                    engineMessages.push(notification);
+                } else if (notification.tags.indexOf(AnnotationDeleted) > -1) {
+                    //update current QnaMessage in current cuepoint array
+                    wasUpdated = true;
+                    engineMessages[existingIndex].tags = notification.tags;
+                    this._updateQnaMessageEndTime(engineMessages[existingIndex]);
+                }
+            });
+            if (wasUpdated) {
+                this._cuePointEngine = new CuepointEngine<QnaMessage>(engineMessages, {
+                    reasonableSeekThreshold: SeekThreshold
+                });
+            }
         }
 
-        return wasUpdated;
+        this._triggerCuepointsUpdateTime();
     }
 
-    private _updateQnaMessageEndTime(qnaMessage: QnaMessage) {
+    private _triggerCuepointsUpdateTime(): void {
+        if (this._cuePointEngine && this._lastIdsTimestamp) {
+            let engineData: UpdateTimeResponse<QnaMessage> = this._cuePointEngine.updateTime(
+                this._lastIdsTimestamp,
+                false,
+                (item: QnaMessage) => {
+                    //no need to filter at all
+                    if (this._isLive() && this._isOnLiveEdge()) return true;
+                    //if DVR / VOD only answer on air
+                    return item.type === QnaMessageType.AnswerOnAir;
+                }
+            );
+            logger.debug("Triggering updateTime", {
+                method: "_triggerCuepointsUpdateTime",
+                data: engineData
+            });
+            this._handleCuepointEngineData(engineData);
+        }
+    }
+
+    private _updateQnaMessageEndTime(qnaMessage: QnaMessage): void {
         qnaMessage.endTime =
             qnaMessage.tags.indexOf("Annotation_Deleted") > -1
                 ? qnaMessage.startTime + 1 //need to remove at once (adding one to ease the sorting by end/start time)
                 : qnaMessage.startTime + AnnouncementAutoCloseDuration; //one minute after start time (for hiding the announcement in player)
     }
 
-    private _onTimedMetadataLoaded(event: any): void {
-        if (this._cuePointEngine) {
-            const id3TagCues = event.payload.cues.filter(
-                (cue: any) => cue.value && cue.value.key === "TEXT"
-            );
-            if (id3TagCues.length) {
-                try {
-                    let timestamp = JSON.parse(id3TagCues[id3TagCues.length - 1].value.data)
-                        .timestamp;
-                    logger.debug(
-                        `Calling cuepoint engine updateTime with id3 timestamp: ${timestamp}`,
-                        {
-                            method: "_onTimedMetadataLoaded",
-                            data: this._getNotificationsForHandling()
-                        }
-                    );
-                    this._handleCuepointEngineData(this._cuePointEngine.updateTime(timestamp));
-                } catch (e) {
-                    console.log(e); //TODO [sa] handle errors
-                }
-            }
-        }
-    }
-
-    private _handleCuepointEngineData(data: CuepointEngineResponse) {
+    private _handleCuepointEngineData(data: UpdateTimeResponse<QnaMessage>) {
         //in case player was reloaded or user seeked the video
         if (data.snapshot) {
             this._handleSnapshotData(this._getMostRecentObject(data.snapshot));
@@ -274,33 +276,13 @@ export class InPlayerNotificationsManager {
     }
 
     /**
-     * Announcement should only be visible during live streaming (not in VOD / DVR mode)
-     * AnswerOnAir should be visible always
-     * @return QnaMessage[] : AnswerOnAir only / All
-     */
-    private _getNotificationsForHandling() {
-        //if user is currently watching live streaming (not DVR / VOD)
-        if (this._isLive() && this._isOnLiveEdge()) {
-            return this._announcements.concat(this._answersOnAir);
-        }
-        //if user is in DVR mode / VOD
-        return this._answersOnAir;
-    }
-
-    private _getRelevantNotificationArray(qnaMessage: QnaMessage) {
-        return qnaMessage.type === QnaMessageType.Announcement
-            ? this._announcements
-            : this._answersOnAir;
-    }
-
-    /**
-     * returns a boolean to detect if player is on live edge with buffer of 1 second
+     * returns a boolean to detect if player is on live edge with buffer of 2 seconds
      * indication if user is watching DVR mode at the moment
      * @returns {boolean} - is player on live edge
      */
     private _isOnLiveEdge(): boolean {
         return (
-            this._playerApi.kalturaPlayer.currentTime >= this._playerApi.kalturaPlayer.duration - 1
+            this._playerApi.kalturaPlayer.currentTime >= this._playerApi.kalturaPlayer.duration - 2
         );
     }
 

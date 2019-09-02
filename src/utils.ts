@@ -67,27 +67,4 @@ export class Utils {
         xml += "</metadata>";
         return xml;
     }
-
-    public static getkalturaAnnotationReducer(logger: ContribLogger) {
-        function kalturaAnnotationReducer(filtered: KalturaAnnotation[], res: any) {
-            if (res.objectType !== "KalturaAnnotation") {
-                logger.warn(
-                    "invalid message type, message cuePoint should be of type: KalturaAnnotation",
-                    {
-                        method: "_processResponse",
-                        data: {}
-                    }
-                );
-            } else {
-                // Transform the result into KalturaAnnotation object
-                const result: KalturaAnnotation = new KalturaAnnotation();
-                result.fromResponseObject(res);
-                filtered.push(result);
-            }
-
-            return filtered;
-        }
-
-        return kalturaAnnotationReducer;
-    }
 }

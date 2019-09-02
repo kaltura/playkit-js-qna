@@ -13,17 +13,19 @@ const logger = getContribLogger({
 });
 
 export class ThreadManager {
+    private _initialized = false;
     private _qnaMessages: QnaMessage[] = [];
     private _messageEventManager: EventManager = new EventManager();
-    //holds tuples of eventUUID and eventType for easy removal from our QNAPushNotificaitonManager
-    private _eventHandlersUUIds: [string, PushNotificationEventsTypes][] = [];
+    private _eventHandlersUUIds: string[] = [];
 
     public get messageEventManager(): EventManager {
         return this._messageEventManager;
     }
 
     public init(qnaPushManger: QnAPushNotificationManager): void {
+        if (this._initialized) return;
         this._addPushNotificationEventHandlers(qnaPushManger);
+        this._initialized = true;
     }
 
     public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
@@ -34,50 +36,35 @@ export class ThreadManager {
     }
 
     private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
+        if (this._initialized) return;
+
         logger.info("Adding user notifications event handler", {
             method: "_addPushNotificationEventHandlers"
         });
-        this._eventHandlersUUIds.push([
-            qnaPushManger.addEventHandler(
-                PushNotificationEventsTypes.UserNotifications,
-                this._processResponse.bind(this)
-            ),
-            PushNotificationEventsTypes.UserNotifications
-        ]);
+        let uuid = qnaPushManger.addEventHandler({
+            type: PushNotificationEventsTypes.UserNotifications,
+            handleFunc: this._processResponse.bind(this)
+        });
+        this._eventHandlersUUIds.push(uuid);
     }
 
     private _removePushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
-        this._eventHandlersUUIds.forEach(eventTuple => {
-            qnaPushManger.removeEventHandler(...eventTuple);
+        this._eventHandlersUUIds.forEach(uuid => {
+            qnaPushManger.removeEventHandler(uuid);
         });
     }
 
-    private _processResponse(response: any): void {
-        response
-            .reduce(Utils.getkalturaAnnotationReducer(logger), [])
-            .forEach((cuePoint: KalturaAnnotation) => {
-                let newMessage: QnaMessage | null = QnaMessage.create(cuePoint);
-
-                this.processQnaMessage(newMessage);
-            });
+    private _processResponse(qnaMessages: QnaMessage[]): void {
+        qnaMessages.forEach((qnaMessage: QnaMessage) => {
+            this.processQnaMessage(qnaMessage);
+        });
 
         if (this._messageEventManager) {
             this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
         }
     }
 
-    private processQnaMessage(newMessage: QnaMessage | null) {
-        if (!newMessage) {
-            logger.warn(
-                "No newMessage to process - Create QnaMessage from cuePoint return nothing",
-                {
-                    method: "processQnaMessage",
-                    data: {}
-                }
-            );
-            return;
-        }
-
+    private processQnaMessage(newMessage: QnaMessage) {
         if (newMessage.isMasterQuestion()) {
             this._processMasterQuestion(newMessage);
         } else {
