@@ -1,4 +1,4 @@
-import { EventManager, getContribLogger } from "@playkit-js-contrib/common";
+import { EventsManager, Event, getContribLogger } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import {
@@ -11,21 +11,29 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
+export enum ThreadManagerEventTypes {
+    MessagesUpdatedEvent = "MessagesUpdatedEvent"
+}
+
+export interface MessagesUpdatedEvent {
+    type: ThreadManagerEventTypes.MessagesUpdatedEvent;
+    messages: QnaMessage[];
+}
+
 export class ThreadManager {
     private _initialized = false;
     private _qnaMessages: QnaMessage[] = [];
-    private _messageEventManager: EventManager = new EventManager();
+    private _events: EventsManager<MessagesUpdatedEvent> = new EventsManager();
     private _eventHandlersUUIds: string[] = [];
-
-    public get messageEventManager(): EventManager {
-        return this._messageEventManager;
-    }
 
     public init(qnaPushManger: QnAPushNotificationManager): void {
         if (this._initialized) return;
         this._addPushNotificationEventHandlers(qnaPushManger);
         this._initialized = true;
     }
+
+    on = this._events.on.bind(this._events);
+    off = this._events.off.bind(this._events);
 
     public reset(qnaPushManger: QnAPushNotificationManager | null): void {
         this._qnaMessages = [];
@@ -59,9 +67,10 @@ export class ThreadManager {
             this.processQnaMessage(qnaMessage);
         });
 
-        if (this._messageEventManager) {
-            this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
-        }
+        this._events.emit({
+            type: ThreadManagerEventTypes.MessagesUpdatedEvent,
+            messages: this._qnaMessages
+        });
     }
 
     private processQnaMessage(newMessage: QnaMessage) {
@@ -103,9 +112,10 @@ export class ThreadManager {
         let newMessage: QnaMessage | null = QnaMessage.createPendingMessage(cuePoint);
         this.processQnaMessage(newMessage);
 
-        if (this._messageEventManager) {
-            this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
-        }
+        this._events.emit({
+            type: ThreadManagerEventTypes.MessagesUpdatedEvent,
+            messages: this._qnaMessages
+        });
     }
 
     /**

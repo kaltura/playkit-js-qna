@@ -1,6 +1,4 @@
 import { DateFormats, DateTimeFormatting } from "./components/kitchen-sink";
-import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
-import { ContribLogger } from "@playkit-js-contrib/common";
 
 export class Utils {
     public static ONE_DAY_IN_MS: number = 1000 * 60 * 60 * 24;

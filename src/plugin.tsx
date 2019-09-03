@@ -24,7 +24,7 @@ import {
 import { DateFormats, KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 
-import { ThreadManager } from "./ThreadManager";
+import { MessagesUpdatedEvent, ThreadManager, ThreadManagerEventTypes } from "./ThreadManager";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { Utils } from "./utils";
 import { CuePointAddAction } from "kaltura-typescript-client/api/types/CuePointAddAction";
@@ -39,7 +39,12 @@ import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/type
 import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { getContribLogger } from "@playkit-js-contrib/common";
 import { QnAPushNotificationManager } from "./QnAPushNotificationManager";
-import { InPlayerNotificationsManager } from "./InPlayerNotificationsManager";
+import {
+    HideAnnouncementEvent,
+    InPlayerNotificationsEventTypes,
+    InPlayerNotificationsManager,
+    ShowAnnouncementEvent
+} from "./InPlayerNotificationsManager";
 import { AnswerOnAirIcon } from "./components/answer-on-air-icon";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
@@ -103,8 +108,9 @@ export class QnaPlugin extends PlayerContribPlugin
         this._threadManager = new ThreadManager();
         this._threadManager.init(this._qnaPushNotificationManager);
         // register messages
-        this._threadManager.messageEventManager.on("OnQnaMessage", this._onQnaMessage.bind(this));
-        this._threadManager.messageEventManager.on("OnQnaError", this._onQnaError.bind(this));
+        this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
+        // TODO [sa] use relevant manager
+        //this._threadManager.on("OnQnaError", this._onQnaError.bind(this));
 
         this._inPlayerNotificationsManager = new InPlayerNotificationsManager({
             kalturaPlayer: this.player,
@@ -112,13 +118,13 @@ export class QnaPlugin extends PlayerContribPlugin
         });
         this._inPlayerNotificationsManager.init(this._qnaPushNotificationManager);
         // register messages
-        this._inPlayerNotificationsManager.messageEventManager.on(
-            "showAnnouncement",
-            this._onInPlayerNotificationShow.bind(this)
+        this._inPlayerNotificationsManager.on(
+            InPlayerNotificationsEventTypes.ShowAnnouncement,
+            this._onInPlayerNotificationShow
         );
-        this._inPlayerNotificationsManager.messageEventManager.on(
-            "hideAnnouncement",
-            this._onInPlayerNotificationHide.bind(this)
+        this._inPlayerNotificationsManager.on(
+            InPlayerNotificationsEventTypes.HideAnnouncement,
+            this._onInPlayerNotificationHide
         );
 
         //registering only after all handlers were added to make sure all data will be handled
@@ -140,12 +146,12 @@ export class QnaPlugin extends PlayerContribPlugin
         }
     }
 
-    private _onQnaMessage(qnaMessages: QnaMessage[]) {
+    private _onQnaMessage = ({ messages }: MessagesUpdatedEvent) => {
         this._hasError = false;
         this._loading = false;
-        this._threads = qnaMessages;
+        this._threads = messages;
         this._updateKitchenSink();
-    }
+    };
 
     private _onQnaError() {
         this._loading = false;
@@ -153,21 +159,26 @@ export class QnaPlugin extends PlayerContribPlugin
         this._updateKitchenSink();
     }
 
-    private _onInPlayerNotificationShow(data: QnaMessage) {
+    private _onInPlayerNotificationShow = ({ message }: ShowAnnouncementEvent) => {
         if (this._uiManager)
             this._uiManager.announcement.add({
                 content: {
-                    title: data.type === QnaMessageType.AnswerOnAir ? "Audience asks:" : undefined,
+                    title:
+                        message.type === QnaMessageType.AnswerOnAir ? "Audience asks:" : undefined,
                     icon:
-                        data.type === QnaMessageType.AnswerOnAir ? <AnswerOnAirIcon /> : undefined,
-                    text: data.messageContent ? data.messageContent : ""
+                        message.type === QnaMessageType.AnswerOnAir ? (
+                            <AnswerOnAirIcon />
+                        ) : (
+                            undefined
+                        ),
+                    text: message.messageContent ? message.messageContent : ""
                 }
             });
-    }
+    };
 
-    private _onInPlayerNotificationHide() {
+    private _onInPlayerNotificationHide = (event: HideAnnouncementEvent) => {
         if (this._uiManager) this._uiManager.announcement.remove();
-    }
+    };
 
     onMediaUnload(): void {
         this._hasError = false;
@@ -181,8 +192,9 @@ export class QnaPlugin extends PlayerContribPlugin
             return;
         }
         // unregister to messages
-        this._threadManager.messageEventManager.off("OnQnaMessage", this._onQnaMessage.bind(this));
-        this._threadManager.messageEventManager.off("OnQnaError", this._onQnaError.bind(this));
+        this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
+        // TODO [sa] use relevant manager
+        // this._threadManager.messageEventManager.off("OnQnaError", this._onQnaError.bind(this));
         this._threadManager.reset(this._qnaPushNotificationManager);
     }
 
@@ -192,13 +204,13 @@ export class QnaPlugin extends PlayerContribPlugin
         }
 
         // unregister to messages
-        this._inPlayerNotificationsManager.messageEventManager.off(
-            "showAnnouncement",
-            this._onInPlayerNotificationShow.bind(this)
+        this._inPlayerNotificationsManager.off(
+            InPlayerNotificationsEventTypes.ShowAnnouncement,
+            this._onInPlayerNotificationShow
         );
-        this._inPlayerNotificationsManager.messageEventManager.off(
-            "hideAnnouncement",
-            this._onInPlayerNotificationHide.bind(this)
+        this._inPlayerNotificationsManager.off(
+            InPlayerNotificationsEventTypes.HideAnnouncement,
+            this._onInPlayerNotificationHide
         );
         this._inPlayerNotificationsManager.reset(this._qnaPushNotificationManager);
     }

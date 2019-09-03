@@ -1,7 +1,7 @@
 import {
     CuepointEngine,
     UpdateTimeResponse,
-    EventManager,
+    EventsManager,
     getContribLogger,
     PlayerAPI
 } from "@playkit-js-contrib/common";
@@ -10,6 +10,7 @@ import {
     PushNotificationEventsTypes,
     QnAPushNotificationManager
 } from "./QnAPushNotificationManager";
+import { MessagesUpdatedEvent } from "./ThreadManager";
 
 const logger = getContribLogger({
     class: "InPlayerNotificationsManager",
@@ -22,22 +23,37 @@ const AnnouncementAutoCloseDuration: number = 60 * 1000;
 
 const AnnotationDeleted = "Annotation_Deleted";
 
+export enum InPlayerNotificationsEventTypes {
+    ShowAnnouncement = "ShowAnnouncement",
+    HideAnnouncement = "HideAnnouncement"
+}
+
+export interface HideAnnouncementEvent {
+    type: InPlayerNotificationsEventTypes.HideAnnouncement;
+}
+
+export interface ShowAnnouncementEvent {
+    type: InPlayerNotificationsEventTypes.ShowAnnouncement;
+    message: QnaMessage;
+}
+
+type Events = HideAnnouncementEvent | ShowAnnouncementEvent;
+
 export class InPlayerNotificationsManager {
     private _initialized = false;
-    private _messageEventManager: EventManager = new EventManager();
+    private _events: EventsManager<Events> = new EventsManager();
     private _cuePointEngine: CuepointEngine<QnaMessage> | null = null;
     private _playerApi: PlayerAPI;
     private _currentNotification: QnaMessage | null = null;
     private _eventHandlersUUIds: string[] = [];
     private _lastIdsTimestamp: number | null = null;
 
-    public get messageEventManager(): EventManager {
-        return this._messageEventManager;
-    }
-
     constructor(playerApi: PlayerAPI) {
         this._playerApi = playerApi;
     }
+
+    on = this._events.on.bind(this._events);
+    off = this._events.off.bind(this._events);
 
     public init(qnaPushManger: QnAPushNotificationManager): void {
         if (this._initialized) return;
@@ -262,17 +278,16 @@ export class InPlayerNotificationsManager {
     private _showCurrentNotification(newMessage: QnaMessage) {
         if (!this._currentNotification || newMessage.id !== this._currentNotification.id) {
             this._currentNotification = newMessage;
-            if (this._messageEventManager) {
-                this._messageEventManager.emit("showAnnouncement", this._currentNotification);
-            }
+            this._events.emit({
+                type: InPlayerNotificationsEventTypes.ShowAnnouncement,
+                message: this._currentNotification
+            });
         }
     }
 
     private _hideCurrentNotification() {
         this._currentNotification = null;
-        if (this._messageEventManager) {
-            this._messageEventManager.emit("hideAnnouncement");
-        }
+        this._events.emit({ type: InPlayerNotificationsEventTypes.HideAnnouncement });
     }
 
     /**
