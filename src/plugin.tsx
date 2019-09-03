@@ -192,7 +192,7 @@ export class QnaPlugin extends PlayerContribPlugin
             return;
         }
         // unregister to messages
-        this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
+        this._threadManager.off(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
         // TODO [sa] use relevant manager
         // this._threadManager.messageEventManager.off("OnQnaError", this._onQnaError.bind(this));
         this._threadManager.reset(this._qnaPushNotificationManager);
