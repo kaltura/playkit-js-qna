@@ -7,6 +7,7 @@ interface AutoExpandTextAreaProps {
     onSubmit: (text: string) => void;
     enableBlackInputTheme?: boolean;
     enableFocusOut?: boolean;
+    focus?: boolean;
 }
 
 interface AutoExpandTextAreaState {
@@ -25,12 +26,14 @@ export class AutoExpandTextArea extends Component<
     private _textAreaRef: HTMLTextAreaElement | null = null;
     private _actionsContainer: HTMLElement | null = null;
     private _sendButtonRef: HTMLButtonElement | null = null;
+    private _allowClickTimeout: ReturnType<typeof setTimeout> | null = null;
 
     static defaultProps = {
         placeholder: "",
         onsubmit: () => {},
         enableBlackInputTheme: false,
-        enableFocusOut: true
+        enableFocusOut: true,
+        focus: false
     };
 
     state: AutoExpandTextAreaState = { text: "", isInFocus: false };
@@ -45,9 +48,21 @@ export class AutoExpandTextArea extends Component<
         if (this.props.enableFocusOut) {
             this._textareaContainer.addEventListener("focusout", this._handleFocusOut);
         }
+
+        if (this.props.focus) {
+            this._toggleActionsContainer(true);
+            if (this._textAreaRef) {
+                this._textAreaRef.focus();
+            }
+        }
     }
 
     private _handleFocusIn = () => {
+        if (this._allowClickTimeout) {
+            clearTimeout(this._allowClickTimeout);
+            this._allowClickTimeout = null;
+        }
+
         this._toggleActionsContainer(true);
     };
 
@@ -56,7 +71,11 @@ export class AutoExpandTextArea extends Component<
             return;
         }
 
-        this._toggleActionsContainer(false);
+        // this helps to catch the click on an outside element (like, button) when clicking outsides the element.
+        // otherwise the click is missed and swallowed.
+        this._allowClickTimeout = setTimeout(() => {
+            this._toggleActionsContainer(false);
+        }, 200);
     };
 
     private _toggleActionsContainer(isFocus: boolean) {

@@ -48,6 +48,12 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
+interface SubmitRequestParams {
+    requests: KalturaRequest<any>[];
+    missingProfileId: boolean;
+    requestIndexCorrection: number;
+}
+
 export class QnaPlugin extends PlayerContribPlugin
     implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     static defaultConfig = {};
@@ -187,7 +193,7 @@ export class QnaPlugin extends PlayerContribPlugin
         );
     };
 
-    private _submitQuestion = async (question: string, thread?: QnaMessage) => {
+    private _prepareSubmitRequest(question: string, thread?: QnaMessage): SubmitRequestParams {
         const requests: KalturaRequest<any>[] = [];
         const missingProfileId = !this._metadataProfileId;
         const requestIndexCorrection = missingProfileId ? 1 : 0;
@@ -265,6 +271,22 @@ export class QnaPlugin extends PlayerContribPlugin
 
         // Prepare the multi request
         requests.push(...[addAnnotationCuePointRequest, addMetadataRequest, updateCuePointAction]);
+
+        const submitRequestParams: SubmitRequestParams = {
+            requests,
+            missingProfileId,
+            requestIndexCorrection
+        };
+
+        return submitRequestParams;
+    }
+
+    private _submitQuestion = async (question: string, thread?: QnaMessage) => {
+        const { requests, missingProfileId, requestIndexCorrection } = this._prepareSubmitRequest(
+            question,
+            thread
+        );
+
         const multiRequest = new KalturaMultiRequest(...requests);
 
         try {

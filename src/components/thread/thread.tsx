@@ -37,6 +37,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     };
 
     handleReply = (text: string) => {
+        this.setState({ showInputText: false });
         this.props.onReply(text, this.props.thread);
     };
 
@@ -51,7 +52,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                     <TrimmedText maxLength={120} text={thread.messageContent} />
                 </div>
                 <div className={styles.secondInfoLine}>
-                    {/*    Show More/Less button and thread time  */
+                    {/*    Show Number of Replies/Show Less button and thread time  */
                     replies.length > 0 && (
                         <button
                             className={styles.clearStyledButton}
@@ -77,7 +78,8 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         formatting={formatting}
                     />
                 </div>
-                {/*    Replies collapsed area  */
+
+                {/*    Replies Collapsed area  */
                 isThreadOpen && (
                     <div className={styles.collapsedArea}>
                         {replies.map((reply: QnaMessage) => {
@@ -115,13 +117,14 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                     </div>
                 )}
 
-                {/*  Reply button and Input  */
+                {/*  Reply Button and Input  */
                 showInputText ? (
                     <AutoExpandTextArea
                         onSubmit={this.handleReply}
                         placeholder={"Reply"}
                         enableBlackInputTheme={true}
                         enableFocusOut={false}
+                        focus={true}
                     />
                 ) : (
                     <div className={styles.lastInfoLine}>
