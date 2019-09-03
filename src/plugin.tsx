@@ -172,11 +172,11 @@ export class QnaPlugin extends PlayerContribPlugin
     onMediaUnload(): void {
         this._hasError = false;
         this._loading = true;
-        this._destroyThreadManager();
-        this._destroyInPlayerNotificationsManager();
+        this._resetThreadManager();
+        this._resetInPlayerNotificationsManager();
     }
 
-    private _destroyThreadManager(): void {
+    private _resetThreadManager(): void {
         if (!this._threadManager) {
             return;
         }
@@ -186,7 +186,7 @@ export class QnaPlugin extends PlayerContribPlugin
         this._threadManager.reset(this._qnaPushNotificationManager);
     }
 
-    private _destroyInPlayerNotificationsManager(): void {
+    private _resetInPlayerNotificationsManager(): void {
         if (!this._inPlayerNotificationsManager) {
             return;
         }
