@@ -48,7 +48,7 @@ export class InPlayerNotificationsManager {
     }
 
     public reset(qnaPushManger: QnAPushNotificationManager | null): void {
-        logger.info("destroy InPlayerNotificationsManager", { method: "destroy" });
+        logger.info("destroy InPlayerNotificationsManager", { method: "reset" });
         if (qnaPushManger) {
             this._removePushNotificationEventHandlers(qnaPushManger);
         }

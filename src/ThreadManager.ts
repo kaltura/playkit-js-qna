@@ -27,11 +27,12 @@ export class ThreadManager {
         this._initialized = true;
     }
 
-    public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
+    public reset(qnaPushManger: QnAPushNotificationManager | null): void {
         this._qnaMessages = [];
         if (qnaPushManger) {
             this._removePushNotificationEventHandlers(qnaPushManger);
         }
+        this._initialized = false;
     }
 
     private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
