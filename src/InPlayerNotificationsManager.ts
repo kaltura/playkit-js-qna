@@ -7,10 +7,10 @@ import {
 } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import {
-    PushNotificationEventsTypes,
+    PublicQnaNotificationsEvent,
+    PushNotificationEventTypes,
     QnAPushNotificationManager
 } from "./QnAPushNotificationManager";
-import { MessagesUpdatedEvent } from "./ThreadManager";
 
 const logger = getContribLogger({
     class: "InPlayerNotificationsManager",
@@ -41,11 +41,10 @@ type Events = HideAnnouncementEvent | ShowAnnouncementEvent;
 
 export class InPlayerNotificationsManager {
     private _initialized = false;
-    private _events: EventsManager<Events> = new EventsManager();
+    private _events: EventsManager<Events> = new EventsManager<Events>();
     private _cuePointEngine: CuepointEngine<QnaMessage> | null = null;
     private _playerApi: PlayerAPI;
     private _currentNotification: QnaMessage | null = null;
-    private _eventHandlersUUIds: string[] = [];
     private _lastIdsTimestamp: number | null = null;
 
     constructor(playerApi: PlayerAPI) {
@@ -55,44 +54,51 @@ export class InPlayerNotificationsManager {
     on = this._events.on.bind(this._events);
     off = this._events.off.bind(this._events);
 
+    /**
+     * should be called once on pluginSetup
+     * @param qnaPushManger
+     */
     public init(qnaPushManger: QnAPushNotificationManager): void {
-        if (this._initialized) return;
-        logger.info("init InPlayerNotificationsManager", { method: "init" });
-        this._addPlayerListeners();
-        this._addPushNotificationEventHandlers(qnaPushManger);
+        if (this._initialized) {
+            logger.warn("InPlayerNotificationsManager was already initialized", {
+                method: "init"
+            });
+            return;
+        }
         this._initialized = true;
+        this._addPlayerListeners();
+        qnaPushManger.on(PushNotificationEventTypes.PublicNotifications, this._handlePushResponse);
     }
 
-    public reset(qnaPushManger: QnAPushNotificationManager | null): void {
+    /**
+     * should be called on media unload
+     */
+    public reset(): void {
+        this._cuePointEngine = new CuepointEngine<QnaMessage>([]);
+    }
+
+    /**
+     * should be called on pluginDestroy
+     * @param qnaPushManger
+     */
+    public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
         logger.info("destroy InPlayerNotificationsManager", { method: "reset" });
         if (qnaPushManger) {
-            this._removePushNotificationEventHandlers(qnaPushManger);
+            qnaPushManger.off(
+                PushNotificationEventTypes.PublicNotifications,
+                this._handlePushResponse
+            );
         }
         this._removePlayerListeners();
         this._cuePointEngine = new CuepointEngine<QnaMessage>([]);
         this._initialized = false;
     }
 
-    private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
-        if (this._initialized) return;
-        logger.info("Adding in player notifications event handler", {
-            method: "_addPushNotificationEventHandlers"
+    private _handlePushResponse = ({ qnaMessages }: PublicQnaNotificationsEvent): void => {
+        logger.debug("handle push notification event", {
+            method: "_handlePushResponse",
+            data: qnaMessages
         });
-
-        let uuid = qnaPushManger.addEventHandler({
-            type: PushNotificationEventsTypes.PublicNotifications,
-            handleFunc: this._handlePushResponse.bind(this)
-        });
-        this._eventHandlersUUIds.push(uuid);
-    }
-
-    private _removePushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
-        this._eventHandlersUUIds.forEach(uuid => {
-            qnaPushManger.removeEventHandler(uuid);
-        });
-    }
-
-    private _handlePushResponse(qnaMessages: QnaMessage[]): void {
         let notifications: QnaMessage[] = qnaMessages.filter((qnaMessage: QnaMessage) => {
             this._updateQnaMessageEndTime(qnaMessage);
             return [QnaMessageType.Announcement, QnaMessageType.AnswerOnAir].includes(
@@ -100,10 +106,10 @@ export class InPlayerNotificationsManager {
             );
         });
         this._createCuePointEngine(notifications);
-    }
+    };
 
     private _addPlayerListeners() {
-        if (this._initialized) return;
+        this._removePlayerListeners();
         const { kalturaPlayer, eventManager } = this._playerApi;
         eventManager.listen(
             kalturaPlayer,
@@ -140,12 +146,22 @@ export class InPlayerNotificationsManager {
                 );
                 this._triggerCuepointsUpdateTime();
             } catch (e) {
-                console.log(e); //TODO [sa] handle errors
+                logger.debug("failed retrieving id3 tag metadata", {
+                    method: "_onTimedMetadataLoaded",
+                    data: e
+                });
             }
         }
     };
 
     private _createCuePointEngine(notifications: QnaMessage[]): void {
+        logger.debug("creating new cuepoint engine instance", {
+            method: "_createCuePointEngine",
+            data: {
+                newNotifications: notifications,
+                currentNotifications: this._cuePointEngine ? this._cuePointEngine.cuepoints : []
+            }
+        });
         if (!this._cuePointEngine || this._cuePointEngine.cuepoints.length === 0) {
             this._cuePointEngine = new CuepointEngine<QnaMessage>(notifications, {
                 reasonableSeekThreshold: SeekThreshold
@@ -206,6 +222,10 @@ export class InPlayerNotificationsManager {
     }
 
     private _handleCuepointEngineData(data: UpdateTimeResponse<QnaMessage>) {
+        logger.debug("handle cuepoint engine data", {
+            method: "_handleCuepointEngineData",
+            data: data
+        });
         //in case player was reloaded or user seeked the video
         if (data.snapshot) {
             this._handleSnapshotData(this._getMostRecentObject(data.snapshot));
@@ -276,6 +296,10 @@ export class InPlayerNotificationsManager {
     }
 
     private _showCurrentNotification(newMessage: QnaMessage) {
+        logger.debug("show notification event", {
+            method: "_showCurrentNotification",
+            data: newMessage
+        });
         if (!this._currentNotification || newMessage.id !== this._currentNotification.id) {
             this._currentNotification = newMessage;
             this._events.emit({
@@ -286,6 +310,9 @@ export class InPlayerNotificationsManager {
     }
 
     private _hideCurrentNotification() {
+        logger.debug("hide notification event", {
+            method: "_hideCurrentNotification"
+        });
         this._currentNotification = null;
         this._events.emit({ type: InPlayerNotificationsEventTypes.HideAnnouncement });
     }

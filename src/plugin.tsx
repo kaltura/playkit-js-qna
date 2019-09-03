@@ -38,7 +38,10 @@ import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataA
 import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/types/KalturaMetadataProfileFilter";
 import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { QnAPushNotificationManager } from "./QnAPushNotificationManager";
+import {
+    PushNotificationEventTypes,
+    QnAPushNotificationManager
+} from "./QnAPushNotificationManager";
 import {
     HideAnnouncementEvent,
     InPlayerNotificationsEventTypes,
@@ -83,18 +86,79 @@ export class QnaPlugin extends PlayerContribPlugin
         this._kalturaClient.setDefaultRequestOptions({
             ks: config.server.ks
         });
+
+        this._initPluginManagers();
     }
 
     onMediaLoad(config: OnMediaLoadConfig): void {
+        const { server }: ContribConfig = this.getContribConfig();
         this._loading = true;
         this._hasError = false;
         this._metadataProfileId = null;
-        this._initPluginManagers();
+        //todo [sa] register to push-notification
+        //push notification event handlers were set during pluginSetup,
+        //on each media load we need to register for relevant entryId / userId notifications
+        if (this._qnaPushNotificationManager) {
+            this._qnaPushNotificationManager.registerToPushServer(
+                config.entryId,
+                server.userId || ""
+            );
+            this._qnaPushNotificationManager.on(
+                PushNotificationEventTypes.PushNotificationsError,
+                this._onQnaError
+            );
+        }
+    }
+
+    onMediaUnload(): void {
+        this._hasError = false;
+        this._loading = true;
+        this._threads = [];
+        //reset managers
+        if (this._qnaPushNotificationManager) {
+            this._qnaPushNotificationManager.reset();
+        }
+        if (this._threadManager) {
+            this._threadManager.reset();
+        }
+        if (this._inPlayerNotificationsManager) {
+            this._inPlayerNotificationsManager.reset();
+        }
+    }
+
+    //todo [sakal] add onPluginDestroy
+    onPluginDestroy(): void {
+        this._hasError = false;
+        this._loading = true;
+        this._threads = [];
+        //destroy managers
+        if (this._qnaPushNotificationManager) {
+            this._qnaPushNotificationManager.destroy();
+        }
+        if (this._threadManager) {
+            this._threadManager.destroy(this._qnaPushNotificationManager);
+            this._threadManager.off(
+                ThreadManagerEventTypes.MessagesUpdatedEvent,
+                this._onQnaMessage
+            );
+        }
+        if (this._inPlayerNotificationsManager) {
+            this._inPlayerNotificationsManager.destroy(this._qnaPushNotificationManager);
+            this._inPlayerNotificationsManager.off(
+                InPlayerNotificationsEventTypes.ShowAnnouncement,
+                this._onInPlayerNotificationShow
+            );
+            this._inPlayerNotificationsManager.off(
+                InPlayerNotificationsEventTypes.HideAnnouncement,
+                this._onInPlayerNotificationHide
+            );
+        }
     }
 
     private _initPluginManagers(): void {
         const { server }: ContribConfig = this.getContribConfig();
 
+        // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
         this._qnaPushNotificationManager = QnAPushNotificationManager.getInstance({
             ks: server.ks,
             serviceUrl: server.serviceUrl,
@@ -106,18 +170,15 @@ export class QnaPlugin extends PlayerContribPlugin
         });
 
         this._threadManager = new ThreadManager();
-        this._threadManager.init(this._qnaPushNotificationManager);
-        // register messages
-        this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
-        // TODO [sa] use relevant manager
-        //this._threadManager.on("OnQnaError", this._onQnaError.bind(this));
-
         this._inPlayerNotificationsManager = new InPlayerNotificationsManager({
             kalturaPlayer: this.player,
             eventManager: this.eventManager
         });
+
+        this._threadManager.init(this._qnaPushNotificationManager);
         this._inPlayerNotificationsManager.init(this._qnaPushNotificationManager);
-        // register messages
+
+        this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
         this._inPlayerNotificationsManager.on(
             InPlayerNotificationsEventTypes.ShowAnnouncement,
             this._onInPlayerNotificationShow
@@ -126,9 +187,6 @@ export class QnaPlugin extends PlayerContribPlugin
             InPlayerNotificationsEventTypes.HideAnnouncement,
             this._onInPlayerNotificationHide
         );
-
-        //registering only after all handlers were added to make sure all data will be handled
-        this._qnaPushNotificationManager.registerToPushServer(this.entryId, server.userId);
 
         this._delayedGiveUpLoading();
     }
@@ -153,11 +211,11 @@ export class QnaPlugin extends PlayerContribPlugin
         this._updateKitchenSink();
     };
 
-    private _onQnaError() {
+    private _onQnaError = () => {
         this._loading = false;
         this._hasError = true;
         this._updateKitchenSink();
-    }
+    };
 
     private _onInPlayerNotificationShow = ({ message }: ShowAnnouncementEvent) => {
         if (this._uiManager)
@@ -179,41 +237,6 @@ export class QnaPlugin extends PlayerContribPlugin
     private _onInPlayerNotificationHide = (event: HideAnnouncementEvent) => {
         if (this._uiManager) this._uiManager.announcement.remove();
     };
-
-    onMediaUnload(): void {
-        this._hasError = false;
-        this._loading = true;
-        this._resetThreadManager();
-        this._resetInPlayerNotificationsManager();
-    }
-
-    private _resetThreadManager(): void {
-        if (!this._threadManager) {
-            return;
-        }
-        // unregister to messages
-        this._threadManager.off(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
-        // TODO [sa] use relevant manager
-        // this._threadManager.messageEventManager.off("OnQnaError", this._onQnaError.bind(this));
-        this._threadManager.reset(this._qnaPushNotificationManager);
-    }
-
-    private _resetInPlayerNotificationsManager(): void {
-        if (!this._inPlayerNotificationsManager) {
-            return;
-        }
-
-        // unregister to messages
-        this._inPlayerNotificationsManager.off(
-            InPlayerNotificationsEventTypes.ShowAnnouncement,
-            this._onInPlayerNotificationShow
-        );
-        this._inPlayerNotificationsManager.off(
-            InPlayerNotificationsEventTypes.HideAnnouncement,
-            this._onInPlayerNotificationHide
-        );
-        this._inPlayerNotificationsManager.reset(this._qnaPushNotificationManager);
-    }
 
     onRegisterUI(uiManager: UIManager): void {
         this._uiManager = uiManager;

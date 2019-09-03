@@ -1,9 +1,10 @@
-import { EventsManager, Event, getContribLogger } from "@playkit-js-contrib/common";
+import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import {
-    PushNotificationEventsTypes,
-    QnAPushNotificationManager
+    PushNotificationEventTypes,
+    QnAPushNotificationManager,
+    UserQnaNotificationsEvent
 } from "./QnAPushNotificationManager";
 
 const logger = getContribLogger({
@@ -23,46 +24,48 @@ export interface MessagesUpdatedEvent {
 export class ThreadManager {
     private _initialized = false;
     private _qnaMessages: QnaMessage[] = [];
-    private _events: EventsManager<MessagesUpdatedEvent> = new EventsManager();
-    private _eventHandlersUUIds: string[] = [];
-
-    public init(qnaPushManger: QnAPushNotificationManager): void {
-        if (this._initialized) return;
-        this._addPushNotificationEventHandlers(qnaPushManger);
-        this._initialized = true;
-    }
+    private _events: EventsManager<MessagesUpdatedEvent> = new EventsManager<
+        MessagesUpdatedEvent
+    >();
 
     on = this._events.on.bind(this._events);
     off = this._events.off.bind(this._events);
 
-    public reset(qnaPushManger: QnAPushNotificationManager | null): void {
+    /**
+     * should be called once on pluginSetup
+     * @param qnaPushManger
+     */
+    public init(qnaPushManger: QnAPushNotificationManager): void {
+        if (this._initialized) {
+            logger.warn("ThreadManager was already initialized", {
+                method: "init"
+            });
+            return;
+        }
+        this._initialized = true;
+        qnaPushManger.on(PushNotificationEventTypes.UserNotifications, this._processResponse);
+    }
+
+    /**
+     * should be called on each media unload
+     */
+    public reset(): void {
+        this._qnaMessages = [];
+    }
+
+    /**
+     * should be called on pluginDestroy
+     * @param qnaPushManger
+     */
+    public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
         this._qnaMessages = [];
         if (qnaPushManger) {
-            this._removePushNotificationEventHandlers(qnaPushManger);
+            qnaPushManger.off(PushNotificationEventTypes.UserNotifications, this._processResponse);
         }
         this._initialized = false;
     }
 
-    private _addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
-        if (this._initialized) return;
-
-        logger.info("Adding user notifications event handler", {
-            method: "_addPushNotificationEventHandlers"
-        });
-        let uuid = qnaPushManger.addEventHandler({
-            type: PushNotificationEventsTypes.UserNotifications,
-            handleFunc: this._processResponse.bind(this)
-        });
-        this._eventHandlersUUIds.push(uuid);
-    }
-
-    private _removePushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
-        this._eventHandlersUUIds.forEach(uuid => {
-            qnaPushManger.removeEventHandler(uuid);
-        });
-    }
-
-    private _processResponse(qnaMessages: QnaMessage[]): void {
+    private _processResponse = ({ qnaMessages }: UserQnaNotificationsEvent): void => {
         qnaMessages.forEach((qnaMessage: QnaMessage) => {
             this.processQnaMessage(qnaMessage);
         });
@@ -71,7 +74,7 @@ export class ThreadManager {
             type: ThreadManagerEventTypes.MessagesUpdatedEvent,
             messages: this._qnaMessages
         });
-    }
+    };
 
     private processQnaMessage(newMessage: QnaMessage) {
         if (newMessage.isMasterQuestion()) {

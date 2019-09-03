@@ -1,4 +1,4 @@
-import { getContribLogger } from "@playkit-js-contrib/common";
+import { getContribLogger, EventsManager } from "@playkit-js-contrib/common";
 const uuidv1 = require("uuid/v1");
 
 import {
@@ -9,20 +9,28 @@ import {
 import { QnaMessage } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
 
-export enum PushNotificationEventsTypes {
+export enum PushNotificationEventTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
-    UserNotifications = "USER_QNA_NOTIFICATIONS"
+    UserNotifications = "USER_QNA_NOTIFICATIONS",
+    PushNotificationsError = "PUSH_NOTIFICATIONS_ERROR"
 }
 
-export interface Handler {
-    uuid: string;
-    handlerObj: PushNotificationHandler;
+export interface UserQnaNotificationsEvent {
+    type: PushNotificationEventTypes.UserNotifications;
+    qnaMessages: QnaMessage[];
 }
 
-export interface PushNotificationHandler {
-    type: PushNotificationEventsTypes;
-    handleFunc: (qnaMessages: QnaMessage[]) => void;
+export interface PublicQnaNotificationsEvent {
+    type: PushNotificationEventTypes.PublicNotifications;
+    qnaMessages: QnaMessage[];
 }
+
+export interface QnaNotificationsErrorEvent {
+    type: PushNotificationEventTypes.PushNotificationsError;
+    error: string;
+}
+
+type Events = UserQnaNotificationsEvent | PublicQnaNotificationsEvent | QnaNotificationsErrorEvent;
 
 const logger = getContribLogger({
     class: "QnAPushNotificationManager",
@@ -35,14 +43,23 @@ const logger = getContribLogger({
 export class QnAPushNotificationManager {
     private static _instance: QnAPushNotificationManager | null = null;
 
-    private _pushServerNotifications: PushNotifications | null = null;
-    private _handlers: Handler[] = [];
-    private _registeredToPushServer = false;
+    private _pushServerInstance: PushNotifications | null = null;
+
+    private _registeredToQnaMessages = false;
+
+    private _events: EventsManager<Events> = new EventsManager<Events>();
 
     private constructor(options: PushNotificationsOptions) {
-        this._pushServerNotifications = PushNotifications.getInstance(options);
+        this._pushServerInstance = PushNotifications.getInstance(options);
     }
 
+    on = this._events.on.bind(this._events);
+    off = this._events.off.bind(this._events);
+
+    /**
+     * should be called once on pluginSetup
+     * @param options
+     */
     public static getInstance(options: PushNotificationsOptions) {
         if (!QnAPushNotificationManager._instance) {
             QnAPushNotificationManager._instance = new QnAPushNotificationManager(options);
@@ -50,18 +67,39 @@ export class QnAPushNotificationManager {
         return QnAPushNotificationManager._instance;
     }
 
-    public registerToPushServer(entryId: string, userId: string | undefined) {
-        if (this._registeredToPushServer) {
+    /**
+     * should be called on mediaUnload
+     */
+    public reset() {
+        //todo [sa] once implemented - unregister from current entryId / userId push-notifications on mediaUnload
+    }
+
+    /**
+     * should be called on pluginDestroy
+     */
+    public destroy() {
+        //todo [sa] once implemented better - add destroy method to kill push-server etc...
+    }
+
+    /**
+     * registering push server notifications for retrieving user/public qna messages for current entry id and userId
+     * note: should be registered on mediaLoad to get relevant notification data.
+     * @param entryId
+     * @param userId
+     */
+    public registerToPushServer(entryId: string, userId: string) {
+        if (this._registeredToQnaMessages) {
             logger.error("Multiple registration error", { method: "registerToPushServer" });
             throw new Error("Already register to push server");
         }
 
         logger.info("Registering for push notifications server", {
-            method: "registerToPushServer"
+            method: "registerToPushServer",
+            data: { entryId, userId }
         });
 
         // TODO [am] temp solutions for userId need to handle anonymous user id
-        if (!this._pushServerNotifications) {
+        if (!this._pushServerInstance) {
             return; // TODO [am] change state to error
         }
         // Announcement objects
@@ -69,52 +107,29 @@ export class QnAPushNotificationManager {
         // user related QnA objects
         const privateQnaRequestConfig = this._registerUserQnaNotification(entryId, userId);
 
-        this._pushServerNotifications
+        this._pushServerInstance
             .registerNotifications({
                 prepareRegisterRequestConfigs: [publicQnaRequestConfig, privateQnaRequestConfig],
                 onSocketReconnect: () => {}
             })
             .then(
                 () => {
-                    this._registeredToPushServer = true;
+                    logger.info("Registered push notification service", {
+                        method: "registerToPushServer"
+                    });
+                    this._registeredToQnaMessages = true;
                 },
                 (err: any) => {
-                    // todo [am] Something bad happen (push server or more are down)
-                    // if (this._messageEventManager) {
-                    //     this._messageEventManager.emit("OnQnaError");
-                    // }
                     logger.error("Registration for push notification error", {
                         method: "registerToPushServer",
                         data: err
                     });
+                    this._events.emit({
+                        type: PushNotificationEventTypes.PushNotificationsError,
+                        error: err
+                    });
                 }
             );
-    }
-
-    /**
-     * event handlers that will register after 'registerToPushServer'
-     * will get only future push notifications (ont the initial bulk).
-     * @param type
-     * @param handlerObj
-     * @return uuid - unique id for current handler
-     */
-    public addEventHandler(handlerObj: PushNotificationHandler): string {
-        let uuid: string = uuidv1();
-        this._handlers.push({ uuid, handlerObj });
-        return uuid;
-    }
-
-    /**
-     * remove event handler
-     * @param uuid event unique id
-     */
-    public removeEventHandler(uuid: string) {
-        let handlerIndex = this._handlers.findIndex((handlerObj: Handler) => {
-            return handlerObj.uuid === uuid;
-        });
-        if (handlerIndex > -1) {
-            this._handlers.splice(handlerIndex, 1);
-        }
     }
 
     private _registerPublicQnaNotification(entryId: string): PrepareRegisterRequestConfig {
@@ -122,31 +137,29 @@ export class QnAPushNotificationManager {
             method: "_registerPublicQnaNotification",
             data: { entryId }
         });
-
         return {
             eventName: "PUBLIC_QNA_NOTIFICATIONS",
             eventParams: {
                 entryId: entryId
             },
             onMessage: (response: any[]) => {
-                this._callRegisteredHandlers(
-                    PushNotificationEventsTypes.PublicNotifications,
-                    this._createQnaMessagesArray(response)
-                );
+                this._events.emit({
+                    type: PushNotificationEventTypes.PublicNotifications,
+                    qnaMessages: this._createQnaMessagesArray(response)
+                });
             }
         };
     }
 
     private _registerUserQnaNotification(
         entryId: string,
-        userId: string | undefined
+        userId: string
     ): PrepareRegisterRequestConfig {
         // TODO [am] temp solutions for userId need to handle anonymous user id
         logger.info("Register User QnA notification", {
             method: "_registerUserQnaNotification",
             data: { entryId, userId }
         });
-
         return {
             eventName: "USER_QNA_NOTIFICATIONS",
             eventParams: {
@@ -154,22 +167,12 @@ export class QnAPushNotificationManager {
                 userId: userId // TODO [am] temp solutions for userId need to handle anonymous user id
             },
             onMessage: (response: any[]) => {
-                this._callRegisteredHandlers(
-                    PushNotificationEventsTypes.UserNotifications,
-                    this._createQnaMessagesArray(response)
-                );
+                this._events.emit({
+                    type: PushNotificationEventTypes.UserNotifications,
+                    qnaMessages: this._createQnaMessagesArray(response)
+                });
             }
         };
-    }
-
-    private _callRegisteredHandlers(type: PushNotificationEventsTypes, pushResponse: QnaMessage[]) {
-        const handlers = this._handlers.filter((handler: Handler) => {
-            return handler.handlerObj.type === type;
-        });
-
-        handlers.forEach((handler: Handler) => {
-            handler.handlerObj.handleFunc(pushResponse);
-        });
     }
 
     private _createQnaMessagesArray(pushResponse: any[]): QnaMessage[] {
