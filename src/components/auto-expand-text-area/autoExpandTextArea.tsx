@@ -193,5 +193,10 @@ export class AutoExpandTextArea extends Component<
         if (this.props.enableFocusOut) {
             this._textareaContainer.removeEventListener("focusout", this._handleFocusOut);
         }
+
+        if (this._allowClickTimeout) {
+            clearTimeout(this._allowClickTimeout);
+            this._allowClickTimeout = null;
+        }
     }
 }
