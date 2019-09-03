@@ -187,7 +187,7 @@ export class QnaPlugin extends PlayerContribPlugin
         );
     };
 
-    private _submitQuestion = async (question: string, parentId?: string) => {
+    private _submitQuestion = async (question: string, thread?: QnaMessage) => {
         const requests: KalturaRequest<any>[] = [];
         const missingProfileId = !this._metadataProfileId;
         const requestIndexCorrection = missingProfileId ? 1 : 0;
@@ -217,7 +217,10 @@ export class QnaPlugin extends PlayerContribPlugin
             searchableOnEntry: 0
         };
 
-        if (parentId) {
+        if (thread) {
+            const parentId = thread.replies.length
+                ? thread.replies[thread.replies.length - 1].id
+                : thread.id;
             kalturaAnnotationArgs.parentId = parentId;
         }
 
@@ -228,14 +231,14 @@ export class QnaPlugin extends PlayerContribPlugin
         /*
             3 - Prepare to add metadata
          */
-        const metadata: Record<string, string> = {
-            Type: QnaMessageType.Question,
-            ThreadCreatorId: contribConfig.server.userId! // TODO temp solutions for userId need to handle anonymous user id
-        };
+        const metadata: Record<string, string> = {};
 
-        if (parentId) {
-            metadata.ThreadId = parentId;
+        if (thread) {
+            metadata.ThreadId = thread.id;
         }
+
+        metadata.Type = QnaMessageType.Question;
+        metadata.ThreadCreatorId = contribConfig.server.userId!; // TODO temp solutions for userId need to handle anonymous user id
 
         const xmlData = Utils.createXmlFromObject(metadata);
 
@@ -323,7 +326,7 @@ export class QnaPlugin extends PlayerContribPlugin
             }
 
             if (this._threadManager) {
-                this._threadManager.addPendingCuePointToThread(cuePoint);
+                this._threadManager.addPendingCuePointToThread(cuePoint, thread && thread.id);
             }
         } catch (err) {
             // TODO handle Error then submitting a question

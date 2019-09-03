@@ -10,6 +10,7 @@ import { AutoExpandTextArea } from "../auto-expand-text-area";
 interface ThreadProps {
     thread: QnaMessage;
     formatting: DateTimeFormatting;
+    onReply: (text: string, thread?: QnaMessage) => void;
 }
 
 interface ThreadState {
@@ -18,7 +19,9 @@ interface ThreadState {
 }
 
 export class Thread extends Component<ThreadProps, ThreadState> {
-    static defaultProps = {};
+    static defaultProps = {
+        onReply: (text: string, parentId?: string) => {}
+    };
 
     state = {
         isThreadOpen: false,
@@ -33,8 +36,8 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         this.setState({ showInputText: !this.state.showInputText });
     };
 
-    handleOnSubmit = (text: string) => {
-        console.log(text);
+    handleReply = (text: string) => {
+        this.props.onReply(text, this.props.thread);
     };
 
     render() {
@@ -115,7 +118,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                 {/*  Reply button and Input  */
                 showInputText ? (
                     <AutoExpandTextArea
-                        onSubmit={this.handleOnSubmit}
+                        onSubmit={this.handleReply}
                         placeholder={"Reply"}
                         enableBlackInputTheme={true}
                         enableFocusOut={false}

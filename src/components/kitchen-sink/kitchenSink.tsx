@@ -20,7 +20,7 @@ export interface KitchenSinkProps {
     formatting: DateTimeFormatting;
     hasError: boolean;
     loading: boolean;
-    onSubmit: (text: string) => void;
+    onSubmit: (text: string, thread?: QnaMessage) => void;
 }
 
 interface KitchenSinkState {}
@@ -30,13 +30,13 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     static defaultProps = {
         hasError: false,
         loading: false,
-        onSubmit: () => {}
+        onSubmit: (text: string, thread?: QnaMessage) => {}
     };
 
     state = {};
 
-    handleOnSubmit = (text: string) => {
-        this.props.onSubmit(text);
+    handleOnSubmit = (text: string, thread?: QnaMessage) => {
+        this.props.onSubmit(text, thread);
     };
 
     private _generateContent(props: KitchenSinkProps) {
@@ -72,6 +72,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                         thread={masterQuestion}
                         formatting={props.formatting}
                         key={masterQuestion.id}
+                        onReply={this.handleOnSubmit}
                     />
                 );
             });
