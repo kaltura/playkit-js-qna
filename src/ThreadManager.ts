@@ -58,11 +58,10 @@ export class ThreadManager {
      * @param qnaPushManger
      */
     public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
-        this._qnaMessages = [];
+        this.reset();
         if (qnaPushManger) {
             qnaPushManger.off(PushNotificationEventTypes.UserNotifications, this._processResponse);
         }
-        this._initialized = false;
     }
 
     private _processResponse = ({ qnaMessages }: UserQnaNotificationsEvent): void => {

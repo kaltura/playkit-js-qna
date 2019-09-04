@@ -82,7 +82,7 @@ export class InPlayerNotificationsManager {
      * @param qnaPushManger
      */
     public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
-        logger.info("destroy InPlayerNotificationsManager", { method: "reset" });
+        logger.info("destroy InPlayerNotificationsManager", { method: "destroy" });
         if (qnaPushManger) {
             qnaPushManger.off(
                 PushNotificationEventTypes.PublicNotifications,
@@ -90,8 +90,7 @@ export class InPlayerNotificationsManager {
             );
         }
         this._removePlayerListeners();
-        this._cuePointEngine = new CuepointEngine<QnaMessage>([]);
-        this._initialized = false;
+        this.reset();
     }
 
     private _handlePushResponse = ({ qnaMessages }: PublicQnaNotificationsEvent): void => {

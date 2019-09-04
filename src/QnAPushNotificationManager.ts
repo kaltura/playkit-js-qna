@@ -1,5 +1,4 @@
 import { getContribLogger, EventsManager } from "@playkit-js-contrib/common";
-const uuidv1 = require("uuid/v1");
 
 import {
     PushNotifications,
@@ -72,6 +71,7 @@ export class QnAPushNotificationManager {
      */
     public reset() {
         //todo [sa] once implemented - unregister from current entryId / userId push-notifications on mediaUnload
+        this._registeredToQnaMessages = false;
     }
 
     /**
@@ -103,9 +103,9 @@ export class QnAPushNotificationManager {
             return; // TODO [am] change state to error
         }
         // Announcement objects
-        const publicQnaRequestConfig = this._registerPublicQnaNotification(entryId);
+        const publicQnaRequestConfig = this._createPublicQnaRegistration(entryId);
         // user related QnA objects
-        const privateQnaRequestConfig = this._registerUserQnaNotification(entryId, userId);
+        const privateQnaRequestConfig = this._createUserQnaRegistration(entryId, userId);
 
         this._pushServerInstance
             .registerNotifications({
@@ -132,9 +132,9 @@ export class QnAPushNotificationManager {
             );
     }
 
-    private _registerPublicQnaNotification(entryId: string): PrepareRegisterRequestConfig {
+    private _createPublicQnaRegistration(entryId: string): PrepareRegisterRequestConfig {
         logger.info("Register public QnA notification", {
-            method: "_registerPublicQnaNotification",
+            method: "_createPublicQnaRegistration",
             data: { entryId }
         });
         return {
@@ -151,13 +151,13 @@ export class QnAPushNotificationManager {
         };
     }
 
-    private _registerUserQnaNotification(
+    private _createUserQnaRegistration(
         entryId: string,
         userId: string
     ): PrepareRegisterRequestConfig {
         // TODO [am] temp solutions for userId need to handle anonymous user id
         logger.info("Register User QnA notification", {
-            method: "_registerUserQnaNotification",
+            method: "_createUserQnaRegistration",
             data: { entryId, userId }
         });
         return {

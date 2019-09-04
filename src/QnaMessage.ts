@@ -60,7 +60,7 @@ export class QnaMessage {
 
             return result;
         } catch (e) {
-            // todo static logging to this;
+            // todo [am] static logging to this;
             console.warn(`Error: couldn't create QnaMessage, mandatory field(s) are missing`, e);
             return null;
         }
@@ -74,7 +74,7 @@ export class QnaMessage {
             },
             id: cuePoint.id,
             time: cuePoint.createdAt,
-            tags: cuePoint.tags ? cuePoint.tags.split(",") : []
+            tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
         };
 
         const result = new QnaMessage(qnaMessageParams);

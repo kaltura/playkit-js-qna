@@ -103,10 +103,6 @@ export class QnaPlugin extends PlayerContribPlugin
                 config.entryId,
                 server.userId || ""
             );
-            this._qnaPushNotificationManager.on(
-                PushNotificationEventTypes.PushNotificationsError,
-                this._onQnaError
-            );
         }
     }
 
@@ -168,6 +164,11 @@ export class QnaPlugin extends PlayerContribPlugin
                 eventManager: this.eventManager
             }
         });
+
+        this._qnaPushNotificationManager.on(
+            PushNotificationEventTypes.PushNotificationsError,
+            this._onQnaError
+        );
 
         this._threadManager = new ThreadManager();
         this._inPlayerNotificationsManager = new InPlayerNotificationsManager({
