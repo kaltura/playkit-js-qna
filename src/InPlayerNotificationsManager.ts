@@ -43,8 +43,8 @@ export class InPlayerNotificationsManager {
     private _currentNotification: QnaMessage | null = null;
     private _lastId3Timestamp: number | null = null;
 
-    on = this._events.on.bind(this._events);
-    off = this._events.off.bind(this._events);
+    on: EventsManager<Events>["on"] = this._events.on.bind(this._events);
+    off: EventsManager<Events>["off"] = this._events.off.bind(this._events);
 
     /**
      * should be called once on pluginSetup

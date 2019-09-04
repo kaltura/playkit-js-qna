@@ -6,7 +6,7 @@ import {
     PushNotificationsOptions
 } from "@playkit-js-contrib/push-notifications";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
-import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
+import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 
 export enum PushNotificationEventTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
@@ -54,8 +54,8 @@ export class QnAPushNotificationManager {
         this._pushServerInstance = PushNotifications.getInstance(options);
     }
 
-    on = this._events.on.bind(this._events);
-    off = this._events.off.bind(this._events);
+    on: EventsManager<Events>["on"] = this._events.on.bind(this._events);
+    off: EventsManager<Events>["off"] = this._events.off.bind(this._events);
 
     /**
      * should be called once on pluginSetup

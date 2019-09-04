@@ -28,8 +28,8 @@ export class ThreadManager {
         MessagesUpdatedEvent
     >();
 
-    on = this._events.on.bind(this._events);
-    off = this._events.off.bind(this._events);
+    on: EventsManager<MessagesUpdatedEvent>["on"] = this._events.on.bind(this._events);
+    off: EventsManager<MessagesUpdatedEvent>["off"] = this._events.off.bind(this._events);
 
     /**
      * should be called once on pluginSetup
