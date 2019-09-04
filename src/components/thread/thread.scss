@@ -1,7 +1,5 @@
-
 .thread{
   border-radius: 4px;
-  background-color: #333333cc;
   color: #ffffffe6;
   min-height: 84px;
   width: 100%;
@@ -10,36 +8,119 @@
 }
 
 .message-content {
+  background-color: #333333cc;
+  padding: 8px;
   min-height: 15px;
-  margin: 8px;
   font-size: 15px;
   line-height: 1;
   color: #ffffffe6;
+  white-space: pre-wrap;
 }
 
-.second-line-info {
+.second-info-line {
+  background-color: #333333cc;
   height: 16px;
-  position: relative;
   border-bottom: 1px solid #222222e6;
-  padding-bottom: 8px;
-  display: block;
+  padding: 0 8px 8px 8px;
   box-sizing: initial;
 }
 
-.date-time-prop {
+.collapsed-area {
+  background-color: #333333cc;
+  border-bottom: 1px solid #222222e6;
+  padding: 16px 8px;
+  box-sizing: initial;
+  transition: all 150ms ease;
+}
+
+.reply-container {
+  margin: 16px 24px 0 0;
+  display: flex;
+
+  &.right {
+    justify-content: flex-end;
+    margin-right: 0;
+    margin-left: 24px;
+  }
+}
+
+.reply-container:first-child {
+  margin-top: 0;
+}
+
+.thread-time {
+  float: right;
+  margin-right: 1px;
+}
+
+.reply {
+  border-radius: 4px;
+  background-color: #666666;
+  padding: 4px 8px;
+}
+
+.num-of-replies {
   font-size: 12px;
   font-weight: bold;
-  position: absolute;
+  color: #cccccc;
+  position: relative;
+  top: -6px;
+  margin-left: -3px;
 }
 
-.date {
-  right: 68px;
+.num-of-replies-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  position: relative;
+  left: -5px;
+  background: transparent url('../../assets/down.svg') center/16px no-repeat;
+  transition: all 150ms ease;
+
+  &.arrow-left {
+    transform: rotate(-90deg);
+  }
 }
 
-.time {
-  right: 10px;
+.username {
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1.17;
+  color: #cccccc;
 }
 
-.third-line-info {
+.reply-message {
+  font-size: 15px;
+  line-height: 1.27;
+  color: #ffffff;
+}
+
+.last-info-line {
+  background-color: #333333cc;
   height: 32px;
+  padding: 6px 8px;
+}
+
+.clear-styled-button {
+  padding: 0;
+  margin: 0;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+}
+
+.reply-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: transparent url('../../assets/reply.svg') center/16px no-repeat;
+}
+
+.reply-text {
+  color: #01accd;
+  font-size: 12px;
+  font-weight: bold;
+  position: relative;
+  top: -6px;
+  margin-left: 1px;
 }

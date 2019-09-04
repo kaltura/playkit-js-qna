@@ -88,8 +88,11 @@ export class ThreadManager {
         });
     }
 
-    public addPendingCuePointToThread(cuePoint: KalturaAnnotation): void {
+    public addPendingCuePointToThread(cuePoint: KalturaAnnotation, threadId?: string): void {
         let newMessage: QnaMessage | null = QnaMessage.createPendingMessage(cuePoint);
+        if (threadId) {
+            newMessage.parentId = threadId;
+        }
         this.processQnaMessage(newMessage);
 
         if (this._messageEventManager) {

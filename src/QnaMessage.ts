@@ -34,6 +34,7 @@ export class QnaMessage {
     public parentId: string | null;
     public replies: QnaMessage[];
     public deliveryStatus: MessageStatusEnum | null = null;
+    public userId: string | null = null;
 
     public static create(cuePoint: KalturaAnnotation): QnaMessage | null {
         try {
@@ -51,6 +52,8 @@ export class QnaMessage {
             result.deliveryStatus = cuePoint.createdAt
                 ? MessageStatusEnum.CREATED
                 : MessageStatusEnum.SENDING;
+
+            result.userId = cuePoint.userId;
 
             return result;
         } catch (e) {
