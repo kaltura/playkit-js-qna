@@ -5,7 +5,8 @@ import { Utils } from "./utils";
 export enum QnaMessageType {
     Question = "Question",
     Answer = "Answer",
-    Announcement = "Announcement"
+    Announcement = "Announcement",
+    AnswerOnAir = "AnswerOnAir"
 }
 
 export enum MessageStatusEnum {
@@ -24,17 +25,21 @@ export interface QnaMessageParams {
     metadataInfo: MetadataInfo;
     id: string;
     time: Date;
+    tags: string[];
 }
 
 export class QnaMessage {
     public id: string;
     public time: Date;
+    public startTime: number;
+    public endTime?: number;
     public messageContent: string | null = null;
     public type: QnaMessageType;
     public parentId: string | null;
     public replies: QnaMessage[];
     public deliveryStatus: MessageStatusEnum | null = null;
     public userId: string | null = null;
+    public tags: string[] = [];
 
     public static create(cuePoint: KalturaAnnotation): QnaMessage | null {
         try {
@@ -42,7 +47,8 @@ export class QnaMessage {
             const qnaMessageParams: QnaMessageParams = {
                 metadataInfo: this.getMetadata(cuePoint),
                 id: cuePoint.id,
-                time: cuePoint.createdAt
+                time: cuePoint.createdAt,
+                tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
             };
 
             const result = new QnaMessage(qnaMessageParams);
@@ -57,7 +63,7 @@ export class QnaMessage {
 
             return result;
         } catch (e) {
-            // todo static logging to this;
+            // todo [am] static logging to this;
             console.warn(`Error: couldn't create QnaMessage, mandatory field(s) are missing`, e);
             return null;
         }
@@ -70,7 +76,8 @@ export class QnaMessage {
                 parentId: null
             },
             id: cuePoint.id,
-            time: cuePoint.createdAt
+            time: cuePoint.createdAt,
+            tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
         };
 
         const result = new QnaMessage(qnaMessageParams);
@@ -84,9 +91,11 @@ export class QnaMessage {
     constructor(qnaMessageParams: QnaMessageParams) {
         this.id = qnaMessageParams.id;
         this.time = qnaMessageParams.time;
+        this.startTime = this.time.getTime();
         this.parentId = qnaMessageParams.metadataInfo.parentId;
         this.type = qnaMessageParams.metadataInfo.type;
         this.replies = [];
+        this.tags = qnaMessageParams.tags;
     }
 
     private static getMetadata(cuePoint: KalturaAnnotation): MetadataInfo {

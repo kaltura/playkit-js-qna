@@ -1,59 +1,81 @@
-import { EventManager, getContribLogger } from "@playkit-js-contrib/common";
+import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
-import { PushNotificationEvents, QnAPushNotificationManager } from "./QnAPushNotificationManager";
-import { Utils } from "./utils";
+import {
+    PushNotificationEventTypes,
+    QnAPushNotificationManager,
+    UserQnaNotificationsEvent
+} from "./QnAPushNotificationManager";
 
 const logger = getContribLogger({
     class: "ThreadManager",
     module: "qna-plugin"
 });
 
+export enum ThreadManagerEventTypes {
+    MessagesUpdatedEvent = "MessagesUpdatedEvent"
+}
+
+export interface MessagesUpdatedEvent {
+    type: ThreadManagerEventTypes.MessagesUpdatedEvent;
+    messages: QnaMessage[];
+}
+
 export class ThreadManager {
+    private _initialized = false;
     private _qnaMessages: QnaMessage[] = [];
-    private _messageEventManager: EventManager = new EventManager();
+    private _events: EventsManager<MessagesUpdatedEvent> = new EventsManager<
+        MessagesUpdatedEvent
+    >();
 
-    public get messageEventManager(): EventManager {
-        return this._messageEventManager;
+    on: EventsManager<MessagesUpdatedEvent>["on"] = this._events.on.bind(this._events);
+    off: EventsManager<MessagesUpdatedEvent>["off"] = this._events.off.bind(this._events);
+
+    /**
+     * should be called once on pluginSetup
+     * @param qnaPushManger
+     */
+    public init(qnaPushManger: QnAPushNotificationManager): void {
+        if (this._initialized) {
+            logger.warn("ThreadManager was already initialized", {
+                method: "init"
+            });
+            return;
+        }
+        this._initialized = true;
+        qnaPushManger.on(PushNotificationEventTypes.UserNotifications, this._processResponse);
     }
 
-    public addPushNotificationEventHandlers(qnaPushManger: QnAPushNotificationManager): void {
-        qnaPushManger.addEventHandler(
-            PushNotificationEvents.UserNotifications,
-            this._processResponse.bind(this)
-        );
-    }
-
-    public unregister() {
+    /**
+     * should be called on each media unload
+     */
+    public reset(): void {
         this._qnaMessages = [];
     }
 
-    private _processResponse(response: any): void {
-        response
-            .reduce(Utils.getkalturaAnnotationReducer(logger), [])
-            .forEach((cuePoint: KalturaAnnotation) => {
-                let newMessage: QnaMessage | null = QnaMessage.create(cuePoint);
-
-                this.processQnaMessage(newMessage);
-            });
-
-        if (this._messageEventManager) {
-            this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
+    /**
+     * should be called on pluginDestroy
+     * @param qnaPushManger
+     */
+    public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
+        this.reset();
+        if (qnaPushManger) {
+            qnaPushManger.off(PushNotificationEventTypes.UserNotifications, this._processResponse);
         }
     }
 
-    private processQnaMessage(newMessage: QnaMessage | null) {
-        if (!newMessage) {
-            logger.warn(
-                "No newMessage to process - Create QnaMessage from cuePoint return nothing",
-                {
-                    method: "processQnaMessage",
-                    data: {}
-                }
-            );
-            return;
-        }
+    private _processResponse = ({ qnaMessages }: UserQnaNotificationsEvent): void => {
+        qnaMessages.forEach((qnaMessage: QnaMessage) => {
+            this.processQnaMessage(qnaMessage);
+        });
 
+        this._events.emit({
+            type: ThreadManagerEventTypes.MessagesUpdatedEvent,
+            messages: this._qnaMessages
+        });
+    };
+
+    private processQnaMessage(newMessage: QnaMessage) {
         if (newMessage.isMasterQuestion()) {
             this._processMasterQuestion(newMessage);
         } else {
@@ -95,9 +117,10 @@ export class ThreadManager {
         }
         this.processQnaMessage(newMessage);
 
-        if (this._messageEventManager) {
-            this._messageEventManager.emit("OnQnaMessage", this._qnaMessages);
-        }
+        this._events.emit({
+            type: ThreadManagerEventTypes.MessagesUpdatedEvent,
+            messages: this._qnaMessages
+        });
     }
 
     /**
