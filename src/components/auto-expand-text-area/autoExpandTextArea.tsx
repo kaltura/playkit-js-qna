@@ -6,12 +6,13 @@ interface AutoExpandTextAreaProps {
     placeholder?: string;
     onSubmit: (text: string) => void;
     enableBlackInputTheme?: boolean;
-    open: boolean | undefined;
+    initialFocus?: boolean;
+    open?: boolean;
 }
 
 interface AutoExpandTextAreaState {
     text: string;
-    isInFocus: boolean;
+    openByEvent: boolean;
 }
 
 const MAX_NUM_OF_CHARS = 500;
@@ -29,29 +30,24 @@ export class AutoExpandTextArea extends Component<
 
     static defaultProps = {
         placeholder: "",
-        onsubmit: () => {},
-        enableBlackInputTheme: false,
-        open: false
+        enableBlackInputTheme: false
     };
 
-    state: AutoExpandTextAreaState = { text: "", isInFocus: false };
+    state: AutoExpandTextAreaState = { text: "", openByEvent: false };
 
     componentDidMount(): void {
         if (!this._textareaContainer) {
             return;
         }
 
-        this._textareaContainer.addEventListener("focusin", this._handleFocusIn);
-
-        if (this.props.open) {
-            this._toggleActionsContainer(true);
-            if (this._textAreaRef) {
-                this._textAreaRef.focus();
-            }
-            // At open state we don't want to register and close the controls of the textArea
-        } else {
-            // At regular (when default closed) register to close when clicking outside.
+        if (typeof this.props.open === "undefined") {
+            this._textareaContainer.addEventListener("focusin", this._handleFocusIn);
             this._textareaContainer.addEventListener("focusout", this._handleFocusOut);
+            return;
+        }
+
+        if (this.props.initialFocus) {
+            this.focusOnInput();
         }
     }
 
@@ -61,7 +57,7 @@ export class AutoExpandTextArea extends Component<
             this._allowClickTimeout = null;
         }
 
-        this._toggleActionsContainer(true);
+        this.setState({ openByEvent: true });
     };
 
     private _handleFocusOut = (e: any) => {
@@ -72,15 +68,17 @@ export class AutoExpandTextArea extends Component<
         // this helps to catch the click on an outside element (like, button) when clicking outsides the element.
         // otherwise the click is missed and swallowed.
         this._allowClickTimeout = setTimeout(() => {
-            this._toggleActionsContainer(false);
+            this.setState({ openByEvent: false });
         }, 200);
     };
 
-    private _toggleActionsContainer(isFocus: boolean) {
-        this.setState({ isInFocus: isFocus });
-    }
+    focusOnInput = () => {
+        if (this._textAreaRef) {
+            this._textAreaRef.focus();
+        }
+    };
 
-    _handleOnInputChange = (event: any) => {
+    private _handleOnInputChange = (event: any) => {
         this.setState({ text: event.target.value });
         this._resize();
     };
@@ -143,8 +141,8 @@ export class AutoExpandTextArea extends Component<
     };
 
     render() {
-        const { text, isInFocus } = this.state;
-        const { enableBlackInputTheme, placeholder } = this.props;
+        const { text, openByEvent } = this.state;
+        const { enableBlackInputTheme, placeholder, open } = this.props;
 
         return (
             <div
@@ -164,7 +162,7 @@ export class AutoExpandTextArea extends Component<
                     rows={1}
                     maxLength={MAX_NUM_OF_CHARS}
                 />
-                {isInFocus && (
+                {(open || openByEvent) && (
                     <div
                         className={styles.inputActionsContainer}
                         ref={element => (this._actionsContainer = element)}

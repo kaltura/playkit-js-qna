@@ -124,6 +124,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         onSubmit={this.handleReply}
                         placeholder={"Reply"}
                         enableBlackInputTheme={true}
+                        initialFocus={true}
                         open={true}
                     />
                 ) : (
