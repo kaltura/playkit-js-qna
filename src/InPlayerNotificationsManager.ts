@@ -47,10 +47,6 @@ export class InPlayerNotificationsManager {
     private _currentNotification: QnaMessage | null = null;
     private _lastIdsTimestamp: number | null = null;
 
-    constructor(playerApi: PlayerAPI) {
-        this._playerApi = playerApi;
-    }
-
     on = this._events.on.bind(this._events);
     off = this._events.off.bind(this._events);
 
@@ -58,7 +54,7 @@ export class InPlayerNotificationsManager {
      * should be called once on pluginSetup
      * @param qnaPushManger
      */
-    public init(qnaPushManger: QnAPushNotificationManager): void {
+    public init(qnaPushManger: QnAPushNotificationManager, playerApi: PlayerAPI): void {
         if (this._initialized) {
             logger.warn("InPlayerNotificationsManager was already initialized", {
                 method: "init"
@@ -66,6 +62,7 @@ export class InPlayerNotificationsManager {
             return;
         }
         this._initialized = true;
+        this._playerApi = playerApi;
         this._addPlayerListeners();
         qnaPushManger.on(PushNotificationEventTypes.PublicNotifications, this._handlePushResponse);
     }

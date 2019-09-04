@@ -66,9 +66,8 @@ export class QnaPlugin extends PlayerContribPlugin
 
     private _qnaPushNotificationManager: QnAPushNotificationManager | null = null;
 
-    private _uiManager: UIManager | null = null;
-    private _threadManager: ThreadManager | null = null;
-    private _inPlayerNotificationsManager: InPlayerNotificationsManager | null = null;
+    private _threadManager: ThreadManager = new ThreadManager();
+    private _inPlayerNotificationsManager: InPlayerNotificationsManager = new InPlayerNotificationsManager();
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
@@ -95,7 +94,6 @@ export class QnaPlugin extends PlayerContribPlugin
         this._loading = true;
         this._hasError = false;
         this._metadataProfileId = null;
-        //todo [sa] register to push-notification
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
         if (this._qnaPushNotificationManager) {
@@ -114,12 +112,8 @@ export class QnaPlugin extends PlayerContribPlugin
         if (this._qnaPushNotificationManager) {
             this._qnaPushNotificationManager.reset();
         }
-        if (this._threadManager) {
-            this._threadManager.reset();
-        }
-        if (this._inPlayerNotificationsManager) {
-            this._inPlayerNotificationsManager.reset();
-        }
+        this._threadManager.reset();
+        this._inPlayerNotificationsManager.reset();
     }
 
     //todo [sakal] add onPluginDestroy
@@ -131,24 +125,17 @@ export class QnaPlugin extends PlayerContribPlugin
         if (this._qnaPushNotificationManager) {
             this._qnaPushNotificationManager.destroy();
         }
-        if (this._threadManager) {
-            this._threadManager.destroy(this._qnaPushNotificationManager);
-            this._threadManager.off(
-                ThreadManagerEventTypes.MessagesUpdatedEvent,
-                this._onQnaMessage
-            );
-        }
-        if (this._inPlayerNotificationsManager) {
-            this._inPlayerNotificationsManager.destroy(this._qnaPushNotificationManager);
-            this._inPlayerNotificationsManager.off(
-                InPlayerNotificationsEventTypes.ShowAnnouncement,
-                this._onInPlayerNotificationShow
-            );
-            this._inPlayerNotificationsManager.off(
-                InPlayerNotificationsEventTypes.HideAnnouncement,
-                this._onInPlayerNotificationHide
-            );
-        }
+        this._threadManager.destroy(this._qnaPushNotificationManager);
+        this._threadManager.off(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
+        this._inPlayerNotificationsManager.destroy(this._qnaPushNotificationManager);
+        this._inPlayerNotificationsManager.off(
+            InPlayerNotificationsEventTypes.ShowAnnouncement,
+            this._onInPlayerNotificationShow
+        );
+        this._inPlayerNotificationsManager.off(
+            InPlayerNotificationsEventTypes.HideAnnouncement,
+            this._onInPlayerNotificationHide
+        );
     }
 
     private _initPluginManagers(): void {
@@ -170,14 +157,11 @@ export class QnaPlugin extends PlayerContribPlugin
             this._onQnaError
         );
 
-        this._threadManager = new ThreadManager();
-        this._inPlayerNotificationsManager = new InPlayerNotificationsManager({
+        this._threadManager.init(this._qnaPushNotificationManager);
+        this._inPlayerNotificationsManager.init(this._qnaPushNotificationManager, {
             kalturaPlayer: this.player,
             eventManager: this.eventManager
         });
-
-        this._threadManager.init(this._qnaPushNotificationManager);
-        this._inPlayerNotificationsManager.init(this._qnaPushNotificationManager);
 
         this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
         this._inPlayerNotificationsManager.on(
@@ -219,28 +203,20 @@ export class QnaPlugin extends PlayerContribPlugin
     };
 
     private _onInPlayerNotificationShow = ({ message }: ShowAnnouncementEvent) => {
-        if (this._uiManager)
-            this._uiManager.announcement.add({
-                content: {
-                    title:
-                        message.type === QnaMessageType.AnswerOnAir ? "Audience asks:" : undefined,
-                    icon:
-                        message.type === QnaMessageType.AnswerOnAir ? (
-                            <AnswerOnAirIcon />
-                        ) : (
-                            undefined
-                        ),
-                    text: message.messageContent ? message.messageContent : ""
-                }
-            });
+        this.uiManager.announcement.add({
+            content: {
+                title: message.type === QnaMessageType.AnswerOnAir ? "Audience asks:" : undefined,
+                icon: message.type === QnaMessageType.AnswerOnAir ? <AnswerOnAirIcon /> : undefined,
+                text: message.messageContent ? message.messageContent : ""
+            }
+        });
     };
 
     private _onInPlayerNotificationHide = (event: HideAnnouncementEvent) => {
-        if (this._uiManager) this._uiManager.announcement.remove();
+        this.uiManager.announcement.remove();
     };
 
     onRegisterUI(uiManager: UIManager): void {
-        this._uiManager = uiManager;
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
             expandMode: KitchenSinkExpandModes.OverTheVideo,
