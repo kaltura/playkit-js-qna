@@ -19,10 +19,6 @@ const logger = getContribLogger({
 
 const SeekThreshold: number = 7 * 1000;
 
-const AnnouncementAutoCloseDuration: number = 60 * 1000;
-
-const AnnotationDeleted = "Annotation_Deleted";
-
 export enum InPlayerNotificationsEventTypes {
     ShowAnnouncement = "ShowAnnouncement",
     HideAnnouncement = "HideAnnouncement"
@@ -45,7 +41,7 @@ export class InPlayerNotificationsManager {
     private _cuePointEngine: CuepointEngine<QnaMessage> | null = null;
     private _playerApi: PlayerAPI | null = null;
     private _currentNotification: QnaMessage | null = null;
-    private _lastIdsTimestamp: number | null = null;
+    private _lastId3Timestamp: number | null = null;
 
     on = this._events.on.bind(this._events);
     off = this._events.off.bind(this._events);
@@ -96,7 +92,6 @@ export class InPlayerNotificationsManager {
             data: qnaMessages
         });
         let notifications: QnaMessage[] = qnaMessages.filter((qnaMessage: QnaMessage) => {
-            this._updateQnaMessageEndTime(qnaMessage);
             return [QnaMessageType.Announcement, QnaMessageType.AnswerOnAir].includes(
                 qnaMessage.type
             );
@@ -131,18 +126,18 @@ export class InPlayerNotificationsManager {
         );
         if (id3TagCues.length) {
             try {
-                this._lastIdsTimestamp = JSON.parse(
+                this._lastId3Timestamp = JSON.parse(
                     id3TagCues[id3TagCues.length - 1].value.data
                 ).timestamp;
                 logger.debug(
                     `Calling cuepoint engine updateTime with id3 timestamp: ${
-                        this._lastIdsTimestamp
+                        this._lastId3Timestamp
                     }`,
                     {
                         method: "_onTimedMetadataLoaded"
                     }
                 );
-                this._triggerCuepointsUpdateTime();
+                this._triggerAndHandleCuepointsData();
             } catch (e) {
                 logger.debug("failed retrieving id3 tag metadata", {
                     method: "_onTimedMetadataLoaded",
@@ -153,82 +148,66 @@ export class InPlayerNotificationsManager {
     };
 
     private _createCuePointEngine(notifications: QnaMessage[]): void {
+        let engineMessages: QnaMessage[] = this._cuePointEngine
+            ? this._cuePointEngine.cuepoints
+            : [];
+
         logger.debug("creating new cuepoint engine instance", {
             method: "_createCuePointEngine",
             data: {
                 newNotifications: notifications,
-                currentNotifications: this._cuePointEngine ? this._cuePointEngine.cuepoints : []
+                currentNotifications: engineMessages
             }
         });
-        if (!this._cuePointEngine || this._cuePointEngine.cuepoints.length === 0) {
-            this._cuePointEngine = new CuepointEngine<QnaMessage>(notifications, {
+
+        let wasUpdated = false;
+        notifications.forEach((notification: QnaMessage) => {
+            let existingIndex = engineMessages.findIndex((item: QnaMessage) => {
+                return item.id === notification.id; //find by Id and not reference to support "Annotation_Deleted"
+            });
+            if (existingIndex === -1) {
+                //add new QnaMessage
+                wasUpdated = true;
+                engineMessages.push(notification);
+            } else if (notification.tags.indexOf("Annotation_Deleted") > -1) {
+                //update current QnaMessage in current cuepoint array
+                wasUpdated = true;
+                engineMessages.splice(existingIndex, 1);
+            }
+        });
+        if (wasUpdated) {
+            this._cuePointEngine = new CuepointEngine<QnaMessage>(engineMessages, {
                 reasonableSeekThreshold: SeekThreshold
             });
-        } else {
-            let engineMessages: QnaMessage[] = this._cuePointEngine.cuepoints;
-            let wasUpdated = false;
-            notifications.forEach((notification: QnaMessage) => {
-                let existingIndex = engineMessages.findIndex((item: QnaMessage) => {
-                    return item.id === notification.id;
-                });
-                if (existingIndex === -1) {
-                    //add new QnaMessage
-                    wasUpdated = true;
-                    engineMessages.push(notification);
-                } else if (notification.tags.indexOf(AnnotationDeleted) > -1) {
-                    //update current QnaMessage in current cuepoint array
-                    wasUpdated = true;
-                    engineMessages[existingIndex].tags = notification.tags;
-                    this._updateQnaMessageEndTime(engineMessages[existingIndex]);
-                }
-            });
-            if (wasUpdated) {
-                this._cuePointEngine = new CuepointEngine<QnaMessage>(engineMessages, {
-                    reasonableSeekThreshold: SeekThreshold
-                });
+        }
+
+        this._triggerAndHandleCuepointsData();
+    }
+
+    private _triggerAndHandleCuepointsData(): void {
+        if (!this._cuePointEngine || !this._lastId3Timestamp) return;
+
+        let engineData: UpdateTimeResponse<QnaMessage> = this._cuePointEngine.updateTime(
+            this._lastId3Timestamp,
+            false,
+            (item: QnaMessage) => {
+                //no need to filter at all
+                if (this._isLive() && this._isOnLiveEdge()) return true;
+                //if DVR / VOD only answer on air
+                return item.type === QnaMessageType.AnswerOnAir;
             }
-        }
+        );
 
-        this._triggerCuepointsUpdateTime();
-    }
-
-    private _triggerCuepointsUpdateTime(): void {
-        if (this._cuePointEngine && this._lastIdsTimestamp) {
-            let engineData: UpdateTimeResponse<QnaMessage> = this._cuePointEngine.updateTime(
-                this._lastIdsTimestamp,
-                false,
-                (item: QnaMessage) => {
-                    //no need to filter at all
-                    if (this._isLive() && this._isOnLiveEdge()) return true;
-                    //if DVR / VOD only answer on air
-                    return item.type === QnaMessageType.AnswerOnAir;
-                }
-            );
-            logger.debug("Triggering updateTime", {
-                method: "_triggerCuepointsUpdateTime",
-                data: engineData
-            });
-            this._handleCuepointEngineData(engineData);
-        }
-    }
-
-    private _updateQnaMessageEndTime(qnaMessage: QnaMessage): void {
-        qnaMessage.endTime =
-            qnaMessage.tags.indexOf("Annotation_Deleted") > -1
-                ? qnaMessage.startTime + 1 //need to remove at once (adding one to ease the sorting by end/start time)
-                : qnaMessage.startTime + AnnouncementAutoCloseDuration; //one minute after start time (for hiding the announcement in player)
-    }
-
-    private _handleCuepointEngineData(data: UpdateTimeResponse<QnaMessage>) {
         logger.debug("handle cuepoint engine data", {
             method: "_handleCuepointEngineData",
-            data: data
+            data: engineData
         });
+
         //in case player was reloaded or user seeked the video
-        if (data.snapshot) {
-            this._handleSnapshotData(this._getMostRecentObject(data.snapshot));
-        } else if (data.delta) {
-            this._handleDeltaData(data.delta.show, data.delta.hide);
+        if (engineData.snapshot) {
+            this._handleSnapshotData(this._getMostRecentObject(engineData.snapshot));
+        } else if (engineData.delta) {
+            this._handleDeltaData(engineData.delta.show, engineData.delta.hide);
         }
     }
 
@@ -244,46 +223,17 @@ export class InPlayerNotificationsManager {
 
     private _handleDeltaData(showArray: QnaMessage[], hideArray: QnaMessage[]) {
         let lastToShow = this._getMostRecentObject(showArray);
-        let lastToHide = this._getMostRecentObject(hideArray);
-        // only show objects
-        if (!lastToHide && lastToShow) {
+
+        if (lastToShow && this._currentNotification !== lastToShow) {
             this._showCurrentNotification(lastToShow);
+            return;
         }
-        // only hide objects + displaying a notification in player (if we are not displaying there is nothing to be done)
-        if (!lastToShow && lastToHide && this._currentNotification) {
-            //check if current displayed object should be removed (if in current hide array)
-            let currentToRemove = hideArray.find(message => {
-                return this._currentNotification
-                    ? message.id === this._currentNotification.id
-                    : false;
-            });
-            if (currentToRemove) {
-                this._hideCurrentNotification();
-            }
+
+        if (!this._currentNotification || !hideArray.includes(this._currentNotification)) {
+            return;
         }
-        // if exist both show and hide objects
-        if (lastToHide && lastToShow) {
-            // if most recent object is a show object
-            if (lastToShow.startTime > lastToHide.startTime) {
-                // since this message comes from the delta object if must be at least as recent as our current displayed notification
-                this._showCurrentNotification(lastToShow);
-            } else {
-                if (lastToShow.id === lastToHide.id) {
-                    //since current displayed message, if exists, must be older than the data returned from the delta object -  we can remove all
-                    this._hideCurrentNotification();
-                } else {
-                    let lastShowToRemove = hideArray.find(message => {
-                        return lastToShow ? lastToShow.id === message.id : false;
-                    });
-                    lastShowToRemove
-                        ? // if lastShow was found in hide array we need to hide everything because lastToShow is more recent than the current displayed notification
-                          // so if need to hide it - our current notification should be removed as well.
-                          this._hideCurrentNotification()
-                        : // if lastToShow wasn't fount in hide array, there is no need to hide it yet - so will need to show it.
-                          this._showCurrentNotification(lastToShow);
-                }
-            }
-        }
+
+        this._hideCurrentNotification();
     }
 
     private _getMostRecentObject(messages: QnaMessage[]): QnaMessage | null {

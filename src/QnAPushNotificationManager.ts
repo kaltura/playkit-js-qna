@@ -1,11 +1,11 @@
-import { getContribLogger, EventsManager } from "@playkit-js-contrib/common";
+import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 
 import {
+    PrepareRegisterRequestConfig,
     PushNotifications,
-    PushNotificationsOptions,
-    PrepareRegisterRequestConfig
+    PushNotificationsOptions
 } from "@playkit-js-contrib/push-notifications";
-import { QnaMessage } from "./QnaMessage";
+import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types";
 
 export enum PushNotificationEventTypes {
@@ -35,6 +35,8 @@ const logger = getContribLogger({
     class: "QnAPushNotificationManager",
     module: "qna-plugin"
 });
+
+const PublicNotificationsEndTimeDelay: number = 60 * 1000;
 
 /**
  * handles push notification registration and results.
@@ -182,6 +184,11 @@ export class QnAPushNotificationManager {
                 kalturaAnnotation.fromResponseObject(item);
                 let qnaMessage = QnaMessage.create(kalturaAnnotation);
                 if (qnaMessage) {
+                    if (
+                        qnaMessage.type === QnaMessageType.Announcement ||
+                        qnaMessage.type === QnaMessageType.AnswerOnAir
+                    )
+                        qnaMessage.endTime = qnaMessage.startTime + PublicNotificationsEndTimeDelay;
                     qnaMessages.push(qnaMessage);
                 }
             }
