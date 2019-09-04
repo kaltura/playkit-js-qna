@@ -6,8 +6,7 @@ interface AutoExpandTextAreaProps {
     placeholder?: string;
     onSubmit: (text: string) => void;
     enableBlackInputTheme?: boolean;
-    enableFocusOut?: boolean;
-    focus?: boolean;
+    open: boolean | undefined;
 }
 
 interface AutoExpandTextAreaState {
@@ -32,8 +31,7 @@ export class AutoExpandTextArea extends Component<
         placeholder: "",
         onsubmit: () => {},
         enableBlackInputTheme: false,
-        enableFocusOut: true,
-        focus: false
+        open: false
     };
 
     state: AutoExpandTextAreaState = { text: "", isInFocus: false };
@@ -45,15 +43,15 @@ export class AutoExpandTextArea extends Component<
 
         this._textareaContainer.addEventListener("focusin", this._handleFocusIn);
 
-        if (this.props.enableFocusOut) {
-            this._textareaContainer.addEventListener("focusout", this._handleFocusOut);
-        }
-
-        if (this.props.focus) {
+        if (this.props.open) {
             this._toggleActionsContainer(true);
             if (this._textAreaRef) {
                 this._textAreaRef.focus();
             }
+            // At open state we don't want to register and close the controls of the textArea
+        } else {
+            // At regular (when default closed) register to close when clicking outside.
+            this._textareaContainer.addEventListener("focusout", this._handleFocusOut);
         }
     }
 
@@ -190,7 +188,7 @@ export class AutoExpandTextArea extends Component<
     componentWillUnmount(): void {
         this._textareaContainer.removeEventListener("focusin", this._handleFocusIn);
 
-        if (this.props.enableFocusOut) {
+        if (!this.props.open) {
             this._textareaContainer.removeEventListener("focusout", this._handleFocusOut);
         }
 

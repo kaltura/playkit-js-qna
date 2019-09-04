@@ -28,7 +28,7 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
         return text && text.length > maxLength ? (
             <span>
                 <span className={styles.text}>
-                    {isTrimmed ? text.substring(0, maxLength) + "\u2026" : text}
+                    {isTrimmed ? `${text.substring(0, maxLength).trim()}...` : text}
                 </span>
                 <button
                     className={styles.showMoreOrLess}

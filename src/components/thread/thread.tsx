@@ -85,6 +85,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         {replies.map((reply: QnaMessage) => {
                             return (
                                 <div
+                                    key={reply.id}
                                     className={classNames(styles.replyContainer, {
                                         [styles.right]: reply.type === QnaMessageType.Question
                                     })}
@@ -123,8 +124,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         onSubmit={this.handleReply}
                         placeholder={"Reply"}
                         enableBlackInputTheme={true}
-                        enableFocusOut={false}
-                        focus={true}
+                        open={true}
                     />
                 ) : (
                     <div className={styles.lastInfoLine}>
