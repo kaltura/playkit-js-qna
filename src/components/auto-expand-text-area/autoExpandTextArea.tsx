@@ -3,12 +3,16 @@ import * as styles from "./autoExpandTextArea.scss";
 import classNames from "classnames";
 
 interface AutoExpandTextAreaProps {
+    placeholder?: string;
     onSubmit: (text: string) => void;
+    enableBlackInputTheme?: boolean;
+    initialFocus?: boolean;
+    open?: boolean;
 }
 
 interface AutoExpandTextAreaState {
     text: string;
-    isInFocus: boolean;
+    openByEvent: boolean;
 }
 
 const MAX_NUM_OF_CHARS = 500;
@@ -22,35 +26,59 @@ export class AutoExpandTextArea extends Component<
     private _textAreaRef: HTMLTextAreaElement | null = null;
     private _actionsContainer: HTMLElement | null = null;
     private _sendButtonRef: HTMLButtonElement | null = null;
+    private _allowClickTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    state: AutoExpandTextAreaState = { text: "", isInFocus: false };
+    static defaultProps = {
+        placeholder: "",
+        enableBlackInputTheme: false
+    };
+
+    state: AutoExpandTextAreaState = { text: "", openByEvent: false };
 
     componentDidMount(): void {
         if (!this._textareaContainer) {
             return;
         }
 
-        this._textareaContainer.addEventListener("focusin", this._handleOnFocusIn);
-        this._textareaContainer.addEventListener("focusout", this._handleOnFocusOut);
+        if (typeof this.props.open === "undefined") {
+            this._textareaContainer.addEventListener("focusin", this._handleFocusIn);
+            this._textareaContainer.addEventListener("focusout", this._handleFocusOut);
+            return;
+        }
+
+        if (this.props.initialFocus) {
+            this.focusOnInput();
+        }
     }
 
-    private _handleOnFocusIn = () => {
-        this._toggleActionsContainer(true);
+    private _handleFocusIn = () => {
+        if (this._allowClickTimeout) {
+            clearTimeout(this._allowClickTimeout);
+            this._allowClickTimeout = null;
+        }
+
+        this.setState({ openByEvent: true });
     };
 
-    private _handleOnFocusOut = (e: any) => {
+    private _handleFocusOut = (e: any) => {
         if (this._isElementOfComponent(e.relatedTarget)) {
             return;
         }
 
-        this._toggleActionsContainer(false);
+        // this helps to catch the click on an outside element (like, button) when clicking outsides the element.
+        // otherwise the click is missed and swallowed.
+        this._allowClickTimeout = setTimeout(() => {
+            this.setState({ openByEvent: false });
+        }, 200);
     };
 
-    private _toggleActionsContainer(isFocus: boolean) {
-        this.setState({ isInFocus: isFocus });
-    }
+    focusOnInput = () => {
+        if (this._textAreaRef) {
+            this._textAreaRef.focus();
+        }
+    };
 
-    _handleOnInputChange = (event: any) => {
+    private _handleOnInputChange = (event: any) => {
         this.setState({ text: event.target.value });
         this._resize();
     };
@@ -113,7 +141,8 @@ export class AutoExpandTextArea extends Component<
     };
 
     render() {
-        const { text, isInFocus } = this.state;
+        const { text, openByEvent } = this.state;
+        const { enableBlackInputTheme, placeholder, open } = this.props;
 
         return (
             <div
@@ -123,37 +152,47 @@ export class AutoExpandTextArea extends Component<
                 <i className={classNames(styles.privateIcon, styles.ignoreClicks)} />
                 <textarea
                     value={text}
-                    className={styles.textarea}
+                    className={classNames(styles.textarea, {
+                        [styles.blackInputTheme]: enableBlackInputTheme
+                    })}
                     ref={textArea => (this._textAreaRef = textArea)}
                     onInput={this._handleOnInputChange}
                     onKeyDown={this._handleNewLineOrSubmit}
-                    placeholder={"Type a private question"}
+                    placeholder={placeholder}
                     rows={1}
                     maxLength={MAX_NUM_OF_CHARS}
                 />
-                <div
-                    className={classNames(styles.inputActionsContainer, {
-                        [styles.notVisible]: !isInFocus
-                    })}
-                    ref={element => (this._actionsContainer = element)}
-                >
-                    <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
-                    <button
-                        onClick={this._handleOnSend}
-                        className={styles.sendButton}
-                        type={"button"}
-                        disabled={!text.length}
-                        ref={button => (this._sendButtonRef = button)}
+                {(open || openByEvent) && (
+                    <div
+                        className={styles.inputActionsContainer}
+                        ref={element => (this._actionsContainer = element)}
                     >
-                        {"Send"}
-                    </button>
-                </div>
+                        <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
+                        <button
+                            onClick={this._handleOnSend}
+                            className={styles.sendButton}
+                            type={"button"}
+                            disabled={!text.length}
+                            ref={button => (this._sendButtonRef = button)}
+                        >
+                            {"Send"}
+                        </button>
+                    </div>
+                )}
             </div>
         );
     }
 
     componentWillUnmount(): void {
-        this._textareaContainer.removeEventListener("focusin", this._handleOnFocusIn);
-        this._textareaContainer.removeEventListener("focusout", this._handleOnFocusOut);
+        this._textareaContainer.removeEventListener("focusin", this._handleFocusIn);
+
+        if (!this.props.open) {
+            this._textareaContainer.removeEventListener("focusout", this._handleFocusOut);
+        }
+
+        if (this._allowClickTimeout) {
+            clearTimeout(this._allowClickTimeout);
+            this._allowClickTimeout = null;
+        }
     }
 }
