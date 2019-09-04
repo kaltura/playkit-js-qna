@@ -43,7 +43,7 @@ export class InPlayerNotificationsManager {
     private _initialized = false;
     private _events: EventsManager<Events> = new EventsManager<Events>();
     private _cuePointEngine: CuepointEngine<QnaMessage> | null = null;
-    private _playerApi: PlayerAPI;
+    private _playerApi: PlayerAPI | null = null;
     private _currentNotification: QnaMessage | null = null;
     private _lastIdsTimestamp: number | null = null;
 
@@ -105,6 +105,7 @@ export class InPlayerNotificationsManager {
     };
 
     private _addPlayerListeners() {
+        if (!this._playerApi) return;
         this._removePlayerListeners();
         const { kalturaPlayer, eventManager } = this._playerApi;
         eventManager.listen(
@@ -115,6 +116,7 @@ export class InPlayerNotificationsManager {
     }
 
     private _removePlayerListeners() {
+        if (!this._playerApi) return;
         const { kalturaPlayer, eventManager } = this._playerApi;
         eventManager.unlisten(
             kalturaPlayer,
@@ -319,12 +321,13 @@ export class InPlayerNotificationsManager {
      * @returns {boolean} - is player on live edge
      */
     private _isOnLiveEdge(): boolean {
+        if (!this._playerApi) return false;
         return (
             this._playerApi.kalturaPlayer.currentTime >= this._playerApi.kalturaPlayer.duration - 2
         );
     }
 
     private _isLive(): boolean {
-        return this._playerApi.kalturaPlayer.isLive();
+        return this._playerApi !== null && this._playerApi.kalturaPlayer.isLive();
     }
 }
