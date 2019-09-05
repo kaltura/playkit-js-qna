@@ -69,7 +69,13 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
         } else {
             return props.threads.map((qnaMessage: QnaMessage) => {
                 if (qnaMessage.type === QnaMessageType.Announcement) {
-                    return <Notification qnaMessage={qnaMessage} formatting={props.formatting} />;
+                    return (
+                        <Notification
+                            qnaMessage={qnaMessage}
+                            formatting={props.formatting}
+                            key={qnaMessage.id}
+                        />
+                    );
                 } else {
                     return (
                         <Thread

@@ -4,6 +4,7 @@ import { DateTimeFormatting } from "../kitchen-sink";
 import * as styles from "./notification.scss";
 import { TrimmedText } from "../trimmed-text";
 import { TimeDisplay } from "../time-display";
+import classNames from "classnames";
 
 export interface NotificationProps {
     qnaMessage: QnaMessage;
@@ -19,7 +20,12 @@ export class Notification extends Component<NotificationProps> {
                 <div className={styles.leftContainer}>
                     <div className={styles.iconWrapper}>
                         <div
-                            className={styles.iconImage + " " + this.getIconClass(qnaMessage.type)}
+                            className={classNames(styles.iconImage, {
+                                [styles.announcementIconImage]:
+                                    qnaMessage.type === QnaMessageType.Announcement,
+                                [styles.aoaIconImage]:
+                                    qnaMessage.type === QnaMessageType.AnswerOnAir
+                            })}
                         />
                     </div>
                 </div>
@@ -43,11 +49,5 @@ export class Notification extends Component<NotificationProps> {
 
     private getTitle(messageType: string): string {
         return messageType === QnaMessageType.Announcement ? "Announcement" : "Someone asks:";
-    }
-
-    private getIconClass(messageType: string): string {
-        return messageType === QnaMessageType.Announcement
-            ? styles.announcementIconImage
-            : styles.aoaIconImage;
     }
 }
