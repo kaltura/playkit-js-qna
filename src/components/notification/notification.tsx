@@ -15,7 +15,7 @@ export class Notification extends Component<NotificationProps> {
         const { qnaMessage, formatting } = this.props;
 
         return (
-            <div className={styles.thread}>
+            <div className={styles.notification}>
                 <div className={styles.leftContainer}>
                     <div className={styles.iconWrapper}>
                         <div
