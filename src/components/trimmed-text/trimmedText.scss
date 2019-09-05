@@ -1,6 +1,8 @@
 .text {
   margin-right: 4px;
   user-select: text;
+  word-break: break-all;
+  white-space: pre-wrap;;
 }
 
 .show-more-or-less {
