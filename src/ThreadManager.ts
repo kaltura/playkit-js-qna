@@ -2,6 +2,7 @@ import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import {
+    PublicQnaNotificationsEvent,
     PushNotificationEventTypes,
     QnAPushNotificationManager,
     UserQnaNotificationsEvent
@@ -44,6 +45,7 @@ export class ThreadManager {
         }
         this._initialized = true;
         qnaPushManger.on(PushNotificationEventTypes.UserNotifications, this._processResponse);
+        qnaPushManger.on(PushNotificationEventTypes.PublicNotifications, this._processResponse);
     }
 
     /**
@@ -61,10 +63,16 @@ export class ThreadManager {
         this.reset();
         if (qnaPushManger) {
             qnaPushManger.off(PushNotificationEventTypes.UserNotifications, this._processResponse);
+            qnaPushManger.off(
+                PushNotificationEventTypes.PublicNotifications,
+                this._processResponse
+            );
         }
     }
 
-    private _processResponse = ({ qnaMessages }: UserQnaNotificationsEvent): void => {
+    private _processResponse = ({
+        qnaMessages
+    }: UserQnaNotificationsEvent | PublicQnaNotificationsEvent): void => {
         qnaMessages.forEach((qnaMessage: QnaMessage) => {
             this.processQnaMessage(qnaMessage);
         });
@@ -76,7 +84,11 @@ export class ThreadManager {
     };
 
     private processQnaMessage(newMessage: QnaMessage) {
-        if (newMessage.isMasterQuestion()) {
+        if (newMessage.type === QnaMessageType.Announcement) {
+            this._processAnnouncement(newMessage);
+        } else if (newMessage.type === QnaMessageType.AnswerOnAir) {
+            //todo [sa] impl. in different ticket
+        } else if (newMessage.isMasterQuestion()) {
             this._processMasterQuestion(newMessage);
         } else {
             this._processReply(newMessage);
@@ -98,6 +110,21 @@ export class ThreadManager {
         } else {
             newMessage.replies = this._qnaMessages[indexOfMasterQuestion].replies;
             this._qnaMessages.splice(indexOfMasterQuestion, 1, newMessage); // override to the new element
+        }
+
+        // todo throttling to this sort
+        this.sortMasterQuestions();
+    }
+
+    private _processAnnouncement(newMessage: QnaMessage): void {
+        let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
+            return qnaMessage.id === newMessage.id;
+        });
+
+        if (existingIndex === -1) {
+            this._qnaMessages.push(newMessage);
+        } else if (newMessage.tags.indexOf("Annotation_Deleted") > -1) {
+            this._qnaMessages.splice(existingIndex, 1);
         }
 
         // todo throttling to this sort
