@@ -1,0 +1,90 @@
+.notification{
+  border-radius: 4px;
+  color: #ffffffe6;
+  min-height: 84px;
+  width: 100%;
+  margin-top: 12px;
+  overflow: hidden;
+  display: flex;
+}
+
+.leftContainer {
+  min-height: 84px;
+  width: 36px;
+  float: left;
+  background-color: #333333cc;
+}
+
+.iconWrapper {
+  position: relative;
+  height: 28px;
+  width: 28px;
+  background-color: #222222;
+  border-radius: 50%;
+  transition: all .5s ease;
+  margin-top: 8px;
+  margin-left: 8px;
+}
+
+.iconImage {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: calc(50% - 8px);
+  top: calc(50% - 8px);
+  background-repeat: no-repeat;
+  transition: all .5s ease;
+}
+
+.announcementIconImage {
+  background-image: url('./assets/announcement.svg');
+}
+
+.aoaIconImage {
+  background-image: url('./assets/someone-asks.svg');
+}
+
+.rightContainer {
+  height: 100%;
+  width: calc(100% - 36px);
+  float: left;
+}
+
+.title {
+  height: 14px;
+  font-family: Lato;
+  font-size: 12px;
+  font-weight: bold;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1.17;
+  letter-spacing: normal;
+  color: #cccccc;
+  background-color: #333333cc;
+  padding-top: 4px;
+  padding-left: 8px;
+}
+
+.message-content {
+  font-family: Lato;
+  background-color: #333333cc;
+  padding: 8px;
+  min-height: 45px;
+  font-size: 15px;
+  line-height: 1;
+  color: #ffffffe6;
+  white-space: pre-wrap;
+}
+
+.second-info-line {
+  background-color: #333333cc;
+  height: 16px;
+  border-bottom: 1px solid #222222e6;
+  padding: 0 8px 8px 8px;
+  box-sizing: initial;
+}
+
+.thread-time {
+  float: right;
+  margin-right: 1px;
+}
