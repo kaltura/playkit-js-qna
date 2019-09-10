@@ -1,5 +1,5 @@
 import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
-import { QnaMessage, QnaMessageType } from "./QnaMessage";
+import { MessageState, QnaMessage, QnaMessageType } from "./QnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import {
     PublicQnaNotificationsEvent,
@@ -123,7 +123,7 @@ export class ThreadManager {
 
         if (existingIndex === -1) {
             this._qnaMessages.push(newMessage);
-        } else if (newMessage.tags.indexOf("Annotation_Deleted") > -1) {
+        } else if (newMessage.state === MessageState.Deleted) {
             this._qnaMessages.splice(existingIndex, 1);
         }
 
