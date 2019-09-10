@@ -1,4 +1,5 @@
 import { DateFormats, DateTimeFormatting } from "./components/kitchen-sink";
+import { QnaMessage } from "./QnaMessage";
 
 export class Utils {
     public static ONE_DAY_IN_MS: number = 1000 * 60 * 60 * 24;
@@ -64,5 +65,12 @@ export class Utils {
         }
         xml += "</metadata>";
         return xml;
+    }
+
+    public static getMostRecentMessage(messages: QnaMessage[]): QnaMessage | null {
+        let sortedLastFirst = messages.sort((a: QnaMessage, b: QnaMessage) => {
+            return b.startTime - a.startTime;
+        });
+        return sortedLastFirst && sortedLastFirst[0] ? sortedLastFirst[0] : null;
     }
 }

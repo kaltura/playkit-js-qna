@@ -7,6 +7,7 @@ import {
     QnAPushNotificationManager,
     UserQnaNotificationsEvent
 } from "./QnAPushNotificationManager";
+import { RealTimeNotificationsManager } from "./RealTimeNotificationsManager";
 
 const logger = getContribLogger({
     class: "ThreadManager",
@@ -22,12 +23,19 @@ export interface MessagesUpdatedEvent {
     messages: QnaMessage[];
 }
 
+export interface ThreadManagerOptions {
+    qnaPushManger: QnAPushNotificationManager;
+    realTimeManager: RealTimeNotificationsManager;
+}
+
 export class ThreadManager {
     private _initialized = false;
     private _qnaMessages: QnaMessage[] = [];
     private _events: EventsManager<MessagesUpdatedEvent> = new EventsManager<
         MessagesUpdatedEvent
     >();
+    private _qnaPushManger: QnAPushNotificationManager | null = null;
+    private _realTimeManager: RealTimeNotificationsManager | null = null;
 
     on: EventsManager<MessagesUpdatedEvent>["on"] = this._events.on.bind(this._events);
     off: EventsManager<MessagesUpdatedEvent>["off"] = this._events.off.bind(this._events);
@@ -36,7 +44,7 @@ export class ThreadManager {
      * should be called once on pluginSetup
      * @param qnaPushManger
      */
-    public init(qnaPushManger: QnAPushNotificationManager): void {
+    public init({ qnaPushManger, realTimeManager }: ThreadManagerOptions): void {
         if (this._initialized) {
             logger.warn("ThreadManager was already initialized", {
                 method: "init"
@@ -44,8 +52,13 @@ export class ThreadManager {
             return;
         }
         this._initialized = true;
-        qnaPushManger.on(PushNotificationEventTypes.UserNotifications, this._processResponse);
-        qnaPushManger.on(PushNotificationEventTypes.PublicNotifications, this._processResponse);
+        this._qnaPushManger = qnaPushManger;
+        this._realTimeManager = realTimeManager;
+        this._qnaPushManger.on(PushNotificationEventTypes.UserNotifications, this._processResponse);
+        this._qnaPushManger.on(
+            PushNotificationEventTypes.PublicNotifications,
+            this._processResponse
+        );
     }
 
     /**
@@ -59,11 +72,14 @@ export class ThreadManager {
      * should be called on pluginDestroy
      * @param qnaPushManger
      */
-    public destroy(qnaPushManger: QnAPushNotificationManager | null): void {
+    public destroy(): void {
         this.reset();
-        if (qnaPushManger) {
-            qnaPushManger.off(PushNotificationEventTypes.UserNotifications, this._processResponse);
-            qnaPushManger.off(
+        if (this._qnaPushManger) {
+            this._qnaPushManger.off(
+                PushNotificationEventTypes.UserNotifications,
+                this._processResponse
+            );
+            this._qnaPushManger.off(
                 PushNotificationEventTypes.PublicNotifications,
                 this._processResponse
             );

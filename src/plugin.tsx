@@ -44,11 +44,12 @@ import {
 } from "./QnAPushNotificationManager";
 import {
     HideAnnouncementEvent,
-    InPlayerNotificationsEventTypes,
-    InPlayerNotificationsManager,
+    OverlayEventTypes,
+    QnaOverlayManager,
     ShowAnnouncementEvent
-} from "./InPlayerNotificationsManager";
+} from "./QnaOverlayManager";
 import { AnswerOnAirIcon } from "./components/answer-on-air-icon";
+import { RealTimeNotificationsManager } from "./RealTimeNotificationsManager";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -73,7 +74,8 @@ export class QnaPlugin extends PlayerContribPlugin
     private _qnaPushNotificationManager: QnAPushNotificationManager | null = null;
 
     private _threadManager: ThreadManager = new ThreadManager();
-    private _inPlayerNotificationsManager: InPlayerNotificationsManager = new InPlayerNotificationsManager();
+    private _qnaOverlayManager: QnaOverlayManager = new QnaOverlayManager();
+    private _realTimeNotificationManager: RealTimeNotificationsManager = new RealTimeNotificationsManager();
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
@@ -119,7 +121,8 @@ export class QnaPlugin extends PlayerContribPlugin
             this._qnaPushNotificationManager.reset();
         }
         this._threadManager.reset();
-        this._inPlayerNotificationsManager.reset();
+        this._qnaOverlayManager.reset();
+        this._realTimeNotificationManager.reset();
     }
 
     //todo [sakal] add onPluginDestroy
@@ -131,17 +134,18 @@ export class QnaPlugin extends PlayerContribPlugin
         if (this._qnaPushNotificationManager) {
             this._qnaPushNotificationManager.destroy();
         }
-        this._threadManager.destroy(this._qnaPushNotificationManager);
+        this._threadManager.destroy();
         this._threadManager.off(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
-        this._inPlayerNotificationsManager.destroy(this._qnaPushNotificationManager);
-        this._inPlayerNotificationsManager.off(
-            InPlayerNotificationsEventTypes.ShowAnnouncement,
+        this._qnaOverlayManager.destroy();
+        this._qnaOverlayManager.off(
+            OverlayEventTypes.ShowInPlayer,
             this._onInPlayerNotificationShow
         );
-        this._inPlayerNotificationsManager.off(
-            InPlayerNotificationsEventTypes.HideAnnouncement,
+        this._qnaOverlayManager.off(
+            OverlayEventTypes.HideInPlayer,
             this._onInPlayerNotificationHide
         );
+        this._realTimeNotificationManager.destroy();
     }
 
     private _initPluginManagers(): void {
@@ -163,19 +167,34 @@ export class QnaPlugin extends PlayerContribPlugin
             this._onQnaError
         );
 
-        this._threadManager.init(this._qnaPushNotificationManager);
-        this._inPlayerNotificationsManager.init(this._qnaPushNotificationManager, {
-            kalturaPlayer: this.player,
-            eventManager: this.eventManager
+        this._realTimeNotificationManager.init({
+            qnaPushManger: this._qnaPushNotificationManager,
+            playerApi: {
+                kalturaPlayer: this.player,
+                eventManager: this.eventManager
+            }
+        });
+
+        this._threadManager.init({
+            qnaPushManger: this._qnaPushNotificationManager,
+            realTimeManager: this._realTimeNotificationManager
+        });
+        this._qnaOverlayManager.init({
+            qnaPushManger: this._qnaPushNotificationManager,
+            realTimeManager: this._realTimeNotificationManager,
+            playerApi: {
+                kalturaPlayer: this.player,
+                eventManager: this.eventManager
+            }
         });
 
         this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
-        this._inPlayerNotificationsManager.on(
-            InPlayerNotificationsEventTypes.ShowAnnouncement,
+        this._qnaOverlayManager.on(
+            OverlayEventTypes.ShowInPlayer,
             this._onInPlayerNotificationShow
         );
-        this._inPlayerNotificationsManager.on(
-            InPlayerNotificationsEventTypes.HideAnnouncement,
+        this._qnaOverlayManager.on(
+            OverlayEventTypes.HideInPlayer,
             this._onInPlayerNotificationHide
         );
 
@@ -421,8 +440,6 @@ export class QnaPlugin extends PlayerContribPlugin
             });
         }
     };
-
-    // Todo need to add onDestroyPlugin lifecycle method
 }
 
 KalturaPlayer.core.registerPlugin(pluginName, QnaPlugin);
