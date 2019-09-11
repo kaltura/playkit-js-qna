@@ -228,17 +228,15 @@ export class QnaPlugin extends PlayerContribPlugin
     };
 
     private _onInPlayerNotificationShow = ({ message }: ShowAnnouncementEvent) => {
-        this.uiManager.announcement.add({
+        this.uiManager.floatingNotification.add({
             content: {
-                title: message.type === QnaMessageType.AnswerOnAir ? "Audience asks:" : undefined,
-                icon: message.type === QnaMessageType.AnswerOnAir ? <AnswerOnAirIcon /> : undefined,
                 text: message.messageContent ? message.messageContent : ""
             }
         });
     };
 
     private _onInPlayerNotificationHide = (event: HideAnnouncementEvent) => {
-        this.uiManager.announcement.remove();
+        this.uiManager.floatingNotification.remove();
     };
 
     onRegisterUI(uiManager: UIManager): void {
