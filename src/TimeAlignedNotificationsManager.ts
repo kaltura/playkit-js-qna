@@ -102,9 +102,7 @@ export class TimeAlignedNotificationsManager {
             data: qnaMessages
         });
         let notifications: QnaMessage[] = qnaMessages.filter((qnaMessage: QnaMessage) => {
-            return [QnaMessageType.Announcement, QnaMessageType.AnswerOnAir].includes(
-                qnaMessage.type
-            );
+            return QnaMessageType.AnswerOnAir === qnaMessage.type;
         });
         this._createCuePointEngine(notifications);
     };
@@ -125,7 +123,7 @@ export class TimeAlignedNotificationsManager {
         let wasUpdated = false;
         notifications.forEach((notification: QnaMessage) => {
             let existingIndex = engineMessages.findIndex((item: QnaMessage) => {
-                return item.id === notification.id; //find by Id and not reference to support "Annotation_Deleted"
+                return item.id === notification.id; //find by Id and not reference to support deleted annotations
             });
             if (existingIndex === -1) {
                 //add new QnaMessage
@@ -151,13 +149,7 @@ export class TimeAlignedNotificationsManager {
 
         let engineData: UpdateTimeResponse<QnaMessage> = this._cuePointEngine.updateTime(
             this._lastId3Timestamp,
-            false,
-            (item: QnaMessage) => {
-                //no need to filter at all
-                if (this._isLive() && this._isOnLiveEdge()) return true;
-                //if DVR / VOD only answer on air
-                return item.type === QnaMessageType.AnswerOnAir;
-            }
+            false
         );
 
         logger.debug("handle cuepoint engine data", {
@@ -177,8 +169,8 @@ export class TimeAlignedNotificationsManager {
         if (lastShow) {
             this._showCurrentNotification(lastShow);
         } else {
-            //if there is no announcement to show - make sure to clear current announcement if needed
-            // (if user seeked while an announcement was displayed)
+            //if there is no notification to show - make sure to clear current notification if needed
+            // (if user seeked while an notification was displayed)
             this._hideCurrentNotification();
         }
     }
