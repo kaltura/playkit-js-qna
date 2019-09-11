@@ -184,7 +184,7 @@ export class QnaPlugin extends PlayerContribPlugin
         //init kitchenSink thread manager
         this._threadManager.init({
             qnaPushManger: this._qnaPushNotificationManager,
-            realTimeManager: this._timedAlignedNotificationManager
+            alignedNotificationsManager: this._timedAlignedNotificationManager
         });
         this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
 

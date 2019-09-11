@@ -25,7 +25,7 @@ export interface MessagesUpdatedEvent {
 
 export interface ThreadManagerOptions {
     qnaPushManger: QnAPushNotificationManager;
-    realTimeManager: TimeAlignedNotificationsManager;
+    alignedNotificationsManager: TimeAlignedNotificationsManager;
 }
 
 export class ThreadManager {
@@ -35,7 +35,7 @@ export class ThreadManager {
         MessagesUpdatedEvent
     >();
     private _qnaPushManger: QnAPushNotificationManager | null = null;
-    private _realTimeManager: TimeAlignedNotificationsManager | null = null;
+    private _alignedNotificationsManager: TimeAlignedNotificationsManager | null = null;
 
     on: EventsManager<MessagesUpdatedEvent>["on"] = this._events.on.bind(this._events);
     off: EventsManager<MessagesUpdatedEvent>["off"] = this._events.off.bind(this._events);
@@ -44,7 +44,7 @@ export class ThreadManager {
      * should be called once on pluginSetup
      * @param qnaPushManger
      */
-    public init({ qnaPushManger, realTimeManager }: ThreadManagerOptions): void {
+    public init({ qnaPushManger, alignedNotificationsManager }: ThreadManagerOptions): void {
         if (this._initialized) {
             logger.warn("ThreadManager was already initialized", {
                 method: "init"
@@ -53,7 +53,7 @@ export class ThreadManager {
         }
         this._initialized = true;
         this._qnaPushManger = qnaPushManger;
-        this._realTimeManager = realTimeManager;
+        this._alignedNotificationsManager = alignedNotificationsManager;
         this._qnaPushManger.on(PushNotificationEventTypes.UserNotifications, this._processResponse);
         this._qnaPushManger.on(
             PushNotificationEventTypes.PublicNotifications,
