@@ -36,13 +36,12 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
-const PublicNotificationsEndTimeDelay: number = 60 * 1000;
-
 /**
  * handles push notification registration and results.
  */
 export class QnAPushNotificationManager {
     private static _instance: QnAPushNotificationManager | null = null;
+    private static _delayedEndTime: number = 60 * 1000;
 
     private _pushServerInstance: PushNotifications | null = null;
 
@@ -61,8 +60,10 @@ export class QnAPushNotificationManager {
      * should be called once on pluginSetup
      * @param options
      */
-    public static getInstance(options: PushNotificationsOptions) {
+    public static getInstance(options: PushNotificationsOptions, delayedEndTime?: number) {
         if (!QnAPushNotificationManager._instance) {
+            QnAPushNotificationManager._delayedEndTime =
+                delayedEndTime || QnAPushNotificationManager._delayedEndTime;
             QnAPushNotificationManager._instance = new QnAPushNotificationManager(options);
         }
         return QnAPushNotificationManager._instance;
@@ -188,7 +189,8 @@ export class QnAPushNotificationManager {
                         qnaMessage.type === QnaMessageType.Announcement ||
                         qnaMessage.type === QnaMessageType.AnswerOnAir
                     )
-                        qnaMessage.endTime = qnaMessage.startTime + PublicNotificationsEndTimeDelay;
+                        qnaMessage.endTime =
+                            qnaMessage.startTime + QnAPushNotificationManager._delayedEndTime;
                     qnaMessages.push(qnaMessage);
                 }
             }

@@ -51,6 +51,8 @@ import {
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
+const DefaultBannerDuration: number = 60 * 1000;
+const MinBannerDuration: number = 5 * 1000;
 
 const logger = getContribLogger({
     class: "QnaPlugin",
@@ -65,7 +67,9 @@ interface SubmitRequestParams {
 
 export class QnaPlugin extends PlayerContribPlugin
     implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
-    static defaultConfig = {};
+    static defaultConfig = {
+        bannerDuration: DefaultBannerDuration
+    };
 
     private _kalturaClient = new KalturaClient();
 
@@ -118,7 +122,6 @@ export class QnaPlugin extends PlayerContribPlugin
             this._qnaPushNotificationManager.reset();
         }
         this._threadManager.reset();
-        this._qnaOverlayManager.reset();
         this._timedAlignedNotificationManager.reset();
     }
 
@@ -147,17 +150,23 @@ export class QnaPlugin extends PlayerContribPlugin
 
     private _initPluginManagers(): void {
         const { server }: ContribConfig = this.getContribConfig();
-
+        let bannerDuration =
+            this.config.bannerDuration && this.config.bannerDuration >= MinBannerDuration
+                ? this.config.bannerDuration
+                : DefaultBannerDuration;
         // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
-        this._qnaPushNotificationManager = QnAPushNotificationManager.getInstance({
-            ks: server.ks,
-            serviceUrl: server.serviceUrl,
-            clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
-            playerAPI: {
-                kalturaPlayer: this.player,
-                eventManager: this.eventManager
-            }
-        });
+        this._qnaPushNotificationManager = QnAPushNotificationManager.getInstance(
+            {
+                ks: server.ks,
+                serviceUrl: server.serviceUrl,
+                clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
+                playerAPI: {
+                    kalturaPlayer: this.player,
+                    eventManager: this.eventManager
+                }
+            },
+            bannerDuration
+        );
 
         this._qnaPushNotificationManager.on(
             PushNotificationEventTypes.PushNotificationsError,
