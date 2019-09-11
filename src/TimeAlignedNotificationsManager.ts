@@ -13,30 +13,30 @@ import {
 import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { Utils } from "./utils";
 
-export enum RealTimeNotificationsEventTypes {
+export enum TimeAlignedNotificationsEventTypes {
     ShowNotification = "ShowNotification",
     HideNotification = "HideNotification"
 }
 
 export interface HideNotificationEvent {
-    type: RealTimeNotificationsEventTypes.HideNotification;
+    type: TimeAlignedNotificationsEventTypes.HideNotification;
     message: QnaMessage;
 }
 
 export interface ShowNotificationEvent {
-    type: RealTimeNotificationsEventTypes.ShowNotification;
+    type: TimeAlignedNotificationsEventTypes.ShowNotification;
     message: QnaMessage;
 }
 
 type Events = HideNotificationEvent | ShowNotificationEvent;
 
-interface RealTimeNotificationsManagerOptions {
+interface TimeAlignedNotificationsManagerOptions {
     qnaPushManger: QnAPushNotificationManager;
     playerApi: PlayerAPI;
 }
 
 const logger = getContribLogger({
-    class: "RealTimeNotificationsManager",
+    class: "TimeAlignedNotificationsManager",
     module: "qna-plugin"
 });
 
@@ -45,7 +45,7 @@ const SeekThreshold: number = 7 * 1000;
 /**
  * currently handle only AnswerOnAir public objects since they are the only real time relevant objects
  */
-export class RealTimeNotificationsManager {
+export class TimeAlignedNotificationsManager {
     private _playerApi: PlayerAPI | null = null;
     private _qnaPushManger: QnAPushNotificationManager | null = null;
     private _cuePointEngine: CuepointEngine<QnaMessage> | null = null;
@@ -57,9 +57,9 @@ export class RealTimeNotificationsManager {
     on: EventsManager<Events>["on"] = this._events.on.bind(this._events);
     off: EventsManager<Events>["off"] = this._events.off.bind(this._events);
 
-    public init({ qnaPushManger, playerApi }: RealTimeNotificationsManagerOptions) {
+    public init({ qnaPushManger, playerApi }: TimeAlignedNotificationsManagerOptions) {
         if (this._initialized) {
-            logger.warn("RealTimeNotificationsManager was already initialized", {
+            logger.warn("TimeAlignedNotificationsManager was already initialized", {
                 method: "init"
             });
             return;
@@ -86,7 +86,7 @@ export class RealTimeNotificationsManager {
      * @private
      */
     public destroy() {
-        logger.info("destroy RealTimeNotificationsManager", { method: "destroy" });
+        logger.info("destroy TimeAlignedNotificationsManager", { method: "destroy" });
         this._removePlayerListeners();
         if (this._qnaPushManger)
             this._qnaPushManger.off(
@@ -206,7 +206,7 @@ export class RealTimeNotificationsManager {
         if (!this._currentNotification || newMessage.id !== this._currentNotification.id) {
             this._currentNotification = newMessage;
             this._events.emit({
-                type: RealTimeNotificationsEventTypes.ShowNotification,
+                type: TimeAlignedNotificationsEventTypes.ShowNotification,
                 message: this._currentNotification
             });
         }
@@ -218,7 +218,7 @@ export class RealTimeNotificationsManager {
             method: "_hideCurrentNotification"
         });
         this._events.emit({
-            type: RealTimeNotificationsEventTypes.HideNotification,
+            type: TimeAlignedNotificationsEventTypes.HideNotification,
             message: this._currentNotification
         });
 

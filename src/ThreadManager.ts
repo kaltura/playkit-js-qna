@@ -7,7 +7,7 @@ import {
     QnAPushNotificationManager,
     UserQnaNotificationsEvent
 } from "./QnAPushNotificationManager";
-import { RealTimeNotificationsManager } from "./RealTimeNotificationsManager";
+import { TimeAlignedNotificationsManager } from "./TimeAlignedNotificationsManager";
 
 const logger = getContribLogger({
     class: "ThreadManager",
@@ -25,7 +25,7 @@ export interface MessagesUpdatedEvent {
 
 export interface ThreadManagerOptions {
     qnaPushManger: QnAPushNotificationManager;
-    realTimeManager: RealTimeNotificationsManager;
+    realTimeManager: TimeAlignedNotificationsManager;
 }
 
 export class ThreadManager {
@@ -35,7 +35,7 @@ export class ThreadManager {
         MessagesUpdatedEvent
     >();
     private _qnaPushManger: QnAPushNotificationManager | null = null;
-    private _realTimeManager: RealTimeNotificationsManager | null = null;
+    private _realTimeManager: TimeAlignedNotificationsManager | null = null;
 
     on: EventsManager<MessagesUpdatedEvent>["on"] = this._events.on.bind(this._events);
     off: EventsManager<MessagesUpdatedEvent>["off"] = this._events.off.bind(this._events);

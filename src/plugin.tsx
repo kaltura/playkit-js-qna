@@ -45,11 +45,11 @@ import {
 import {
     HideAnnouncementEvent,
     OverlayEventTypes,
-    QnaOverlayManager,
+    QnAFloatingNotificationsManager,
     ShowAnnouncementEvent
-} from "./QnaOverlayManager";
+} from "./QnAFloatingNotificationsManager";
 import { AnswerOnAirIcon } from "./components/answer-on-air-icon";
-import { RealTimeNotificationsManager } from "./RealTimeNotificationsManager";
+import { TimeAlignedNotificationsManager } from "./TimeAlignedNotificationsManager";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -74,8 +74,8 @@ export class QnaPlugin extends PlayerContribPlugin
     private _qnaPushNotificationManager: QnAPushNotificationManager | null = null;
 
     private _threadManager: ThreadManager = new ThreadManager();
-    private _qnaOverlayManager: QnaOverlayManager = new QnaOverlayManager();
-    private _realTimeNotificationManager: RealTimeNotificationsManager = new RealTimeNotificationsManager();
+    private _qnaOverlayManager: QnAFloatingNotificationsManager = new QnAFloatingNotificationsManager();
+    private _timedAlignedNotificationManager: TimeAlignedNotificationsManager = new TimeAlignedNotificationsManager();
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
@@ -122,7 +122,7 @@ export class QnaPlugin extends PlayerContribPlugin
         }
         this._threadManager.reset();
         this._qnaOverlayManager.reset();
-        this._realTimeNotificationManager.reset();
+        this._timedAlignedNotificationManager.reset();
     }
 
     //todo [sakal] add onPluginDestroy
@@ -145,7 +145,7 @@ export class QnaPlugin extends PlayerContribPlugin
             OverlayEventTypes.HideInPlayer,
             this._onInPlayerNotificationHide
         );
-        this._realTimeNotificationManager.destroy();
+        this._timedAlignedNotificationManager.destroy();
     }
 
     private _initPluginManagers(): void {
@@ -167,7 +167,7 @@ export class QnaPlugin extends PlayerContribPlugin
             this._onQnaError
         );
 
-        this._realTimeNotificationManager.init({
+        this._timedAlignedNotificationManager.init({
             qnaPushManger: this._qnaPushNotificationManager,
             playerApi: {
                 kalturaPlayer: this.player,
@@ -177,11 +177,11 @@ export class QnaPlugin extends PlayerContribPlugin
 
         this._threadManager.init({
             qnaPushManger: this._qnaPushNotificationManager,
-            realTimeManager: this._realTimeNotificationManager
+            realTimeManager: this._timedAlignedNotificationManager
         });
         this._qnaOverlayManager.init({
             qnaPushManger: this._qnaPushNotificationManager,
-            realTimeManager: this._realTimeNotificationManager,
+            realTimeManager: this._timedAlignedNotificationManager,
             playerApi: {
                 kalturaPlayer: this.player,
                 eventManager: this.eventManager

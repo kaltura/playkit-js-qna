@@ -3,10 +3,10 @@ import { QnaMessage } from "./QnaMessage";
 import { QnAPushNotificationManager } from "./QnAPushNotificationManager";
 import {
     HideNotificationEvent,
-    RealTimeNotificationsEventTypes,
-    RealTimeNotificationsManager,
+    TimeAlignedNotificationsEventTypes,
+    TimeAlignedNotificationsManager,
     ShowNotificationEvent
-} from "./RealTimeNotificationsManager";
+} from "./TimeAlignedNotificationsManager";
 
 const logger = getContribLogger({
     class: "OverlayManager",
@@ -32,14 +32,14 @@ type Events = HideAnnouncementEvent | ShowAnnouncementEvent;
 
 export interface InPlayerManagerOptions {
     qnaPushManger: QnAPushNotificationManager;
-    realTimeManager: RealTimeNotificationsManager;
+    realTimeManager: TimeAlignedNotificationsManager;
     playerApi: PlayerAPI;
 }
 
-export class QnaOverlayManager {
+export class QnAFloatingNotificationsManager {
     private _initialized = false;
     private _qnaPushManger: QnAPushNotificationManager | null = null;
-    private _realTimeManager: RealTimeNotificationsManager | null = null;
+    private _timeAlignedNotificationManager: TimeAlignedNotificationsManager | null = null;
     private _playerApi: PlayerAPI | null = null;
     private _events: EventsManager<Events> = new EventsManager<Events>();
     private _currentOverlayMessage: QnaMessage | null = null;
@@ -60,15 +60,15 @@ export class QnaOverlayManager {
         }
         this._initialized = true;
         this._qnaPushManger = qnaPushManger;
-        this._realTimeManager = realTimeManager;
+        this._timeAlignedNotificationManager = realTimeManager;
         this._playerApi = playerApi;
-        this._realTimeManager.on(
-            RealTimeNotificationsEventTypes.HideNotification,
-            this._hideInPlayerNotification
+        this._timeAlignedNotificationManager.on(
+            TimeAlignedNotificationsEventTypes.HideNotification,
+            this._hideFloatingNotification
         );
-        this._realTimeManager.on(
-            RealTimeNotificationsEventTypes.ShowNotification,
-            this._showInPlayerNotification
+        this._timeAlignedNotificationManager.on(
+            TimeAlignedNotificationsEventTypes.ShowNotification,
+            this._showFloatingNotification
         );
     }
 
@@ -83,20 +83,20 @@ export class QnaOverlayManager {
      */
     public destroy(): void {
         logger.info("destroy OverlayManager", { method: "destroy" });
-        if (this._realTimeManager) {
-            this._realTimeManager.off(
-                RealTimeNotificationsEventTypes.HideNotification,
-                this._hideInPlayerNotification
+        if (this._timeAlignedNotificationManager) {
+            this._timeAlignedNotificationManager.off(
+                TimeAlignedNotificationsEventTypes.HideNotification,
+                this._hideFloatingNotification
             );
-            this._realTimeManager.off(
-                RealTimeNotificationsEventTypes.ShowNotification,
-                this._showInPlayerNotification
+            this._timeAlignedNotificationManager.off(
+                TimeAlignedNotificationsEventTypes.ShowNotification,
+                this._showFloatingNotification
             );
         }
         this.reset();
     }
 
-    private _showInPlayerNotification = ({ message }: ShowNotificationEvent) => {
+    private _showFloatingNotification = ({ message }: ShowNotificationEvent) => {
         logger.debug("show in player overlay notification event", {
             method: "_showCurrentNotification",
             data: message
@@ -108,9 +108,9 @@ export class QnaOverlayManager {
         });
     };
 
-    private _hideInPlayerNotification = ({ message }: HideNotificationEvent) => {
+    private _hideFloatingNotification = ({ message }: HideNotificationEvent) => {
         logger.debug("hide in player overlay notification event", {
-            method: "_hideInPlayerNotification"
+            method: "_hideFloatingNotification"
         });
         this._currentOverlayMessage = null;
         this._events.emit({ type: OverlayEventTypes.HideInPlayer, message });
