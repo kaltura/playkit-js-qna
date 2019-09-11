@@ -1,6 +1,7 @@
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
 import { Utils } from "./utils";
+import { MessageType } from "awesome-typescript-loader/dist/checker/protocol";
 
 export enum QnaMessageType {
     Question = "Question",
@@ -16,8 +17,16 @@ export enum MessageStatusEnum {
     SENT = "SENT"
 }
 
+export enum MessageState {
+    Pending = "Pending",
+    Answered = "Answered",
+    Deleted = "Deleted",
+    None = "None"
+}
+
 export interface MetadataInfo {
     type: QnaMessageType;
+    state: MessageState;
     parentId: string | null; // on masterQuestion the parentId xml metadata not always exits.
 }
 
@@ -35,6 +44,7 @@ export class QnaMessage {
     public endTime?: number;
     public messageContent: string | null = null;
     public type: QnaMessageType;
+    public state: MessageState;
     public parentId: string | null;
     public replies: QnaMessage[];
     public deliveryStatus: MessageStatusEnum | null = null;
@@ -73,7 +83,8 @@ export class QnaMessage {
         const qnaMessageParams: QnaMessageParams = {
             metadataInfo: {
                 type: QnaMessageType.Question,
-                parentId: null
+                parentId: null,
+                state: MessageState.Pending
             },
             id: cuePoint.id,
             time: cuePoint.createdAt,
@@ -94,6 +105,7 @@ export class QnaMessage {
         this.startTime = this.time.getTime();
         this.parentId = qnaMessageParams.metadataInfo.parentId;
         this.type = qnaMessageParams.metadataInfo.type;
+        this.state = qnaMessageParams.metadataInfo.state;
         this.replies = [];
         this.tags = qnaMessageParams.tags;
     }
@@ -131,12 +143,16 @@ export class QnaMessage {
             throw new Error(`Unknown QnA type: ${typeString}`);
         }
 
+        const stateString = Utils.getValueFromXml(xmlDoc, "State");
+        const state = Utils.getEnumByEnumValue(MessageState, stateString || "None");
+
         // Always reference this threadId in metadata for parentId as moderator won't send parentId
         const parentId = Utils.getValueFromXml(xmlDoc, "ThreadId");
 
         const metadataInfo: MetadataInfo = {
             type: type,
-            parentId: parentId
+            parentId: parentId,
+            state: state
         };
 
         return metadataInfo;

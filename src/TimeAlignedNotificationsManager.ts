@@ -1,16 +1,16 @@
 import {
     CuepointEngine,
-    UpdateTimeResponse,
     EventsManager,
     getContribLogger,
-    PlayerAPI
+    PlayerAPI,
+    UpdateTimeResponse
 } from "@playkit-js-contrib/common";
+import { MessageState, QnaMessage, QnaMessageType } from "./QnaMessage";
 import {
     PublicQnaNotificationsEvent,
     PushNotificationEventTypes,
     QnAPushNotificationManager
 } from "./QnAPushNotificationManager";
-import { QnaMessage, QnaMessageType } from "./QnaMessage";
 import { Utils } from "./utils";
 
 export enum TimeAlignedNotificationsEventTypes {
@@ -131,7 +131,7 @@ export class TimeAlignedNotificationsManager {
                 //add new QnaMessage
                 wasUpdated = true;
                 engineMessages.push(notification);
-            } else if (notification.tags.indexOf("Annotation_Deleted") > -1) {
+            } else if (notification.state === MessageState.Deleted) {
                 //update current QnaMessage in current cuepoint array
                 wasUpdated = true;
                 engineMessages.splice(existingIndex, 1);
