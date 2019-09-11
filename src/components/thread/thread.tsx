@@ -6,6 +6,7 @@ import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
 import { TrimmedText } from "../trimmed-text";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
+import { AnsweredOnAirIcon } from "../answered-on-air-icon";
 
 interface ThreadProps {
     thread: QnaMessage;
@@ -41,6 +42,23 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         this.props.onReply(text, this.props.thread);
     };
 
+    private _isAOAAutoReply(reply: QnaMessage) {
+        //todo [sa] uncomment next line and remove the one after
+        //return reply.tags.indexOf(AutoReplyTag) > -1;
+        if (reply.messageContent) {
+            return reply.messageContent.indexOf("on-air") > -1;
+        }
+        return false;
+    }
+
+    private _willBeAnsweredOnAir(replies: QnaMessage[]): boolean {
+        return (
+            (replies || []).findIndex((reply: QnaMessage) => {
+                return this._isAOAAutoReply(reply);
+            }) > -1
+        );
+    }
+
     render() {
         const { thread, formatting } = this.props;
         const { replies } = thread;
@@ -48,6 +66,12 @@ export class Thread extends Component<ThreadProps, ThreadState> {
 
         return (
             <div className={styles.thread}>
+                {/* if this master question will be answered on air - add an icon */
+                this._willBeAnsweredOnAir(replies) && (
+                    <div className={styles.aoaIconContainer}>
+                        <AnsweredOnAirIcon />
+                    </div>
+                )}
                 <div className={styles.messageContent}>
                     <TrimmedText maxLength={120} text={thread.messageContent} />
                 </div>
