@@ -180,7 +180,6 @@ export class QnaPlugin extends PlayerContribPlugin
             realTimeManager: this._timedAlignedNotificationManager
         });
         this._qnaOverlayManager.init({
-            qnaPushManger: this._qnaPushNotificationManager,
             realTimeManager: this._timedAlignedNotificationManager,
             playerApi: {
                 kalturaPlayer: this.player,

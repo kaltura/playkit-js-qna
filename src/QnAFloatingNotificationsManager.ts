@@ -1,6 +1,5 @@
 import { EventsManager, getContribLogger, PlayerAPI } from "@playkit-js-contrib/common";
 import { QnaMessage } from "./QnaMessage";
-import { QnAPushNotificationManager } from "./QnAPushNotificationManager";
 import {
     HideNotificationEvent,
     TimeAlignedNotificationsEventTypes,
@@ -31,14 +30,12 @@ export interface ShowAnnouncementEvent {
 type Events = HideAnnouncementEvent | ShowAnnouncementEvent;
 
 export interface InPlayerManagerOptions {
-    qnaPushManger: QnAPushNotificationManager;
     realTimeManager: TimeAlignedNotificationsManager;
     playerApi: PlayerAPI;
 }
 
 export class QnAFloatingNotificationsManager {
     private _initialized = false;
-    private _qnaPushManger: QnAPushNotificationManager | null = null;
     private _timeAlignedNotificationManager: TimeAlignedNotificationsManager | null = null;
     private _playerApi: PlayerAPI | null = null;
     private _events: EventsManager<Events> = new EventsManager<Events>();
@@ -51,7 +48,7 @@ export class QnAFloatingNotificationsManager {
      * should be called once on pluginSetup
      * @param qnaPushManger
      */
-    public init({ qnaPushManger, realTimeManager, playerApi }: InPlayerManagerOptions): void {
+    public init({ realTimeManager, playerApi }: InPlayerManagerOptions): void {
         if (this._initialized) {
             logger.warn("OverlayManager was already initialized", {
                 method: "init"
@@ -59,7 +56,6 @@ export class QnAFloatingNotificationsManager {
             return;
         }
         this._initialized = true;
-        this._qnaPushManger = qnaPushManger;
         this._timeAlignedNotificationManager = realTimeManager;
         this._playerApi = playerApi;
         this._timeAlignedNotificationManager.on(
@@ -79,7 +75,6 @@ export class QnAFloatingNotificationsManager {
 
     /**
      * should be called on pluginDestroy
-     * @param qnaPushManger
      */
     public destroy(): void {
         logger.info("destroy OverlayManager", { method: "destroy" });
