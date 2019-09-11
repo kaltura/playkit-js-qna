@@ -43,12 +43,11 @@ import {
     QnAPushNotificationManager
 } from "./QnAPushNotificationManager";
 import {
-    HideAnnouncementEvent,
-    OverlayEventTypes,
-    QnAFloatingNotificationsManager,
-    ShowAnnouncementEvent
-} from "./QnAFloatingNotificationsManager";
-import { TimeAlignedNotificationsManager } from "./TimeAlignedNotificationsManager";
+    HideNotificationEvent,
+    ShowNotificationEvent,
+    TimeAlignedNotificationsEventTypes,
+    TimeAlignedNotificationsManager
+} from "./TimeAlignedNotificationsManager";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -73,7 +72,6 @@ export class QnaPlugin extends PlayerContribPlugin
     private _qnaPushNotificationManager: QnAPushNotificationManager | null = null;
 
     private _threadManager: ThreadManager = new ThreadManager();
-    private _qnaOverlayManager: QnAFloatingNotificationsManager = new QnAFloatingNotificationsManager();
     private _timedAlignedNotificationManager: TimeAlignedNotificationsManager = new TimeAlignedNotificationsManager();
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
@@ -135,14 +133,14 @@ export class QnaPlugin extends PlayerContribPlugin
         }
         this._threadManager.destroy();
         this._threadManager.off(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
-        this._qnaOverlayManager.destroy();
-        this._qnaOverlayManager.off(
-            OverlayEventTypes.ShowInPlayer,
-            this._onInPlayerNotificationShow
+        //unregister timed aligned notifications
+        this._timedAlignedNotificationManager.on(
+            TimeAlignedNotificationsEventTypes.ShowNotification,
+            this._onBannerNotificationShow
         );
-        this._qnaOverlayManager.off(
-            OverlayEventTypes.HideInPlayer,
-            this._onInPlayerNotificationHide
+        this._timedAlignedNotificationManager.on(
+            TimeAlignedNotificationsEventTypes.HideNotification,
+            this._onBannerNotificationHide
         );
         this._timedAlignedNotificationManager.destroy();
     }
@@ -174,26 +172,21 @@ export class QnaPlugin extends PlayerContribPlugin
             }
         });
 
+        //init kitchenSink thread manager
         this._threadManager.init({
             qnaPushManger: this._qnaPushNotificationManager,
             realTimeManager: this._timedAlignedNotificationManager
         });
-        this._qnaOverlayManager.init({
-            realTimeManager: this._timedAlignedNotificationManager,
-            playerApi: {
-                kalturaPlayer: this.player,
-                eventManager: this.eventManager
-            }
-        });
-
         this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
-        this._qnaOverlayManager.on(
-            OverlayEventTypes.ShowInPlayer,
-            this._onInPlayerNotificationShow
+
+        //registering for time aligned notifications for displaying banners as a floating overlays in the player
+        this._timedAlignedNotificationManager.on(
+            TimeAlignedNotificationsEventTypes.ShowNotification,
+            this._onBannerNotificationShow
         );
-        this._qnaOverlayManager.on(
-            OverlayEventTypes.HideInPlayer,
-            this._onInPlayerNotificationHide
+        this._timedAlignedNotificationManager.on(
+            TimeAlignedNotificationsEventTypes.HideNotification,
+            this._onBannerNotificationHide
         );
 
         this._delayedGiveUpLoading();
@@ -225,16 +218,16 @@ export class QnaPlugin extends PlayerContribPlugin
         this._updateKitchenSink();
     };
 
-    private _onInPlayerNotificationShow = ({ message }: ShowAnnouncementEvent) => {
-        this.uiManager.floatingNotification.add({
+    private _onBannerNotificationShow = ({ message }: ShowNotificationEvent) => {
+        this.uiManager.banner.add({
             content: {
                 text: message.messageContent ? message.messageContent : ""
             }
         });
     };
 
-    private _onInPlayerNotificationHide = (event: HideAnnouncementEvent) => {
-        this.uiManager.floatingNotification.remove();
+    private _onBannerNotificationHide = ({ message }: HideNotificationEvent) => {
+        this.uiManager.banner.remove();
     };
 
     onRegisterUI(uiManager: UIManager): void {
