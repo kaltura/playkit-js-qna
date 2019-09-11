@@ -48,7 +48,6 @@ import {
     QnAFloatingNotificationsManager,
     ShowAnnouncementEvent
 } from "./QnAFloatingNotificationsManager";
-import { AnswerOnAirIcon } from "./components/answer-on-air-icon";
 import { TimeAlignedNotificationsManager } from "./TimeAlignedNotificationsManager";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
