@@ -1,5 +1,5 @@
 import { DateFormats, DateTimeFormatting } from "./components/kitchen-sink";
-import { QnaMessage, QnaMessageType } from "./QnaMessage";
+import { QnaMessage, QnaMessageType } from "./qnaMessage";
 
 export class Utils {
     public static ONE_DAY_IN_MS: number = 1000 * 60 * 60 * 24;

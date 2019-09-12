@@ -1,11 +1,11 @@
 import { KitchenSinkMessages } from "./kitchenSinkMessages";
 import {
     PushNotificationEventTypes,
-    QnAPushNotification,
+    QnaPushNotification,
     UserQnaNotificationsEvent
-} from "./QnAPushNotification";
+} from "./qnaPushNotification";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { QnaMessage, QnaMessageType } from "./QnaMessage";
+import { QnaMessage, QnaMessageType } from "./qnaMessage";
 import {
     KalturaClient,
     KalturaMultiRequest,
@@ -27,7 +27,7 @@ import { Utils } from "./utils";
 
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
-    qnaPushNotification: QnAPushNotification;
+    qnaPushNotification: QnaPushNotification;
     config: ContribConfig;
     //todo [sa] toastsManager from contrib
 }
@@ -46,7 +46,7 @@ const logger = getContribLogger({
 export class ChatMessagesAdapter {
     private _kalturaClient = new KalturaClient();
     private _kitchenSinkMessages: KitchenSinkMessages;
-    private _qnaPushNotification: QnAPushNotification;
+    private _qnaPushNotification: QnaPushNotification;
     private _config: ContribConfig;
 
     private _userId: string | undefined;

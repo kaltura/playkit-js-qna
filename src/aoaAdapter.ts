@@ -2,8 +2,8 @@ import { KitchenSinkMessages } from "./kitchenSinkMessages";
 import {
     PublicQnaNotificationsEvent,
     PushNotificationEventTypes,
-    QnAPushNotification
-} from "./QnAPushNotification";
+    QnaPushNotification
+} from "./qnaPushNotification";
 import { BannerManager } from "@playkit-js-contrib/ui";
 import {
     CuepointEngine,
@@ -11,12 +11,11 @@ import {
     PlayerAPI,
     UpdateTimeResponse
 } from "@playkit-js-contrib/common";
-import { MessageState, QnaMessage, QnaMessageType } from "./QnaMessage";
-import { Utils } from "./utils";
+import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
 
 export interface AoaAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
-    qnaPushNotification: QnAPushNotification;
+    qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
     playerApi: PlayerAPI;
     //todo [sa] toastsManager from contrib
@@ -39,7 +38,7 @@ const SeekThreshold: number = 7 * 1000;
 
 export class AoaAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
-    private _qnaPushNotification: QnAPushNotification;
+    private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
     private _playerApi: PlayerAPI;
 
@@ -85,15 +84,17 @@ export class AoaAdapter {
             .filter((qnaMessage: QnaMessage) => {
                 return QnaMessageType.AnswerOnAir === qnaMessage.type;
             })
-            .map((qnaMessage: QnaMessage) => {
-                return {
-                    id: qnaMessage.id,
-                    startTime: qnaMessage.startTime,
-                    endTime: qnaMessage.endTime,
-                    updated: false,
-                    qnaMessage
-                };
-            });
+            .map(
+                (qnaMessage: QnaMessage): AoAMessage => {
+                    return <AoAMessage>{
+                        id: qnaMessage.id,
+                        startTime: qnaMessage.startTime,
+                        endTime: qnaMessage.endTime,
+                        updated: false,
+                        qnaMessage
+                    };
+                }
+            );
         this._createCuePointEngine(notifications);
     };
 

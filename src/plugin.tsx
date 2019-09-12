@@ -17,9 +17,9 @@ import {
 } from "@playkit-js-contrib/plugin";
 import { DateFormats, KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
-import { QnaMessage } from "./QnaMessage";
+import { QnaMessage } from "./qnaMessage";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { PushNotificationEventTypes, QnAPushNotification } from "./QnAPushNotification";
+import { PushNotificationEventTypes, QnaPushNotification } from "./qnaPushNotification";
 import { AoaAdapter } from "./aoaAdapter";
 import { AnnouncementsAdapter } from "./announcementsAdapter";
 import { ChatMessagesAdapter } from "./chatMessagesAdapter";
@@ -50,7 +50,7 @@ export class QnaPlugin extends PlayerContribPlugin
     private _hasError: boolean = false;
     private _loading: boolean = true;
 
-    private _qnaPushNotification: QnAPushNotification | null = null;
+    private _qnaPushNotification: QnaPushNotification | null = null;
     private _aoaAdapter: AoaAdapter | null = null;
     private _announcementAdapter: AnnouncementsAdapter | null = null;
     private _chatMessagesAdapter: ChatMessagesAdapter | null = null;
@@ -114,7 +114,7 @@ export class QnaPlugin extends PlayerContribPlugin
                 ? this.config.bannerDuration
                 : DefaultBannerDuration;
         // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
-        this._qnaPushNotification = new QnAPushNotification({
+        this._qnaPushNotification = new QnaPushNotification({
             pushServerOptions: {
                 ks: server.ks,
                 serviceUrl: server.serviceUrl,

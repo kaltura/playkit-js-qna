@@ -1,5 +1,5 @@
 import { Component, h } from "preact";
-import { QnaMessage, QnaMessageType } from "../../QnaMessage";
+import { QnaMessage, QnaMessageType } from "../../qnaMessage";
 import { DateTimeFormatting } from "../kitchen-sink";
 import * as styles from "./notification.scss";
 import { TrimmedText } from "../trimmed-text";

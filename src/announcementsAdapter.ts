@@ -2,14 +2,14 @@ import { KitchenSinkMessages } from "./kitchenSinkMessages";
 import {
     PublicQnaNotificationsEvent,
     PushNotificationEventTypes,
-    QnAPushNotification
-} from "./QnAPushNotification";
-import { MessageState, QnaMessage, QnaMessageType } from "./QnaMessage";
+    QnaPushNotification
+} from "./qnaPushNotification";
+import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
 import { getContribLogger } from "@playkit-js-contrib/common";
 
 export interface AnnouncementsAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
-    qnaPushNotification: QnAPushNotification;
+    qnaPushNotification: QnaPushNotification;
     //todo [sa] toastsManager from contrib
 }
 
@@ -20,7 +20,7 @@ const logger = getContribLogger({
 
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
-    private _qnaPushNotification: QnAPushNotification;
+    private _qnaPushNotification: QnaPushNotification;
 
     constructor(options: AnnouncementsAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;

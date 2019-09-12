@@ -1,7 +1,6 @@
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
 import { Utils } from "./utils";
-import { MessageType } from "awesome-typescript-loader/dist/checker/protocol";
 
 export enum QnaMessageType {
     Question = "Question",
