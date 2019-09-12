@@ -1,12 +1,19 @@
+.time-display-newline-drop {
+  width: 100%;
+}
+
 .date-time-prop {
   font-size: 12px;
   font-weight: bold;
 }
 
-.date {
-  margin-right: 14px;
+.time-container {
+  margin-top: 4px;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.time {
-
+.date-container {
+  display: flex;
+  justify-content: flex-end;
 }

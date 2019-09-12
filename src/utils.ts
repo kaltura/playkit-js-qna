@@ -1,20 +1,59 @@
-import { DateFormats, DateTimeFormatting } from "./components/kitchen-sink";
-
 export class Utils {
     public static ONE_DAY_IN_MS: number = 1000 * 60 * 60 * 24;
 
-    public static getDisplayDate(date: Date | null, formatting?: DateTimeFormatting) {
+    public static getDisplayDate(date: Date | null, dateFormat: string) {
         if (!date) {
             return;
         }
 
-        let dateString: string = "";
-        if (formatting && formatting.dateFormatting === DateFormats.American) {
-            dateString = `${date.getMonth() + 1}/${date.getDate()}`;
-        } else {
-            // default European (day/month)
-            dateString = `${date.getDate()}/${date.getMonth() + 1}`;
+        let dateString = dateFormat;
+
+        const d = date.getDate();
+        const dd = d < 10 ? `0${d}` : d;
+
+        const m = date.getMonth() + 1;
+        const mm = m < 10 ? `0${m}` : m;
+
+        const yyyy = date.getFullYear();
+
+        if (dateString.match(/do/) != null) {
+            let value;
+
+            if (d === 1 || d === 11 || d === 21 || d === 31) value = `${d}st`;
+            else if (d === 2 || d === 12 || d === 22) value = `${d}nd`;
+            else if (d === 3 || d === 13 || d === 23) value = `${d}rd`;
+            else value = `${d}th`;
+
+            dateString = dateString.replace(/do/g, value);
+        } else if (dateString.match(/dd/)) {
+            dateString = dateString.replace(/dd/, dd.toString());
+        } else if (dateString.match(/d/)) {
+            dateString = dateString.replace(/d/, d.toString());
         }
+
+        if (dateString.match(/mmmm/) != null) {
+            const month = [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+            ];
+            dateString = dateString.replace(/mmmm/, month[m - 1]);
+        } else if (dateString.match(/mm/)) {
+            dateString = dateString.replace(/mm/, mm.toString());
+        } else if (dateString.match(/m/)) {
+            dateString = dateString.replace(/m/, m.toString());
+        }
+
+        dateString = dateString.replace(/yyyy/, yyyy.toString());
 
         return dateString;
     }
