@@ -199,7 +199,7 @@ export class AoaAdapter {
         }
         //show is kitchenSink
         if (!newMessage.updated) {
-            newMessage.updated;
+            newMessage.updated = true;
             this._kitchenSinkMessages.addOrUpdateMessage(newMessage.qnaMessage);
         }
     }
