@@ -1,4 +1,4 @@
-import { Component, h } from "preact";
+import { h, Component } from "preact";
 import * as styles from "./kitchenSink.scss";
 import { QnaMessage, QnaMessageType } from "../../QnaMessage";
 import { Thread } from "../thread";
@@ -6,19 +6,10 @@ import { Spinner } from "../spinner";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
 import { Notification } from "../notification";
 
-export interface DateTimeFormatting {
-    dateFormatting: DateFormats;
-}
-
-export enum DateFormats {
-    American = "American",
-    European = "European"
-}
-
 export interface KitchenSinkProps {
     onClose: () => void;
     threads: QnaMessage[];
-    formatting: DateTimeFormatting;
+    dateFormat: string;
     hasError: boolean;
     loading: boolean;
     onSubmit: (text: string, thread?: QnaMessage) => void;
@@ -72,7 +63,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                     return (
                         <Notification
                             qnaMessage={qnaMessage}
-                            formatting={props.formatting}
+                            dateFormat={props.dateFormat}
                             key={qnaMessage.id}
                         />
                     );
@@ -80,7 +71,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                     return (
                         <Thread
                             thread={qnaMessage}
-                            formatting={props.formatting}
+                            dateFormat={props.dateFormat}
                             key={qnaMessage.id}
                             onReply={this.handleOnSubmit}
                         />

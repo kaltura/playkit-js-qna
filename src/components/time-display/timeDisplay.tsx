@@ -2,11 +2,10 @@ import { h, Component } from "preact";
 import * as styles from "./timeDisplay.scss";
 import { Utils } from "../../utils";
 import classNames from "classnames";
-import { DateTimeFormatting } from "../kitchen-sink";
 
 interface TimeDisplayProps {
     time: Date;
-    formatting: DateTimeFormatting;
+    dateFormat: string;
     className: string;
 }
 
@@ -14,19 +13,24 @@ interface TimeDisplayState {}
 
 export class TimeDisplay extends Component<TimeDisplayProps, TimeDisplayState> {
     render() {
-        const { time, formatting, className } = this.props;
+        const { time, dateFormat, className } = this.props;
+        const isDateOlderThan24Hours = Utils.isDateOlderThan24Hours(time);
 
         return (
-            <span className={className}>
-                {Utils.isDateOlderThan24Hours(time) && (
-                    <span className={classNames(styles.dateTimeProp, styles.date)}>
-                        {Utils.getDisplayDate(time, formatting)}
-                    </span>
+            <div
+                className={classNames(className, {
+                    [styles.timeDisplayNewlineDrop]: isDateOlderThan24Hours
+                })}
+            >
+                <div className={classNames(styles.dateTimeProp, styles.timeContainer)}>
+                    <span>{Utils.getDisplayTime(time)}</span>
+                </div>
+                {isDateOlderThan24Hours && (
+                    <div className={classNames(styles.dateTimeProp, styles.dateContainer)}>
+                        <span>{Utils.getDisplayDate(time, dateFormat)}</span>
+                    </div>
                 )}
-                <span className={classNames(styles.dateTimeProp, styles.time)}>
-                    {Utils.getDisplayTime(time)}
-                </span>
-            </span>
+            </div>
         );
     }
 }

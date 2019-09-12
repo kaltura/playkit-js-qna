@@ -21,7 +21,7 @@ import {
     OnRegisterUI,
     PlayerContribPlugin
 } from "@playkit-js-contrib/plugin";
-import { DateFormats, KitchenSink } from "./components/kitchen-sink";
+import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 
 import { MessagesUpdatedEvent, ThreadManager, ThreadManagerEventTypes } from "./ThreadManager";
@@ -66,7 +66,9 @@ interface SubmitRequestParams {
 
 export class QnaPlugin extends PlayerContribPlugin
     implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
-    static defaultConfig = {};
+    static defaultConfig = {
+        dateFormat: "dd/mm/yyyy"
+    };
 
     private _kalturaClient = new KalturaClient();
 
@@ -237,15 +239,10 @@ export class QnaPlugin extends PlayerContribPlugin
             return <div />;
         }
 
-        // todo: get this from KMS / KMC etc'...
-        const formatting = {
-            dateFormatting: DateFormats.European
-        };
-
         return (
             <KitchenSink
                 {...props}
-                formatting={formatting}
+                dateFormat={this.config.dateFormat}
                 threads={this._threads}
                 hasError={this._hasError}
                 loading={this._loading}
