@@ -14,6 +14,11 @@ export enum PushNotificationEventTypes {
     PushNotificationsError = "PUSH_NOTIFICATIONS_ERROR"
 }
 
+export interface QnAPushNotificationManagerOptions {
+    pushServerOptions: PushNotificationsOptions;
+    delayedEndTime?: number;
+}
+
 export interface UserQnaNotificationsEvent {
     type: PushNotificationEventTypes.UserNotifications;
     qnaMessages: QnaMessage[];
@@ -40,8 +45,7 @@ const logger = getContribLogger({
  * handles push notification registration and results.
  */
 export class QnAPushNotificationManager {
-    private static _instance: QnAPushNotificationManager | null = null;
-    private static _delayedEndTime: number = 60 * 1000;
+    private _delayedEndTime: number = 60 * 1000;
 
     private _pushServerInstance: PushNotifications | null = null;
 
@@ -49,25 +53,18 @@ export class QnAPushNotificationManager {
 
     private _events: EventsManager<Events> = new EventsManager<Events>();
 
-    private constructor(options: PushNotificationsOptions) {
-        this._pushServerInstance = PushNotifications.getInstance(options);
+    /**
+     * init
+     * @param options
+     * @param delayedEndTime
+     */
+    constructor({ pushServerOptions, delayedEndTime }: QnAPushNotificationManagerOptions) {
+        this._pushServerInstance = PushNotifications.getInstance(pushServerOptions);
+        this._delayedEndTime = delayedEndTime || this._delayedEndTime;
     }
 
     on: EventsManager<Events>["on"] = this._events.on.bind(this._events);
     off: EventsManager<Events>["off"] = this._events.off.bind(this._events);
-
-    /**
-     * should be called once on pluginSetup
-     * @param options
-     */
-    public static getInstance(options: PushNotificationsOptions, delayedEndTime?: number) {
-        if (!QnAPushNotificationManager._instance) {
-            QnAPushNotificationManager._delayedEndTime =
-                delayedEndTime || QnAPushNotificationManager._delayedEndTime;
-            QnAPushNotificationManager._instance = new QnAPushNotificationManager(options);
-        }
-        return QnAPushNotificationManager._instance;
-    }
 
     /**
      * should be called on mediaUnload
@@ -189,8 +186,7 @@ export class QnAPushNotificationManager {
                         qnaMessage.type === QnaMessageType.Announcement ||
                         qnaMessage.type === QnaMessageType.AnswerOnAir
                     )
-                        qnaMessage.endTime =
-                            qnaMessage.startTime + QnAPushNotificationManager._delayedEndTime;
+                        qnaMessage.endTime = qnaMessage.startTime + this._delayedEndTime;
                     qnaMessages.push(qnaMessage);
                 }
             }

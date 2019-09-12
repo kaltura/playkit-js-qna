@@ -155,8 +155,8 @@ export class QnaPlugin extends PlayerContribPlugin
                 ? this.config.bannerDuration
                 : DefaultBannerDuration;
         // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
-        this._qnaPushNotificationManager = QnAPushNotificationManager.getInstance(
-            {
+        this._qnaPushNotificationManager = new QnAPushNotificationManager({
+            pushServerOptions: {
                 ks: server.ks,
                 serviceUrl: server.serviceUrl,
                 clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
@@ -165,8 +165,8 @@ export class QnaPlugin extends PlayerContribPlugin
                     eventManager: this.eventManager
                 }
             },
-            bannerDuration
-        );
+            delayedEndTime: bannerDuration
+        });
 
         this._qnaPushNotificationManager.on(
             PushNotificationEventTypes.PushNotificationsError,
