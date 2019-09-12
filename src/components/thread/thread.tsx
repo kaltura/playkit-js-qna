@@ -44,7 +44,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
 
     private _isAOAAutoReply(reply: QnaMessage) {
         //todo [sa] uncomment next line and remove the one after
-        //return reply.tags.indexOf(AutoReplyTag) > -1;
+        //return reply.tags.indexOf(aoa_auto_reply) > -1;
         if (reply.messageContent) {
             return reply.messageContent.indexOf("on-air") > -1;
         }
