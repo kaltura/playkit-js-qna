@@ -1,5 +1,5 @@
 import { DateFormats, DateTimeFormatting } from "./components/kitchen-sink";
-import { QnaMessage } from "./QnaMessage";
+import { QnaMessage, QnaMessageType } from "./QnaMessage";
 
 export class Utils {
     public static ONE_DAY_IN_MS: number = 1000 * 60 * 60 * 24;
@@ -67,10 +67,45 @@ export class Utils {
         return xml;
     }
 
-    public static getMostRecentMessage(messages: QnaMessage[]): QnaMessage | null {
-        let sortedLastFirst = messages.sort((a: QnaMessage, b: QnaMessage) => {
-            return b.startTime - a.startTime;
-        });
-        return sortedLastFirst && sortedLastFirst[0] ? sortedLastFirst[0] : null;
+    /**
+     * Take the time of the newest QnaMessage
+     */
+    public static threadTimeCompare(qnaMessage: QnaMessage): number {
+        if (qnaMessage.type === QnaMessageType.Announcement) {
+            return qnaMessage.time.valueOf();
+        }
+
+        let q_time, a_time;
+
+        if (qnaMessage.type === QnaMessageType.Answer) {
+            a_time = qnaMessage.time.valueOf();
+        }
+
+        if (qnaMessage.type === QnaMessageType.Question) {
+            q_time = qnaMessage.time.valueOf();
+        }
+
+        for (let i = 0; i < qnaMessage.replies.length; ++i) {
+            let reply: QnaMessage = qnaMessage.replies[i];
+            if (reply.type === QnaMessageType.Announcement) {
+                if (!a_time) a_time = reply.time.valueOf();
+                else if (reply.time.valueOf() > a_time) a_time = reply.time.valueOf();
+            }
+        }
+
+        if (!a_time && !q_time) {
+            // todo log("both a_time and q_time are undefined - data error");
+            return 0;
+        }
+
+        if (!a_time) {
+            return q_time || 0;
+        }
+
+        if (!q_time) {
+            return a_time || 0;
+        }
+
+        return Math.max(a_time, q_time);
     }
 }

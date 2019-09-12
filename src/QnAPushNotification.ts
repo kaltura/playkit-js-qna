@@ -14,7 +14,7 @@ export enum PushNotificationEventTypes {
     PushNotificationsError = "PUSH_NOTIFICATIONS_ERROR"
 }
 
-export interface QnAPushNotificationManagerOptions {
+export interface QnAPushNotificationOptions {
     pushServerOptions: PushNotificationsOptions;
     delayedEndTime?: number;
 }
@@ -37,14 +37,14 @@ export interface QnaNotificationsErrorEvent {
 type Events = UserQnaNotificationsEvent | PublicQnaNotificationsEvent | QnaNotificationsErrorEvent;
 
 const logger = getContribLogger({
-    class: "QnAPushNotificationManager",
+    class: "QnAPushNotification",
     module: "qna-plugin"
 });
 
 /**
  * handles push notification registration and results.
  */
-export class QnAPushNotificationManager {
+export class QnAPushNotification {
     private _delayedEndTime: number = 60 * 1000;
 
     private _pushServerInstance: PushNotifications | null = null;
@@ -58,7 +58,7 @@ export class QnAPushNotificationManager {
      * @param options
      * @param delayedEndTime
      */
-    constructor({ pushServerOptions, delayedEndTime }: QnAPushNotificationManagerOptions) {
+    constructor({ pushServerOptions, delayedEndTime }: QnAPushNotificationOptions) {
         this._pushServerInstance = PushNotifications.getInstance(pushServerOptions);
         this._delayedEndTime = delayedEndTime || this._delayedEndTime;
     }

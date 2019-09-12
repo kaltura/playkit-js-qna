@@ -79,11 +79,11 @@ export class QnaMessage {
         }
     }
 
-    public static createPendingMessage(cuePoint: KalturaAnnotation) {
+    public static createPendingMessage(cuePoint: KalturaAnnotation, threadId?: string) {
         const qnaMessageParams: QnaMessageParams = {
             metadataInfo: {
                 type: QnaMessageType.Question,
-                parentId: null,
+                parentId: threadId ? threadId : null,
                 state: MessageState.Pending
             },
             id: cuePoint.id,

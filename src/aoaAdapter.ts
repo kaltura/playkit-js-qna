@@ -1,114 +1,104 @@
+import { KitchenSinkMessages } from "./kitchenSinkMessages";
+import {
+    PublicQnaNotificationsEvent,
+    PushNotificationEventTypes,
+    QnAPushNotification
+} from "./QnAPushNotification";
+import { BannerManager } from "@playkit-js-contrib/ui";
 import {
     CuepointEngine,
-    EventsManager,
     getContribLogger,
     PlayerAPI,
     UpdateTimeResponse
 } from "@playkit-js-contrib/common";
 import { MessageState, QnaMessage, QnaMessageType } from "./QnaMessage";
-import {
-    PublicQnaNotificationsEvent,
-    PushNotificationEventTypes,
-    QnAPushNotificationManager
-} from "./QnAPushNotificationManager";
 import { Utils } from "./utils";
 
-export enum TimeAlignedNotificationsEventTypes {
-    ShowNotification = "ShowNotification",
-    HideNotification = "HideNotification"
-}
-
-export interface HideNotificationEvent {
-    type: TimeAlignedNotificationsEventTypes.HideNotification;
-    message: QnaMessage;
-}
-
-export interface ShowNotificationEvent {
-    type: TimeAlignedNotificationsEventTypes.ShowNotification;
-    message: QnaMessage;
-}
-
-type Events = HideNotificationEvent | ShowNotificationEvent;
-
-interface TimeAlignedNotificationsManagerOptions {
-    qnaPushManger: QnAPushNotificationManager;
+export interface AoaAdapterOptions {
+    kitchenSinkMessages: KitchenSinkMessages;
+    qnaPushNotification: QnAPushNotification;
+    bannerManager: BannerManager;
     playerApi: PlayerAPI;
+    //todo [sa] toastsManager from contrib
+}
+
+export interface AoAMessage {
+    id: string;
+    startTime: number;
+    endTime?: number;
+    updated: boolean;
+    qnaMessage: QnaMessage;
 }
 
 const logger = getContribLogger({
-    class: "TimeAlignedNotificationsManager",
+    class: "AoaAdapter",
     module: "qna-plugin"
 });
 
 const SeekThreshold: number = 7 * 1000;
 
-/**
- * currently handle only AnswerOnAir public objects since they are the only real time relevant objects
- */
-export class TimeAlignedNotificationsManager {
-    private _playerApi: PlayerAPI | null = null;
-    private _qnaPushManger: QnAPushNotificationManager | null = null;
-    private _cuePointEngine: CuepointEngine<QnaMessage> | null = null;
-    private _currentNotification: QnaMessage | null = null;
-    private _events: EventsManager<Events> = new EventsManager<Events>();
+export class AoaAdapter {
+    private _kitchenSinkMessages: KitchenSinkMessages;
+    private _qnaPushNotification: QnAPushNotification;
+    private _bannerManager: BannerManager;
+    private _playerApi: PlayerAPI;
+
+    private _cuePointEngine: CuepointEngine<AoAMessage> | null = null;
+    private _currentNotification: AoAMessage | null = null;
     private _lastId3Timestamp: number | null = null;
-    private _initialized = false;
 
-    on: EventsManager<Events>["on"] = this._events.on.bind(this._events);
-    off: EventsManager<Events>["off"] = this._events.off.bind(this._events);
+    constructor(options: AoaAdapterOptions) {
+        this._kitchenSinkMessages = options.kitchenSinkMessages;
+        this._qnaPushNotification = options.qnaPushNotification;
+        this._bannerManager = options.bannerManager;
+        this._playerApi = options.playerApi;
+    }
 
-    public init({ qnaPushManger, playerApi }: TimeAlignedNotificationsManagerOptions) {
-        if (this._initialized) {
-            logger.warn("TimeAlignedNotificationsManager was already initialized", {
-                method: "init"
-            });
-            return;
-        }
-        this._playerApi = playerApi;
-        this._qnaPushManger = qnaPushManger;
+    public init(): void {
         this._addPlayerListeners();
-        this._qnaPushManger.on(
+        this._qnaPushNotification.on(
             PushNotificationEventTypes.PublicNotifications,
-            this._handlePushPublicResponse
+            this._handleAoaMessages
         );
     }
 
-    /**
-     * on media unload
-     */
-    public reset() {
-        this._cuePointEngine = new CuepointEngine<QnaMessage>([]);
+    public reset(): void {
+        this._cuePointEngine = new CuepointEngine<AoAMessage>([]);
     }
 
-    /**
-     * on Destroy
-     * @param qnaMessages
-     * @private
-     */
-    public destroy() {
-        logger.info("destroy TimeAlignedNotificationsManager", { method: "destroy" });
+    public destroy(): void {
+        logger.info("destroy AoaAdapter", { method: "destroy" });
         this._removePlayerListeners();
-        if (this._qnaPushManger)
-            this._qnaPushManger.off(
-                PushNotificationEventTypes.PublicNotifications,
-                this._handlePushPublicResponse
-            );
+        this._qnaPushNotification.off(
+            PushNotificationEventTypes.PublicNotifications,
+            this._handleAoaMessages
+        );
         this.reset();
     }
 
-    private _handlePushPublicResponse = ({ qnaMessages }: PublicQnaNotificationsEvent): void => {
+    private _handleAoaMessages = ({ qnaMessages }: PublicQnaNotificationsEvent): void => {
         logger.debug("handle push notification event", {
-            method: "_handlePushPublicResponse",
+            method: "_handleAoaMessages",
             data: qnaMessages
         });
-        let notifications: QnaMessage[] = qnaMessages.filter((qnaMessage: QnaMessage) => {
-            return QnaMessageType.AnswerOnAir === qnaMessage.type;
-        });
+        let notifications: AoAMessage[] = qnaMessages
+            .filter((qnaMessage: QnaMessage) => {
+                return QnaMessageType.AnswerOnAir === qnaMessage.type;
+            })
+            .map((qnaMessage: QnaMessage) => {
+                return {
+                    id: qnaMessage.id,
+                    startTime: qnaMessage.startTime,
+                    endTime: qnaMessage.endTime,
+                    updated: false,
+                    qnaMessage
+                };
+            });
         this._createCuePointEngine(notifications);
     };
 
-    private _createCuePointEngine(notifications: QnaMessage[]): void {
-        let engineMessages: QnaMessage[] = this._cuePointEngine
+    private _createCuePointEngine(notifications: AoAMessage[]): void {
+        let engineMessages: AoAMessage[] = this._cuePointEngine
             ? this._cuePointEngine.cuepoints
             : [];
 
@@ -121,22 +111,22 @@ export class TimeAlignedNotificationsManager {
         });
 
         let wasUpdated = false;
-        notifications.forEach((notification: QnaMessage) => {
-            let existingIndex = engineMessages.findIndex((item: QnaMessage) => {
+        notifications.forEach((notification: AoAMessage) => {
+            let existingIndex = engineMessages.findIndex((item: AoAMessage) => {
                 return item.id === notification.id; //find by Id and not reference to support deleted annotations
             });
             if (existingIndex === -1) {
-                //add new QnaMessage
+                //add new AoAMessage
                 wasUpdated = true;
                 engineMessages.push(notification);
-            } else if (notification.state === MessageState.Deleted) {
-                //update current QnaMessage in current cuepoint array
+            } else if (notification.qnaMessage.state === MessageState.Deleted) {
+                //update current AoAMessage in current cuepoint array
                 wasUpdated = true;
                 engineMessages.splice(existingIndex, 1);
             }
         });
         if (wasUpdated) {
-            this._cuePointEngine = new CuepointEngine<QnaMessage>(engineMessages, {
+            this._cuePointEngine = new CuepointEngine<AoAMessage>(engineMessages, {
                 reasonableSeekThreshold: SeekThreshold
             });
         }
@@ -147,7 +137,7 @@ export class TimeAlignedNotificationsManager {
     private _triggerAndHandleCuepointsData(): void {
         if (!this._cuePointEngine || !this._lastId3Timestamp) return;
 
-        let engineData: UpdateTimeResponse<QnaMessage> = this._cuePointEngine.updateTime(
+        let engineData: UpdateTimeResponse<AoAMessage> = this._cuePointEngine.updateTime(
             this._lastId3Timestamp,
             false
         );
@@ -159,24 +149,24 @@ export class TimeAlignedNotificationsManager {
 
         //in case player was reloaded or user seeked the video
         if (engineData.snapshot) {
-            this._handleSnapshotData(Utils.getMostRecentMessage(engineData.snapshot));
+            this._handleSnapshotData(this._getMostRecentMessage(engineData.snapshot));
         } else if (engineData.delta) {
             this._handleDeltaData(engineData.delta.show, engineData.delta.hide);
         }
     }
 
-    private _handleSnapshotData(lastShow: QnaMessage | null) {
+    private _handleSnapshotData(lastShow: AoAMessage | null) {
         if (lastShow) {
             this._showCurrentNotification(lastShow);
         } else {
             //if there is no notification to show - make sure to clear current notification if needed
             // (if user seeked while an notification was displayed)
-            this._hideCurrentNotification();
+            this._hideBannerNotification();
         }
     }
 
-    private _handleDeltaData(showArray: QnaMessage[], hideArray: QnaMessage[]) {
-        let lastToShow = Utils.getMostRecentMessage(showArray);
+    private _handleDeltaData(showArray: AoAMessage[], hideArray: AoAMessage[]) {
+        let lastToShow = this._getMostRecentMessage(showArray);
 
         if (lastToShow && this._currentNotification !== lastToShow) {
             this._showCurrentNotification(lastToShow);
@@ -187,33 +177,38 @@ export class TimeAlignedNotificationsManager {
             return;
         }
 
-        this._hideCurrentNotification();
+        this._hideBannerNotification();
     }
 
-    private _showCurrentNotification(newMessage: QnaMessage) {
+    private _showCurrentNotification(newMessage: AoAMessage) {
         logger.debug("show notification event", {
             method: "_showCurrentNotification",
             data: newMessage
         });
+        //show in banner
         if (!this._currentNotification || newMessage.id !== this._currentNotification.id) {
             this._currentNotification = newMessage;
-            this._events.emit({
-                type: TimeAlignedNotificationsEventTypes.ShowNotification,
-                message: this._currentNotification
+            this._bannerManager.add({
+                content: {
+                    text: newMessage.qnaMessage.messageContent
+                        ? newMessage.qnaMessage.messageContent
+                        : ""
+                }
             });
+        }
+        //show is kitchenSink
+        if (!newMessage.updated) {
+            newMessage.updated;
+            this._kitchenSinkMessages.addOrUpdateMessage(newMessage.qnaMessage);
         }
     }
 
-    private _hideCurrentNotification() {
+    private _hideBannerNotification() {
         if (!this._currentNotification) return;
         logger.debug("hide notification event", {
-            method: "_hideCurrentNotification"
+            method: "_hideBannerNotification"
         });
-        this._events.emit({
-            type: TimeAlignedNotificationsEventTypes.HideNotification,
-            message: this._currentNotification
-        });
-
+        this._bannerManager.remove();
         this._currentNotification = null;
     }
 
@@ -265,19 +260,10 @@ export class TimeAlignedNotificationsManager {
         }
     };
 
-    /**
-     * returns a boolean to detect if player is on live edge with buffer of 2 seconds
-     * indication if user is watching DVR mode at the moment
-     * @returns {boolean} - is player on live edge
-     */
-    private _isOnLiveEdge(): boolean {
-        if (!this._playerApi) return false;
-        return (
-            this._playerApi.kalturaPlayer.currentTime >= this._playerApi.kalturaPlayer.duration - 2
-        );
-    }
-
-    private _isLive(): boolean {
-        return this._playerApi !== null && this._playerApi.kalturaPlayer.isLive();
+    private _getMostRecentMessage(messages: AoAMessage[]): AoAMessage | null {
+        let sortedLastFirst = messages.sort((a: AoAMessage, b: AoAMessage) => {
+            return b.startTime - a.startTime;
+        });
+        return sortedLastFirst && sortedLastFirst[0] ? sortedLastFirst[0] : null;
     }
 }
