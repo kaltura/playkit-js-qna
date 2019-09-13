@@ -15,7 +15,7 @@ import {
     OnRegisterUI,
     PlayerContribPlugin
 } from "@playkit-js-contrib/plugin";
-import { DateFormats, KitchenSink } from "./components/kitchen-sink";
+import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 import { QnaMessage } from "./qnaMessage";
 import { getContribLogger } from "@playkit-js-contrib/common";
@@ -42,7 +42,8 @@ const logger = getContribLogger({
 export class QnaPlugin extends PlayerContribPlugin
     implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     static defaultConfig = {
-        bannerDuration: DefaultBannerDuration
+        bannerDuration: DefaultBannerDuration,
+        dateFormat: "dd/mm/yyyy"
     };
 
     private _kitchenSinkItem: KitchenSinkItem | null = null;
@@ -210,15 +211,10 @@ export class QnaPlugin extends PlayerContribPlugin
             return <div />;
         }
 
-        // todo: get this from KMS / KMC etc'...
-        const formatting = {
-            dateFormatting: DateFormats.European
-        };
-
         return (
             <KitchenSink
                 {...props}
-                formatting={formatting}
+                dateFormat={this.config.dateFormat}
                 threads={this._threads}
                 hasError={this._hasError}
                 loading={this._loading}

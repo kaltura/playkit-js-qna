@@ -1,6 +1,5 @@
 import { Component, h } from "preact";
 import { QnaMessage, QnaMessageType } from "../../qnaMessage";
-import { DateTimeFormatting } from "../kitchen-sink";
 import * as styles from "./notification.scss";
 import { TrimmedText } from "../trimmed-text";
 import { TimeDisplay } from "../time-display";
@@ -8,12 +7,12 @@ import classNames from "classnames";
 
 export interface NotificationProps {
     qnaMessage: QnaMessage;
-    formatting: DateTimeFormatting;
+    dateFormat: string;
 }
 
 export class Notification extends Component<NotificationProps> {
     render(props: NotificationProps) {
-        const { qnaMessage, formatting } = this.props;
+        const { qnaMessage, dateFormat } = this.props;
 
         return (
             <div className={styles.notification}>
@@ -39,7 +38,7 @@ export class Notification extends Component<NotificationProps> {
                         <TimeDisplay
                             className={styles.threadTime}
                             time={qnaMessage.time}
-                            formatting={formatting}
+                            dateFormat={dateFormat}
                         />
                     </div>
                 </div>
