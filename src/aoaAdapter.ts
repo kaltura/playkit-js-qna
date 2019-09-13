@@ -197,11 +197,11 @@ export class AoaAdapter {
                 }
             });
         }
-        //show is kitchenSink
-        if (!newMessage.updated) {
-            newMessage.updated = true;
-            this._kitchenSinkMessages.addOrUpdateMessage(newMessage.qnaMessage);
-        }
+        //show is kitchenSink //todo [sa] will be developed as part of a specific story
+        // if (!newMessage.updated) {
+        //     newMessage.updated = true;
+        //     this._kitchenSinkMessages.addOrUpdateMessage(newMessage.qnaMessage);
+        // }
     }
 
     private _hideBannerNotification() {
