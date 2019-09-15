@@ -46,6 +46,8 @@ export class AoaAdapter {
     private _currentNotification: AoAMessage | null = null;
     private _lastId3Timestamp: number | null = null;
 
+    private _initialize = false;
+
     constructor(options: AoaAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
@@ -54,6 +56,9 @@ export class AoaAdapter {
     }
 
     public init(): void {
+        if (this._initialize) return;
+
+        this._initialize = true;
         this._addPlayerListeners();
         this._qnaPushNotification.on(
             PushNotificationEventTypes.PublicNotifications,

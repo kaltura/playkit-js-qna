@@ -37,8 +37,6 @@ export class KitchenSinkMessages {
         this._kitchenSinkManager = options.kitchenSinkManager;
     }
 
-    public init(): void {}
-
     public reset(): void {
         this._qnaMessages = [];
     }

@@ -21,6 +21,7 @@ const logger = getContribLogger({
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
+    private _initialize = false;
 
     constructor(options: AnnouncementsAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
@@ -28,6 +29,9 @@ export class AnnouncementsAdapter {
     }
 
     public init(): void {
+        if (this._initialize) return;
+
+        this._initialize = true;
         this._qnaPushNotification.on(
             PushNotificationEventTypes.PublicNotifications,
             this._processAnnouncements

@@ -142,7 +142,7 @@ export class QnaPlugin extends PlayerContribPlugin
         this._kitchenSinkMessages = new KitchenSinkMessages({
             kitchenSinkManager: this.uiManager.kitchenSink
         });
-        this._kitchenSinkMessages.init();
+
         //register to kitchenSink updated qnaMessages array
         this._kitchenSinkMessages.on(
             KitchenSinkEventTypes.MessagesUpdatedEvent,

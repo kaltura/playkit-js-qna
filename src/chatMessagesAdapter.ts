@@ -53,6 +53,8 @@ export class ChatMessagesAdapter {
     private _entryId: string | undefined;
     private _metadataProfileId: number | null = null;
 
+    private _initialize = false;
+
     constructor(options: ChatMessagesAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
@@ -60,6 +62,9 @@ export class ChatMessagesAdapter {
     }
 
     public init(): void {
+        if (this._initialize) return;
+
+        this._initialize = true;
         this._kalturaClient.setOptions({
             clientTag: "playkit-js-qna",
             endpointUrl: this._config.server.serviceUrl
