@@ -94,7 +94,13 @@ export class QnaPlugin extends PlayerContribPlugin
         this._loading = true;
         this._threads = [];
         //destroy managers
-        if (this._qnaPushNotification) this._qnaPushNotification.destroy();
+        if (this._qnaPushNotification) {
+            this._qnaPushNotification.off(
+                PushNotificationEventTypes.PushNotificationsError,
+                this._onQnaError
+            );
+            this._qnaPushNotification.destroy();
+        }
         if (this._aoaAdapter) this._aoaAdapter.destroy();
         if (this._announcementAdapter) this._announcementAdapter.destroy();
         if (this._chatMessagesAdapter) this._chatMessagesAdapter.destroy();
