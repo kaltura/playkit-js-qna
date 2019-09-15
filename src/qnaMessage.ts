@@ -39,8 +39,6 @@ export interface QnaMessageParams {
 export class QnaMessage {
     public id: string;
     public time: Date;
-    public startTime: number;
-    public endTime?: number;
     public messageContent: string | null = null;
     public type: QnaMessageType;
     public state: MessageState;
@@ -101,7 +99,6 @@ export class QnaMessage {
     constructor(qnaMessageParams: QnaMessageParams) {
         this.id = qnaMessageParams.id;
         this.time = qnaMessageParams.time;
-        this.startTime = this.time.getTime();
         this.parentId = qnaMessageParams.metadataInfo.parentId;
         this.type = qnaMessageParams.metadataInfo.type;
         this.state = qnaMessageParams.metadataInfo.state;

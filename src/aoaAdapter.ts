@@ -18,13 +18,14 @@ export interface AoaAdapterOptions {
     qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
     playerApi: PlayerAPI;
+    delayedEndTime: number;
     //todo [sa] toastsManager from contrib
 }
 
 export interface AoAMessage {
     id: string;
     startTime: number;
-    endTime?: number;
+    endTime: number;
     updated: boolean;
     qnaMessage: QnaMessage;
 }
@@ -41,6 +42,7 @@ export class AoaAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
     private _playerApi: PlayerAPI;
+    private _delayedEndTime: number;
 
     private _cuePointEngine: CuepointEngine<AoAMessage> | null = null;
     private _currentNotification: AoAMessage | null = null;
@@ -53,6 +55,7 @@ export class AoaAdapter {
         this._qnaPushNotification = options.qnaPushNotification;
         this._bannerManager = options.bannerManager;
         this._playerApi = options.playerApi;
+        this._delayedEndTime = options.delayedEndTime;
     }
 
     public init(): void {
@@ -93,8 +96,8 @@ export class AoaAdapter {
                 (qnaMessage: QnaMessage): AoAMessage => {
                     return <AoAMessage>{
                         id: qnaMessage.id,
-                        startTime: qnaMessage.startTime,
-                        endTime: qnaMessage.endTime,
+                        startTime: qnaMessage.time.getTime(),
+                        endTime: qnaMessage.time.getTime() + this._delayedEndTime,
                         updated: false,
                         qnaMessage
                     };
@@ -202,11 +205,7 @@ export class AoaAdapter {
                 }
             });
         }
-        //show is kitchenSink //todo [sa] will be developed as part of a specific story
-        // if (!newMessage.updated) {
-        //     newMessage.updated = true;
-        //     this._kitchenSinkMessages.addOrUpdateMessage(newMessage.qnaMessage);
-        // }
+        this._addToKitchenSink(newMessage);
     }
 
     private _hideBannerNotification() {
@@ -216,6 +215,13 @@ export class AoaAdapter {
         });
         this._bannerManager.remove();
         this._currentNotification = null;
+    }
+
+    private _addToKitchenSink(aoaMessage: AoAMessage): void {
+        if (!aoaMessage.updated) {
+            aoaMessage.updated = true;
+            this._kitchenSinkMessages.addOrUpdateMessage(aoaMessage.qnaMessage);
+        }
     }
 
     private _addPlayerListeners() {
