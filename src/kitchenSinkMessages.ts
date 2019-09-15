@@ -123,11 +123,6 @@ export class KitchenSinkMessages {
         });
     }
 
-    //todo [sa] contrib new impl. in kitchenSinkManager
-    public isVisible(): boolean {
-        return true;
-    }
-
     private _sortMessages(): void {
         this._qnaMessages.sort((a: QnaMessage, b: QnaMessage) => {
             return Utils.threadTimeCompare(a) - Utils.threadTimeCompare(b);
