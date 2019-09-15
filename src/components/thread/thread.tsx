@@ -17,6 +17,9 @@ interface ThreadState {
     showInputText: boolean;
 }
 
+//todo [sa] - change to real tag's name
+const AutoReplyTag = "aoa_auto_reply";
+
 export class Thread extends Component<ThreadProps, ThreadState> {
     static defaultProps = {
         onReply: (text: string, parentId?: string) => {}
@@ -39,6 +42,10 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         this.setState({ showInputText: false });
         this.props.onReply(text, this.props.thread);
     };
+
+    private _isAOAAutoReply(reply: QnaMessage) {
+        return reply.tags.indexOf(AutoReplyTag) > -1;
+    }
 
     render() {
         const { thread, dateFormat } = this.props;
@@ -90,7 +97,11 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                     })}
                                 >
                                     <div>
-                                        <div className={styles.reply}>
+                                        <div
+                                            className={classNames(styles.reply, {
+                                                [styles.autoReplay]: this._isAOAAutoReply(reply)
+                                            })}
+                                        >
                                             {reply.type === QnaMessageType.Answer && (
                                                 <div className={styles.username}>
                                                     {reply.userId}
