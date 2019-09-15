@@ -60,6 +60,7 @@ export class QnaPlugin extends PlayerContribPlugin
     public static readonly LOADING_TIME_END = 3000;
 
     constructor(...args: any) {
+        //padding args to player core via PlayerContribPlugin
         // @ts-ignore
         super(...args);
         //adapters
