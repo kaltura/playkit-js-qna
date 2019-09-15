@@ -20,12 +20,13 @@ import { MenuIcon } from "./components/menu-icon";
 import { QnaMessage } from "./qnaMessage";
 import { getContribLogger } from "@playkit-js-contrib/common";
 import { PushNotificationEventTypes, QnaPushNotification } from "./qnaPushNotification";
-import { AoaAdapter } from "./aoaAdapter";
+import { AoaAdapter, AoaAdapterOptions } from "./aoaAdapter";
 import { AnnouncementsAdapter } from "./announcementsAdapter";
 import { ChatMessagesAdapter } from "./chatMessagesAdapter";
 import {
     KitchenSinkEventTypes,
     KitchenSinkMessages,
+    KitchenSinkMessagesOptions,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
 
@@ -50,14 +51,42 @@ export class QnaPlugin extends PlayerContribPlugin
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
     private _loading: boolean = true;
-
-    private _qnaPushNotification: QnaPushNotification | null = null;
-    private _aoaAdapter: AoaAdapter | null = null;
-    private _announcementAdapter: AnnouncementsAdapter | null = null;
-    private _chatMessagesAdapter: ChatMessagesAdapter | null = null;
-    private _kitchenSinkMessages: KitchenSinkMessages | null = null;
+    private _qnaPushNotification: QnaPushNotification;
+    private _aoaAdapter: AoaAdapter;
+    private _announcementAdapter: AnnouncementsAdapter;
+    private _chatMessagesAdapter: ChatMessagesAdapter;
+    private _kitchenSinkMessages: KitchenSinkMessages;
 
     public static readonly LOADING_TIME_END = 3000;
+
+    constructor(...args: any) {
+        // @ts-ignore
+        super(...args);
+        //adapters
+        this._qnaPushNotification = new QnaPushNotification();
+        this._kitchenSinkMessages = new KitchenSinkMessages({
+            kitchenSinkManager: this.uiManager.kitchenSink
+        } as KitchenSinkMessagesOptions);
+        this._aoaAdapter = new AoaAdapter({
+            kitchenSinkMessages: this._kitchenSinkMessages,
+            qnaPushNotification: this._qnaPushNotification,
+            bannerManager: this.uiManager.banner,
+            playerApi: {
+                kalturaPlayer: this.player,
+                eventManager: this.eventManager
+            }
+        } as AoaAdapterOptions);
+        this._announcementAdapter = new AnnouncementsAdapter({
+            kitchenSinkMessages: this._kitchenSinkMessages,
+            qnaPushNotification: this._qnaPushNotification
+        });
+        this._chatMessagesAdapter = new ChatMessagesAdapter({
+            kitchenSinkMessages: this._kitchenSinkMessages,
+            qnaPushNotification: this._qnaPushNotification
+        });
+        //listeners
+        this._constructPluginListener();
+    }
 
     onPluginSetup(config: ContribConfig): void {
         this._initPluginManagers();
@@ -69,12 +98,8 @@ export class QnaPlugin extends PlayerContribPlugin
         this._hasError = false;
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
-        if (this._qnaPushNotification) {
-            this._qnaPushNotification.registerToPushServer(config.entryId, server.userId || "");
-        }
-        if (this._chatMessagesAdapter) {
-            this._chatMessagesAdapter.onMediaLoad(server.userId || "", this.entryId);
-        }
+        this._qnaPushNotification.registerToPushServer(config.entryId, server.userId || "");
+        this._chatMessagesAdapter.onMediaLoad(server.userId || "", this.entryId);
     }
 
     onMediaUnload(): void {
@@ -82,10 +107,10 @@ export class QnaPlugin extends PlayerContribPlugin
         this._loading = true;
         this._threads = [];
         //reset managers
-        if (this._qnaPushNotification) this._qnaPushNotification.reset();
-        if (this._aoaAdapter) this._aoaAdapter.reset();
-        if (this._kitchenSinkMessages) this._kitchenSinkMessages.reset();
-        if (this._chatMessagesAdapter) this._chatMessagesAdapter.reset();
+        this._qnaPushNotification.reset();
+        this._aoaAdapter.reset();
+        this._kitchenSinkMessages.reset();
+        this._chatMessagesAdapter.reset();
     }
 
     //todo [sakal] add onPluginDestroy
@@ -94,24 +119,32 @@ export class QnaPlugin extends PlayerContribPlugin
         this._loading = true;
         this._threads = [];
         //destroy managers
-        if (this._qnaPushNotification) {
-            this._qnaPushNotification.off(
-                PushNotificationEventTypes.PushNotificationsError,
-                this._onQnaError
-            );
-            this._qnaPushNotification.destroy();
-        }
-        if (this._aoaAdapter) this._aoaAdapter.destroy();
-        if (this._announcementAdapter) this._announcementAdapter.destroy();
-        if (this._chatMessagesAdapter) this._chatMessagesAdapter.destroy();
-        if (this._kitchenSinkMessages) {
-            this._kitchenSinkMessages.destroy();
-            //remove listeners
-            this._kitchenSinkMessages.off(
-                KitchenSinkEventTypes.MessagesUpdatedEvent,
-                this._onQnaMessage
-            );
-        }
+        this._qnaPushNotification.off(
+            PushNotificationEventTypes.PushNotificationsError,
+            this._onQnaError
+        );
+        this._qnaPushNotification.destroy();
+        this._aoaAdapter.destroy();
+        this._announcementAdapter.destroy();
+        this._chatMessagesAdapter.destroy();
+        this._kitchenSinkMessages.destroy();
+        //remove listeners
+        this._kitchenSinkMessages.off(
+            KitchenSinkEventTypes.MessagesUpdatedEvent,
+            this._onQnaMessage
+        );
+    }
+
+    private _constructPluginListener(): void {
+        this._qnaPushNotification.on(
+            PushNotificationEventTypes.PushNotificationsError,
+            this._onQnaError
+        );
+        //register to kitchenSink updated qnaMessages array
+        this._kitchenSinkMessages.on(
+            KitchenSinkEventTypes.MessagesUpdatedEvent,
+            this._onQnaMessage
+        );
     }
 
     private _initPluginManagers(): void {
@@ -121,7 +154,7 @@ export class QnaPlugin extends PlayerContribPlugin
                 ? this.config.bannerDuration
                 : DefaultBannerDuration;
         // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
-        this._qnaPushNotification = new QnaPushNotification({
+        this._qnaPushNotification.init({
             pushServerOptions: {
                 ks: server.ks,
                 serviceUrl: server.serviceUrl,
@@ -133,46 +166,9 @@ export class QnaPlugin extends PlayerContribPlugin
             },
             delayedEndTime: bannerDuration
         });
-
-        this._qnaPushNotification.on(
-            PushNotificationEventTypes.PushNotificationsError,
-            this._onQnaError
-        );
-
-        this._kitchenSinkMessages = new KitchenSinkMessages({
-            kitchenSinkManager: this.uiManager.kitchenSink
-        });
-
-        //register to kitchenSink updated qnaMessages array
-        this._kitchenSinkMessages.on(
-            KitchenSinkEventTypes.MessagesUpdatedEvent,
-            this._onQnaMessage
-        );
-
-        this._aoaAdapter = new AoaAdapter({
-            kitchenSinkMessages: this._kitchenSinkMessages,
-            qnaPushNotification: this._qnaPushNotification,
-            bannerManager: this.uiManager.banner,
-            playerApi: {
-                kalturaPlayer: this.player,
-                eventManager: this.eventManager
-            }
-        });
         this._aoaAdapter.init();
-
-        this._announcementAdapter = new AnnouncementsAdapter({
-            kitchenSinkMessages: this._kitchenSinkMessages,
-            qnaPushNotification: this._qnaPushNotification
-        });
         this._announcementAdapter.init();
-
-        this._chatMessagesAdapter = new ChatMessagesAdapter({
-            kitchenSinkMessages: this._kitchenSinkMessages,
-            qnaPushNotification: this._qnaPushNotification,
-            config: this.getContribConfig()
-        });
-        this._chatMessagesAdapter.init();
-
+        this._chatMessagesAdapter.init(this.getContribConfig());
         this._delayedGiveUpLoading();
     }
 
@@ -224,11 +220,7 @@ export class QnaPlugin extends PlayerContribPlugin
                 threads={this._threads}
                 hasError={this._hasError}
                 loading={this._loading}
-                onSubmit={
-                    this._chatMessagesAdapter
-                        ? this._chatMessagesAdapter.submitQuestion
-                        : (text: string, thread?: QnaMessage) => {}
-                }
+                onSubmit={this._chatMessagesAdapter.submitQuestion}
             />
         );
     };

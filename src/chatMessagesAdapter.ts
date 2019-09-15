@@ -28,7 +28,6 @@ import { Utils } from "./utils";
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    config: ContribConfig;
     //todo [sa] toastsManager from contrib
 }
 
@@ -47,8 +46,8 @@ export class ChatMessagesAdapter {
     private _kalturaClient = new KalturaClient();
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
-    private _config: ContribConfig;
 
+    private _config: ContribConfig | null = null;
     private _userId: string | undefined;
     private _entryId: string | undefined;
     private _metadataProfileId: number | null = null;
@@ -58,13 +57,13 @@ export class ChatMessagesAdapter {
     constructor(options: ChatMessagesAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
-        this._config = options.config;
     }
 
-    public init(): void {
+    public init(config: ContribConfig): void {
         if (this._initialize) return;
 
         this._initialize = true;
+        this._config = config;
         this._kalturaClient.setOptions({
             clientTag: "playkit-js-qna",
             endpointUrl: this._config.server.serviceUrl

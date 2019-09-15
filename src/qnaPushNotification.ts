@@ -53,18 +53,18 @@ export class QnaPushNotification {
 
     private _events: EventsManager<Events> = new EventsManager<Events>();
 
-    /**
-     * init
-     * @param options
-     * @param delayedEndTime
-     */
-    constructor({ pushServerOptions, delayedEndTime }: QnAPushNotificationOptions) {
-        this._pushServerInstance = PushNotifications.getInstance(pushServerOptions);
-        this._delayedEndTime = delayedEndTime || this._delayedEndTime;
-    }
+    private _initialized = false;
 
     on: EventsManager<Events>["on"] = this._events.on.bind(this._events);
     off: EventsManager<Events>["off"] = this._events.off.bind(this._events);
+
+    public init({ pushServerOptions, delayedEndTime }: QnAPushNotificationOptions) {
+        if (this._initialized) return;
+
+        this._initialized = true;
+        this._pushServerInstance = PushNotifications.getInstance(pushServerOptions);
+        this._delayedEndTime = delayedEndTime || this._delayedEndTime;
+    }
 
     /**
      * should be called on mediaUnload
