@@ -18,7 +18,7 @@ interface ThreadState {
 }
 
 //todo [sa] - change to real tag's name
-const AutoReplyTag = "autoReply";
+const AutoReplyTag = "aoa_auto_reply";
 
 export class Thread extends Component<ThreadProps, ThreadState> {
     static defaultProps = {
@@ -44,7 +44,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     };
 
     private _isAOAAutoReply(reply: QnaMessage) {
-        return reply.tags.indexOf("aoa_auto_reply") > -1;
+        return reply.tags.indexOf(AutoReplyTag) > -1;
     }
 
     render() {
