@@ -1,6 +1,6 @@
 import { h, Component } from "preact";
 import * as styles from "./thread.scss";
-import { QnaMessage, QnaMessageType } from "../../QnaMessage";
+import { QnaMessage, QnaMessageType } from "../../qnaMessage";
 import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
 import { TrimmedText } from "../trimmed-text";

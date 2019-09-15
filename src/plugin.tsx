@@ -1,11 +1,5 @@
 import { h } from "preact";
 import {
-    KalturaClient,
-    KalturaMultiRequest,
-    KalturaMultiResponse,
-    KalturaRequest
-} from "kaltura-typescript-client";
-import {
     KitchenSinkContentRendererProps,
     KitchenSinkExpandModes,
     KitchenSinkItem,
@@ -23,77 +17,79 @@ import {
 } from "@playkit-js-contrib/plugin";
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
-
-import { MessagesUpdatedEvent, ThreadManager, ThreadManagerEventTypes } from "./ThreadManager";
-import { QnaMessage, QnaMessageType } from "./QnaMessage";
-import { Utils } from "./utils";
-import { CuePointAddAction } from "kaltura-typescript-client/api/types/CuePointAddAction";
-import { CuePointUpdateAction } from "kaltura-typescript-client/api/types/CuePointUpdateAction";
-import {
-    KalturaAnnotation,
-    KalturaAnnotationArgs
-} from "kaltura-typescript-client/api/types/KalturaAnnotation";
-import { KalturaMetadataObjectType } from "kaltura-typescript-client/api/types/KalturaMetadataObjectType";
-import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataAddAction";
-import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/types/KalturaMetadataProfileFilter";
-import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
+import { QnaMessage } from "./qnaMessage";
 import { getContribLogger } from "@playkit-js-contrib/common";
+import { PushNotificationEventTypes, QnaPushNotification } from "./qnaPushNotification";
+import { AoaAdapter, AoaAdapterOptions } from "./aoaAdapter";
+import { AnnouncementsAdapter } from "./announcementsAdapter";
+import { ChatMessagesAdapter } from "./chatMessagesAdapter";
 import {
-    PushNotificationEventTypes,
-    QnAPushNotificationManager
-} from "./QnAPushNotificationManager";
-import {
-    HideAnnouncementEvent,
-    InPlayerNotificationsEventTypes,
-    InPlayerNotificationsManager,
-    ShowAnnouncementEvent
-} from "./InPlayerNotificationsManager";
-import { AnswerOnAirIcon } from "./components/answer-on-air-icon";
+    KitchenSinkEventTypes,
+    KitchenSinkMessages,
+    KitchenSinkMessagesOptions,
+    MessagesUpdatedEvent
+} from "./kitchenSinkMessages";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
+const DefaultBannerDuration: number = 60 * 1000;
+const MinBannerDuration: number = 5 * 1000;
 
 const logger = getContribLogger({
     class: "QnaPlugin",
     module: "qna-plugin"
 });
 
-interface SubmitRequestParams {
-    requests: KalturaRequest<any>[];
-    missingProfileId: boolean;
-    requestIndexCorrection: number;
-}
-
 export class QnaPlugin extends PlayerContribPlugin
     implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     static defaultConfig = {
+        bannerDuration: DefaultBannerDuration,
         dateFormat: "dd/mm/yyyy"
     };
 
-    private _kalturaClient = new KalturaClient();
-
-    private _qnaPushNotificationManager: QnAPushNotificationManager | null = null;
-
-    private _threadManager: ThreadManager = new ThreadManager();
-    private _inPlayerNotificationsManager: InPlayerNotificationsManager = new InPlayerNotificationsManager();
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
     private _loading: boolean = true;
-    private _metadataProfileId: number | null = null;
+    private _qnaPushNotification: QnaPushNotification;
+    private _aoaAdapter: AoaAdapter;
+    private _announcementAdapter: AnnouncementsAdapter;
+    private _chatMessagesAdapter: ChatMessagesAdapter;
+    private _kitchenSinkMessages: KitchenSinkMessages;
 
     public static readonly LOADING_TIME_END = 3000;
 
+    constructor(...args: any) {
+        //padding args to player core via PlayerContribPlugin
+        // @ts-ignore
+        super(...args);
+        //adapters
+        this._qnaPushNotification = new QnaPushNotification();
+        this._kitchenSinkMessages = new KitchenSinkMessages({
+            kitchenSinkManager: this.uiManager.kitchenSink
+        } as KitchenSinkMessagesOptions);
+        this._aoaAdapter = new AoaAdapter({
+            kitchenSinkMessages: this._kitchenSinkMessages,
+            qnaPushNotification: this._qnaPushNotification,
+            bannerManager: this.uiManager.banner,
+            playerApi: {
+                kalturaPlayer: this.player,
+                eventManager: this.eventManager
+            }
+        } as AoaAdapterOptions);
+        this._announcementAdapter = new AnnouncementsAdapter({
+            kitchenSinkMessages: this._kitchenSinkMessages,
+            qnaPushNotification: this._qnaPushNotification
+        });
+        this._chatMessagesAdapter = new ChatMessagesAdapter({
+            kitchenSinkMessages: this._kitchenSinkMessages,
+            qnaPushNotification: this._qnaPushNotification
+        });
+        //listeners
+        this._constructPluginListener();
+    }
+
     onPluginSetup(config: ContribConfig): void {
-        this._kalturaClient.setOptions({
-            clientTag: "playkit-js-qna",
-            endpointUrl: config.server.serviceUrl
-        });
-
-        this._kalturaClient.setDefaultRequestOptions({
-            ks: config.server.ks
-        });
-
         this._initPluginManagers();
     }
 
@@ -101,15 +97,10 @@ export class QnaPlugin extends PlayerContribPlugin
         const { server }: ContribConfig = this.getContribConfig();
         this._loading = true;
         this._hasError = false;
-        this._metadataProfileId = null;
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
-        if (this._qnaPushNotificationManager) {
-            this._qnaPushNotificationManager.registerToPushServer(
-                config.entryId,
-                server.userId || ""
-            );
-        }
+        this._qnaPushNotification.registerToPushServer(config.entryId, server.userId || "");
+        this._chatMessagesAdapter.onMediaLoad(server.userId || "", this.entryId);
     }
 
     onMediaUnload(): void {
@@ -117,11 +108,10 @@ export class QnaPlugin extends PlayerContribPlugin
         this._loading = true;
         this._threads = [];
         //reset managers
-        if (this._qnaPushNotificationManager) {
-            this._qnaPushNotificationManager.reset();
-        }
-        this._threadManager.reset();
-        this._inPlayerNotificationsManager.reset();
+        this._qnaPushNotification.reset();
+        this._aoaAdapter.reset();
+        this._kitchenSinkMessages.reset();
+        this._chatMessagesAdapter.reset();
     }
 
     //todo [sakal] add onPluginDestroy
@@ -130,57 +120,56 @@ export class QnaPlugin extends PlayerContribPlugin
         this._loading = true;
         this._threads = [];
         //destroy managers
-        if (this._qnaPushNotificationManager) {
-            this._qnaPushNotificationManager.destroy();
-        }
-        this._threadManager.destroy(this._qnaPushNotificationManager);
-        this._threadManager.off(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
-        this._inPlayerNotificationsManager.destroy(this._qnaPushNotificationManager);
-        this._inPlayerNotificationsManager.off(
-            InPlayerNotificationsEventTypes.ShowAnnouncement,
-            this._onInPlayerNotificationShow
+        this._qnaPushNotification.off(
+            PushNotificationEventTypes.PushNotificationsError,
+            this._onQnaError
         );
-        this._inPlayerNotificationsManager.off(
-            InPlayerNotificationsEventTypes.HideAnnouncement,
-            this._onInPlayerNotificationHide
+        this._qnaPushNotification.destroy();
+        this._aoaAdapter.destroy();
+        this._announcementAdapter.destroy();
+        this._chatMessagesAdapter.destroy();
+        this._kitchenSinkMessages.destroy();
+        //remove listeners
+        this._kitchenSinkMessages.off(
+            KitchenSinkEventTypes.MessagesUpdatedEvent,
+            this._onQnaMessage
+        );
+    }
+
+    private _constructPluginListener(): void {
+        this._qnaPushNotification.on(
+            PushNotificationEventTypes.PushNotificationsError,
+            this._onQnaError
+        );
+        //register to kitchenSink updated qnaMessages array
+        this._kitchenSinkMessages.on(
+            KitchenSinkEventTypes.MessagesUpdatedEvent,
+            this._onQnaMessage
         );
     }
 
     private _initPluginManagers(): void {
         const { server }: ContribConfig = this.getContribConfig();
-
+        let bannerDuration =
+            this.config.bannerDuration && this.config.bannerDuration >= MinBannerDuration
+                ? this.config.bannerDuration
+                : DefaultBannerDuration;
         // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
-        this._qnaPushNotificationManager = QnAPushNotificationManager.getInstance({
-            ks: server.ks,
-            serviceUrl: server.serviceUrl,
-            clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
-            playerAPI: {
-                kalturaPlayer: this.player,
-                eventManager: this.eventManager
-            }
+        this._qnaPushNotification.init({
+            pushServerOptions: {
+                ks: server.ks,
+                serviceUrl: server.serviceUrl,
+                clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
+                playerAPI: {
+                    kalturaPlayer: this.player,
+                    eventManager: this.eventManager
+                }
+            },
+            delayedEndTime: bannerDuration
         });
-
-        this._qnaPushNotificationManager.on(
-            PushNotificationEventTypes.PushNotificationsError,
-            this._onQnaError
-        );
-
-        this._threadManager.init(this._qnaPushNotificationManager);
-        this._inPlayerNotificationsManager.init(this._qnaPushNotificationManager, {
-            kalturaPlayer: this.player,
-            eventManager: this.eventManager
-        });
-
-        this._threadManager.on(ThreadManagerEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
-        this._inPlayerNotificationsManager.on(
-            InPlayerNotificationsEventTypes.ShowAnnouncement,
-            this._onInPlayerNotificationShow
-        );
-        this._inPlayerNotificationsManager.on(
-            InPlayerNotificationsEventTypes.HideAnnouncement,
-            this._onInPlayerNotificationHide
-        );
-
+        this._aoaAdapter.init();
+        this._announcementAdapter.init();
+        this._chatMessagesAdapter.init(this.getContribConfig());
         this._delayedGiveUpLoading();
     }
 
@@ -210,20 +199,6 @@ export class QnaPlugin extends PlayerContribPlugin
         this._updateKitchenSink();
     };
 
-    private _onInPlayerNotificationShow = ({ message }: ShowAnnouncementEvent) => {
-        this.uiManager.announcement.add({
-            content: {
-                title: message.type === QnaMessageType.AnswerOnAir ? "Audience asks:" : undefined,
-                icon: message.type === QnaMessageType.AnswerOnAir ? <AnswerOnAirIcon /> : undefined,
-                text: message.messageContent ? message.messageContent : ""
-            }
-        });
-    };
-
-    private _onInPlayerNotificationHide = (event: HideAnnouncementEvent) => {
-        this.uiManager.announcement.remove();
-    };
-
     onRegisterUI(uiManager: UIManager): void {
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
@@ -235,7 +210,7 @@ export class QnaPlugin extends PlayerContribPlugin
     }
 
     _renderKitchenSinkContent = (props: KitchenSinkContentRendererProps) => {
-        if (!this._threadManager) {
+        if (!this._kitchenSinkMessages) {
             return <div />;
         }
 
@@ -246,180 +221,10 @@ export class QnaPlugin extends PlayerContribPlugin
                 threads={this._threads}
                 hasError={this._hasError}
                 loading={this._loading}
-                onSubmit={this._submitQuestion}
+                onSubmit={this._chatMessagesAdapter.submitQuestion}
             />
         );
     };
-
-    private _prepareSubmitRequest(question: string, thread?: QnaMessage): SubmitRequestParams {
-        const requests: KalturaRequest<any>[] = [];
-        const missingProfileId = !this._metadataProfileId;
-        const requestIndexCorrection = missingProfileId ? 1 : 0;
-        const contribConfig: ContribConfig = this.getContribConfig();
-
-        /*
-            1 - Conditional: Prepare get meta data profile request
-         */
-        if (missingProfileId) {
-            const metadataProfileListAction = new MetadataProfileListAction({
-                filter: new KalturaMetadataProfileFilter({
-                    systemNameEqual: "Kaltura-QnA"
-                })
-            });
-
-            requests.push(metadataProfileListAction);
-        }
-
-        /*
-            2 - Prepare to add annotation cuePoint request
-         */
-        const kalturaAnnotationArgs: KalturaAnnotationArgs = {
-            entryId: this.entryId,
-            startTime: Date.now(), // TODO get server/player time
-            text: question,
-            isPublic: 1, // TODO verify with backend team
-            searchableOnEntry: 0
-        };
-
-        if (thread) {
-            const parentId = thread.replies.length
-                ? thread.replies[thread.replies.length - 1].id
-                : thread.id;
-            kalturaAnnotationArgs.parentId = parentId;
-        }
-
-        const addAnnotationCuePointRequest = new CuePointAddAction({
-            cuePoint: new KalturaAnnotation(kalturaAnnotationArgs)
-        });
-
-        /*
-            3 - Prepare to add metadata
-         */
-        const metadata: Record<string, string> = {};
-
-        if (thread) {
-            metadata.ThreadId = thread.id;
-        }
-
-        metadata.Type = QnaMessageType.Question;
-        metadata.ThreadCreatorId = contribConfig.server.userId!; // TODO temp solutions for userId need to handle anonymous user id
-
-        const xmlData = Utils.createXmlFromObject(metadata);
-
-        const addMetadataRequest = new MetadataAddAction({
-            metadataProfileId: this._metadataProfileId ? this._metadataProfileId : 0,
-            objectType: KalturaMetadataObjectType.annotation,
-            objectId: "",
-            xmlData: xmlData
-        }).setDependency(["objectId", 0 + requestIndexCorrection, "id"]);
-
-        if (missingProfileId) {
-            addMetadataRequest.setDependency(["metadataProfileId", 0, "objects:0:id"]);
-        }
-
-        /*
-            4 - Prepare to update cuePoint with Tags
-         */
-        const updateCuePointAction = new CuePointUpdateAction({
-            id: "",
-            cuePoint: new KalturaAnnotation({
-                tags: "qna"
-            })
-        }).setDependency(["id", 0 + requestIndexCorrection, "id"]);
-
-        // Prepare the multi request
-        requests.push(...[addAnnotationCuePointRequest, addMetadataRequest, updateCuePointAction]);
-
-        const submitRequestParams: SubmitRequestParams = {
-            requests,
-            missingProfileId,
-            requestIndexCorrection
-        };
-
-        return submitRequestParams;
-    }
-
-    private _submitQuestion = async (question: string, thread?: QnaMessage) => {
-        const { requests, missingProfileId, requestIndexCorrection } = this._prepareSubmitRequest(
-            question,
-            thread
-        );
-
-        const multiRequest = new KalturaMultiRequest(...requests);
-
-        try {
-            let responses: KalturaMultiResponse | null = await this._kalturaClient.multiRequest(
-                multiRequest
-            );
-
-            if (!responses) {
-                logger.error("no response", {
-                    method: "_submitQuestion",
-                    data: {
-                        responses
-                    }
-                });
-                throw new Error("no response");
-            }
-
-            if (responses.hasErrors() || !responses.length) {
-                const firstError = responses.getFirstError();
-                logger.error("Add cue point multi-request failed", {
-                    method: "_submitQuestion",
-                    data: {
-                        firstError
-                    }
-                });
-                throw new Error("Add cue point multi-request failed");
-            }
-
-            if (missingProfileId) {
-                this._metadataProfileId = responses[0].result.objects[0].id;
-            }
-
-            const index = 0 + requestIndexCorrection;
-            const hasCuePoint = responses.length > index + 1;
-
-            if (!hasCuePoint) {
-                throw new Error(
-                    "Add cue-point multi-request error: There is no cue-point object added"
-                );
-            }
-
-            const cuePoint = responses[index].result;
-
-            if (!cuePoint || !(cuePoint instanceof KalturaAnnotation)) {
-                throw new Error(
-                    "Add cue-point multi-request error: There is no KalturaAnnotation cue-point object added"
-                );
-            }
-
-            if (this.entryId !== cuePoint.entryId) {
-                // drop this cuePoint as it doesn't belong to this entryId
-                logger.info("dropping cuePoint as it it doesn't belong to this entryId", {
-                    method: "_submitQuestion",
-                    data: {
-                        entryId: cuePoint.entryId,
-                        cuePointEntryId: cuePoint.entryId
-                    }
-                });
-            }
-
-            if (this._threadManager) {
-                this._threadManager.addPendingCuePointToThread(cuePoint, thread && thread.id);
-            }
-        } catch (err) {
-            // TODO handle Error then submitting a question
-            logger.error("Failed to submit new question", {
-                method: "_submitQuestion",
-                data: {
-                    err
-                }
-            });
-        }
-    };
-
-    // Todo need to add onDestroyPlugin lifecycle method
 }
 
 KalturaPlayer.core.registerPlugin(pluginName, QnaPlugin);

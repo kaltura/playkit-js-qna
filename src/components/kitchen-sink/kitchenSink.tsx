@@ -1,6 +1,6 @@
 import { h, Component } from "preact";
 import * as styles from "./kitchenSink.scss";
-import { QnaMessage, QnaMessageType } from "../../QnaMessage";
+import { QnaMessage, QnaMessageType } from "../../qnaMessage";
 import { Thread } from "../thread";
 import { Spinner } from "../spinner";
 import { AutoExpandTextArea } from "../auto-expand-text-area";

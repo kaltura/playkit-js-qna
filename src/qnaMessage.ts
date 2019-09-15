@@ -1,7 +1,6 @@
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
 import { Utils } from "./utils";
-import { MessageType } from "awesome-typescript-loader/dist/checker/protocol";
 
 export enum QnaMessageType {
     Question = "Question",
@@ -79,11 +78,11 @@ export class QnaMessage {
         }
     }
 
-    public static createPendingMessage(cuePoint: KalturaAnnotation) {
+    public static createPendingMessage(cuePoint: KalturaAnnotation, threadId?: string) {
         const qnaMessageParams: QnaMessageParams = {
             metadataInfo: {
                 type: QnaMessageType.Question,
-                parentId: null,
+                parentId: threadId ? threadId : null,
                 state: MessageState.Pending
             },
             id: cuePoint.id,
