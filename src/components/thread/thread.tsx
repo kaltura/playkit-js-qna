@@ -1,7 +1,6 @@
 import { h, Component } from "preact";
 import * as styles from "./thread.scss";
-import { QnaMessage, QnaMessageType } from "../../QnaMessage";
-import { DateTimeFormatting } from "../kitchen-sink";
+import { QnaMessage, QnaMessageType } from "../../qnaMessage";
 import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
 import { TrimmedText } from "../trimmed-text";
@@ -10,7 +9,7 @@ import { AnsweredOnAirIcon } from "../answered-on-air-icon";
 
 interface ThreadProps {
     thread: QnaMessage;
-    formatting: DateTimeFormatting;
+    dateFormat: string;
     onReply: (text: string, thread?: QnaMessage) => void;
 }
 
@@ -18,6 +17,8 @@ interface ThreadState {
     isThreadOpen: boolean;
     showInputText: boolean;
 }
+
+const AutoReplyTag = "aoa_auto_reply";
 
 export class Thread extends Component<ThreadProps, ThreadState> {
     static defaultProps = {
@@ -43,12 +44,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     };
 
     private _isAOAAutoReply(reply: QnaMessage) {
-        //todo [sa] uncomment next line and remove the one after
-        //return reply.tags.indexOf(aoa_auto_reply) > -1;
-        if (reply.messageContent) {
-            return reply.messageContent.indexOf("on-air") > -1;
-        }
-        return false;
+        return reply.tags.indexOf(AutoReplyTag) > -1;
     }
 
     private _willBeAnsweredOnAir(replies: QnaMessage[]): boolean {
@@ -60,7 +56,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     }
 
     render() {
-        const { thread, formatting } = this.props;
+        const { thread, dateFormat } = this.props;
         const { replies } = thread;
         const { isThreadOpen, showInputText } = this.state;
 
@@ -76,6 +72,11 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                     <TrimmedText maxLength={120} text={thread.messageContent} />
                 </div>
                 <div className={styles.secondInfoLine}>
+                    <TimeDisplay
+                        className={styles.threadTime}
+                        time={thread.time}
+                        dateFormat={dateFormat}
+                    />
                     {/*    Show Number of Replies/Show Less button and thread time  */
                     replies.length > 0 && (
                         <button
@@ -96,11 +97,6 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                             </span>
                         </button>
                     )}
-                    <TimeDisplay
-                        className={styles.threadTime}
-                        time={thread.time}
-                        formatting={formatting}
-                    />
                 </div>
 
                 {/*    Replies Collapsed area  */
@@ -115,7 +111,11 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                     })}
                                 >
                                     <div>
-                                        <div className={styles.reply}>
+                                        <div
+                                            className={classNames(styles.reply, {
+                                                [styles.autoReplay]: this._isAOAAutoReply(reply)
+                                            })}
+                                        >
                                             {reply.type === QnaMessageType.Answer && (
                                                 <div className={styles.username}>
                                                     {reply.userId}
@@ -132,7 +132,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                             <TimeDisplay
                                                 className={styles.threadTime}
                                                 time={reply.time}
-                                                formatting={formatting}
+                                                dateFormat={dateFormat}
                                             />
                                         </div>
                                     </div>
