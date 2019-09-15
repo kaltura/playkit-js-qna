@@ -112,24 +112,24 @@ export class Utils {
      */
     public static threadTimeCompare(qnaMessage: QnaMessage): number {
         if (qnaMessage.type === QnaMessageType.Announcement) {
-            return qnaMessage.time.valueOf();
+            return qnaMessage.createdAt.valueOf();
         }
 
         let q_time, a_time;
 
         if (qnaMessage.type === QnaMessageType.Answer) {
-            a_time = qnaMessage.time.valueOf();
+            a_time = qnaMessage.createdAt.valueOf();
         }
 
         if (qnaMessage.type === QnaMessageType.Question) {
-            q_time = qnaMessage.time.valueOf();
+            q_time = qnaMessage.createdAt.valueOf();
         }
 
         for (let i = 0; i < qnaMessage.replies.length; ++i) {
             let reply: QnaMessage = qnaMessage.replies[i];
             if (reply.type === QnaMessageType.Announcement) {
-                if (!a_time) a_time = reply.time.valueOf();
-                else if (reply.time.valueOf() > a_time) a_time = reply.time.valueOf();
+                if (!a_time) a_time = reply.createdAt.valueOf();
+                else if (reply.createdAt.valueOf() > a_time) a_time = reply.createdAt.valueOf();
             }
         }
 

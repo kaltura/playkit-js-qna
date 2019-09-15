@@ -96,8 +96,8 @@ export class AoaAdapter {
                 (qnaMessage: QnaMessage): AoAMessage => {
                     return <AoAMessage>{
                         id: qnaMessage.id,
-                        startTime: qnaMessage.time.getTime(),
-                        endTime: qnaMessage.time.getTime() + this._delayedEndTime,
+                        startTime: qnaMessage.createdAt.getTime(),
+                        endTime: qnaMessage.createdAt.getTime() + this._delayedEndTime,
                         updated: false,
                         qnaMessage
                     };
