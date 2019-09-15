@@ -5,13 +5,18 @@ import {
     PushNotifications,
     PushNotificationsOptions
 } from "@playkit-js-contrib/push-notifications";
-import { QnaMessage, QnaMessageType } from "./QnaMessage";
+import { QnaMessage, QnaMessageType } from "./qnaMessage";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 
 export enum PushNotificationEventTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
     UserNotifications = "USER_QNA_NOTIFICATIONS",
     PushNotificationsError = "PUSH_NOTIFICATIONS_ERROR"
+}
+
+export interface QnAPushNotificationOptions {
+    pushServerOptions: PushNotificationsOptions;
+    delayedEndTime?: number;
 }
 
 export interface UserQnaNotificationsEvent {
@@ -32,17 +37,15 @@ export interface QnaNotificationsErrorEvent {
 type Events = UserQnaNotificationsEvent | PublicQnaNotificationsEvent | QnaNotificationsErrorEvent;
 
 const logger = getContribLogger({
-    class: "QnAPushNotificationManager",
+    class: "qnaPushNotification",
     module: "qna-plugin"
 });
-
-const PublicNotificationsEndTimeDelay: number = 60 * 1000;
 
 /**
  * handles push notification registration and results.
  */
-export class QnAPushNotificationManager {
-    private static _instance: QnAPushNotificationManager | null = null;
+export class QnaPushNotification {
+    private _delayedEndTime: number = 60 * 1000;
 
     private _pushServerInstance: PushNotifications | null = null;
 
@@ -50,22 +53,17 @@ export class QnAPushNotificationManager {
 
     private _events: EventsManager<Events> = new EventsManager<Events>();
 
-    private constructor(options: PushNotificationsOptions) {
-        this._pushServerInstance = PushNotifications.getInstance(options);
-    }
+    private _initialized = false;
 
     on: EventsManager<Events>["on"] = this._events.on.bind(this._events);
     off: EventsManager<Events>["off"] = this._events.off.bind(this._events);
 
-    /**
-     * should be called once on pluginSetup
-     * @param options
-     */
-    public static getInstance(options: PushNotificationsOptions) {
-        if (!QnAPushNotificationManager._instance) {
-            QnAPushNotificationManager._instance = new QnAPushNotificationManager(options);
-        }
-        return QnAPushNotificationManager._instance;
+    public init({ pushServerOptions, delayedEndTime }: QnAPushNotificationOptions) {
+        if (this._initialized) return;
+
+        this._initialized = true;
+        this._pushServerInstance = PushNotifications.getInstance(pushServerOptions);
+        this._delayedEndTime = delayedEndTime || this._delayedEndTime;
     }
 
     /**
@@ -188,7 +186,7 @@ export class QnAPushNotificationManager {
                         qnaMessage.type === QnaMessageType.Announcement ||
                         qnaMessage.type === QnaMessageType.AnswerOnAir
                     )
-                        qnaMessage.endTime = qnaMessage.startTime + PublicNotificationsEndTimeDelay;
+                        qnaMessage.endTime = qnaMessage.startTime + this._delayedEndTime;
                     qnaMessages.push(qnaMessage);
                 }
             }
