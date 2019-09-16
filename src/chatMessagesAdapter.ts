@@ -269,6 +269,16 @@ export class ChatMessagesAdapter {
             } else if (qnaMessage.parentId) {
                 this._kitchenSinkMessages.addOrUpdateReply(qnaMessage.parentId, qnaMessage);
             }
+            this._setWillBeAnsweredOnAir(qnaMessage.parentId || qnaMessage.id);
         });
     };
+
+    private _setWillBeAnsweredOnAir(messageId: string): void {
+        let qnaMessage = this._kitchenSinkMessages.getMessageById(messageId);
+        if (!qnaMessage) return;
+        let aoaReplyIndex = (qnaMessage.replies || []).findIndex((reply: QnaMessage) => {
+            return reply.isAoAAutoReply;
+        });
+        qnaMessage.willBeAnsweredOnAir = aoaReplyIndex > -1;
+    }
 }

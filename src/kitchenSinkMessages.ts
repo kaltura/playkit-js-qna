@@ -123,6 +123,12 @@ export class KitchenSinkMessages {
         });
     }
 
+    public getMessageById(id: string): QnaMessage | undefined {
+        return this._qnaMessages.find(qnaMessage => {
+            return qnaMessage.id === id;
+        });
+    }
+
     private _sortMessages(): void {
         this._qnaMessages.sort((a: QnaMessage, b: QnaMessage) => {
             return Utils.threadTimeCompare(a) - Utils.threadTimeCompare(b);

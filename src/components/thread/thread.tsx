@@ -18,8 +18,6 @@ interface ThreadState {
     showInputText: boolean;
 }
 
-const AutoReplyTag = "aoa_auto_reply";
-
 export class Thread extends Component<ThreadProps, ThreadState> {
     static defaultProps = {
         onReply: (text: string, parentId?: string) => {}
@@ -43,18 +41,6 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         this.props.onReply(text, this.props.thread);
     };
 
-    private _isAOAAutoReply(reply: QnaMessage) {
-        return reply.tags.indexOf(AutoReplyTag) > -1;
-    }
-
-    private _willBeAnsweredOnAir(replies: QnaMessage[]): boolean {
-        return (
-            (replies || []).findIndex((reply: QnaMessage) => {
-                return this._isAOAAutoReply(reply);
-            }) > -1
-        );
-    }
-
     render() {
         const { thread, dateFormat } = this.props;
         const { replies } = thread;
@@ -63,7 +49,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         return (
             <div className={styles.thread}>
                 {/* if this master question will be answered on air - add an icon */
-                this._willBeAnsweredOnAir(replies) && (
+                thread.willBeAnsweredOnAir && (
                     <div className={styles.aoaIconContainer}>
                         <AnsweredOnAirIcon />
                     </div>
@@ -113,7 +99,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                     <div>
                                         <div
                                             className={classNames(styles.reply, {
-                                                [styles.autoReplay]: this._isAOAAutoReply(reply)
+                                                [styles.autoReplay]: reply.isAoAAutoReply
                                             })}
                                         >
                                             {reply.type === QnaMessageType.Answer && (

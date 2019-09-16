@@ -36,6 +36,8 @@ export interface QnaMessageParams {
     tags: string[];
 }
 
+const AOAAutoReplyTag = "aoa_auto_reply";
+
 export class QnaMessage {
     public id: string;
     public createdAt: Date;
@@ -47,6 +49,8 @@ export class QnaMessage {
     public deliveryStatus: MessageStatusEnum | null = null;
     public userId: string | null = null;
     public tags: string[] = [];
+    public isAoAAutoReply: boolean = false;
+    public willBeAnsweredOnAir: boolean = false;
 
     public static create(cuePoint: KalturaAnnotation): QnaMessage | null {
         try {
@@ -104,6 +108,7 @@ export class QnaMessage {
         this.state = qnaMessageParams.metadataInfo.state;
         this.replies = [];
         this.tags = qnaMessageParams.tags;
+        this.isAoAAutoReply = this.tags.indexOf(AOAAutoReplyTag) > -1;
     }
 
     private static getMetadata(cuePoint: KalturaAnnotation): MetadataInfo {
