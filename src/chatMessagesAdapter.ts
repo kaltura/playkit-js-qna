@@ -13,16 +13,16 @@ import {
     KalturaRequest
 } from "kaltura-typescript-client";
 import { ContribConfig } from "@playkit-js-contrib/plugin";
+import { CuePointAddAction } from "kaltura-typescript-client/api/types/CuePointAddAction";
+import { CuePointUpdateAction } from "kaltura-typescript-client/api/types/CuePointUpdateAction";
 import {
-    CuePointAddAction,
-    CuePointUpdateAction,
     KalturaAnnotation,
-    KalturaAnnotationArgs,
-    KalturaMetadataObjectType,
-    KalturaMetadataProfileFilter,
-    MetadataAddAction,
-    MetadataProfileListAction
-} from "kaltura-typescript-client/api/types";
+    KalturaAnnotationArgs
+} from "kaltura-typescript-client/api/types/KalturaAnnotation";
+import { KalturaMetadataObjectType } from "kaltura-typescript-client/api/types/KalturaMetadataObjectType";
+import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/types/KalturaMetadataProfileFilter";
+import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataAddAction";
+import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { Utils } from "./utils";
 
 export interface ChatMessagesAdapterOptions {
