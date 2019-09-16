@@ -131,7 +131,7 @@ export class KitchenSinkMessages {
 
     private _sortReplies(replies: QnaMessage[]) {
         replies.sort((a: QnaMessage, b: QnaMessage) => {
-            return a.time.valueOf() - b.time.valueOf();
+            return a.createdAt.valueOf() - b.createdAt.valueOf();
         });
     }
 }

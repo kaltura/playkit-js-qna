@@ -63,11 +63,15 @@ export class QnaPlugin extends PlayerContribPlugin
         //padding args to player core via PlayerContribPlugin
         // @ts-ignore
         super(...args);
+        let bannerDuration =
+            this.config.bannerDuration && this.config.bannerDuration >= MinBannerDuration
+                ? this.config.bannerDuration
+                : DefaultBannerDuration;
         //adapters
         this._qnaPushNotification = new QnaPushNotification();
         this._kitchenSinkMessages = new KitchenSinkMessages({
             kitchenSinkManager: this.uiManager.kitchenSink
-        } as KitchenSinkMessagesOptions);
+        });
         this._aoaAdapter = new AoaAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
@@ -75,8 +79,9 @@ export class QnaPlugin extends PlayerContribPlugin
             playerApi: {
                 kalturaPlayer: this.player,
                 eventManager: this.eventManager
-            }
-        } as AoaAdapterOptions);
+            },
+            delayedEndTime: bannerDuration
+        });
         this._announcementAdapter = new AnnouncementsAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification
@@ -150,22 +155,15 @@ export class QnaPlugin extends PlayerContribPlugin
 
     private _initPluginManagers(): void {
         const { server }: ContribConfig = this.getContribConfig();
-        let bannerDuration =
-            this.config.bannerDuration && this.config.bannerDuration >= MinBannerDuration
-                ? this.config.bannerDuration
-                : DefaultBannerDuration;
         // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
         this._qnaPushNotification.init({
-            pushServerOptions: {
-                ks: server.ks,
-                serviceUrl: server.serviceUrl,
-                clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
-                playerAPI: {
-                    kalturaPlayer: this.player,
-                    eventManager: this.eventManager
-                }
-            },
-            delayedEndTime: bannerDuration
+            ks: server.ks,
+            serviceUrl: server.serviceUrl,
+            clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
+            playerAPI: {
+                kalturaPlayer: this.player,
+                eventManager: this.eventManager
+            }
         });
         this._aoaAdapter.init();
         this._announcementAdapter.init();

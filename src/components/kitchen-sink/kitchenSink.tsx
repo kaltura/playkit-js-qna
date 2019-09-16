@@ -1,4 +1,4 @@
-import { h, Component } from "preact";
+import { Component, h } from "preact";
 import * as styles from "./kitchenSink.scss";
 import { QnaMessage, QnaMessageType } from "../../qnaMessage";
 import { Thread } from "../thread";
@@ -59,7 +59,10 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
             );
         } else {
             return props.threads.map((qnaMessage: QnaMessage) => {
-                if (qnaMessage.type === QnaMessageType.Announcement) {
+                if (
+                    qnaMessage.type === QnaMessageType.Announcement ||
+                    qnaMessage.type === QnaMessageType.AnswerOnAir
+                ) {
                     return (
                         <Notification
                             qnaMessage={qnaMessage}

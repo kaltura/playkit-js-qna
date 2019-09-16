@@ -74,7 +74,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                 <div className={styles.secondInfoLine}>
                     <TimeDisplay
                         className={styles.threadTime}
-                        time={thread.time}
+                        time={thread.createdAt}
                         dateFormat={dateFormat}
                     />
                     {/*    Show Number of Replies/Show Less button and thread time  */
@@ -131,7 +131,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                         <div>
                                             <TimeDisplay
                                                 className={styles.threadTime}
-                                                time={reply.time}
+                                                time={reply.createdAt}
                                                 dateFormat={dateFormat}
                                             />
                                         </div>

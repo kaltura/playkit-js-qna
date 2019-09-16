@@ -32,15 +32,13 @@ export interface MetadataInfo {
 export interface QnaMessageParams {
     metadataInfo: MetadataInfo;
     id: string;
-    time: Date;
+    createdAt: Date;
     tags: string[];
 }
 
 export class QnaMessage {
     public id: string;
-    public time: Date;
-    public startTime: number;
-    public endTime?: number;
+    public createdAt: Date;
     public messageContent: string | null = null;
     public type: QnaMessageType;
     public state: MessageState;
@@ -56,7 +54,7 @@ export class QnaMessage {
             const qnaMessageParams: QnaMessageParams = {
                 metadataInfo: this.getMetadata(cuePoint),
                 id: cuePoint.id,
-                time: cuePoint.createdAt,
+                createdAt: cuePoint.createdAt,
                 tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
             };
 
@@ -86,7 +84,7 @@ export class QnaMessage {
                 state: MessageState.Pending
             },
             id: cuePoint.id,
-            time: cuePoint.createdAt,
+            createdAt: cuePoint.createdAt,
             tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
         };
 
@@ -100,8 +98,7 @@ export class QnaMessage {
 
     constructor(qnaMessageParams: QnaMessageParams) {
         this.id = qnaMessageParams.id;
-        this.time = qnaMessageParams.time;
-        this.startTime = this.time.getTime();
+        this.createdAt = qnaMessageParams.createdAt;
         this.parentId = qnaMessageParams.metadataInfo.parentId;
         this.type = qnaMessageParams.metadataInfo.type;
         this.state = qnaMessageParams.metadataInfo.state;
