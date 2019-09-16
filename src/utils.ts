@@ -110,8 +110,12 @@ export class Utils {
     /**
      * Take the time of the newest QnaMessage
      */
+    //todo [am] refactor this method
     public static threadTimeCompare(qnaMessage: QnaMessage): number {
-        if (qnaMessage.type === QnaMessageType.Announcement) {
+        if (
+            qnaMessage.type === QnaMessageType.Announcement ||
+            qnaMessage.type === QnaMessageType.AnswerOnAir
+        ) {
             return qnaMessage.createdAt.valueOf();
         }
 

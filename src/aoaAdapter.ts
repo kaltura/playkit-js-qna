@@ -49,6 +49,8 @@ export class AoaAdapter {
     private _lastId3Timestamp: number | null = null;
 
     private _initialize = false;
+    // messages that might need to be displayed in the kitchenSink are waiting for ID3 timestamp initial value
+    private _pendingKSMessages: AoAMessage[] = [];
 
     constructor(options: AoaAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
@@ -94,7 +96,7 @@ export class AoaAdapter {
             })
             .map(
                 (qnaMessage: QnaMessage): AoAMessage => {
-                    return <AoAMessage>{
+                    return {
                         id: qnaMessage.id,
                         startTime: qnaMessage.createdAt.getTime(),
                         endTime: qnaMessage.createdAt.getTime() + this._delayedEndTime,
@@ -103,6 +105,19 @@ export class AoaAdapter {
                     };
                 }
             );
+
+        // The KitchenSink should displays all AOA messages that were already displayed in the player's banner.
+        // since the player can be loaded in the middle of a live stream / DVR, there might be some AOA messages
+        // that were already passed their startTime and were already displayed in the player's banner.
+        // Since these messages won't be handled by the CP engine (already removed), there is a need to handle them
+        // outside of the CP engine.
+        // also, since the registration to the push manager is done immediately and The player ID3 event can
+        // be triggered only in a later time, there is a need to save them until ID3 tag will be triggered.
+        this._pendingKSMessages = this._pendingKSMessages
+            .concat(notifications)
+            .filter((obj: AoAMessage, pos, arr) => {
+                return arr.map(mapObj => mapObj.id).indexOf(obj.id) === pos;
+            });
         this._createCuePointEngine(notifications);
     };
 
@@ -262,6 +277,7 @@ export class AoaAdapter {
                         method: "_onTimedMetadataLoaded"
                     }
                 );
+                this._handlePendingKSMessages();
                 this._triggerAndHandleCuepointsData();
             } catch (e) {
                 logger.debug("failed retrieving id3 tag metadata", {
@@ -271,6 +287,22 @@ export class AoaAdapter {
             }
         }
     };
+
+    private _handlePendingKSMessages() {
+        while (this._pendingKSMessages.length > 0) {
+            let aoaMessage = this._pendingKSMessages.shift();
+            // add to KS an AOA message which its' startTime is earlier than current video ID3 timestamp
+            // and might not be returned by the CP engine.
+            // No need to check for duplication - updated flag / addOrUpdate method handles it.
+            if (
+                aoaMessage &&
+                this._lastId3Timestamp &&
+                aoaMessage.startTime <= this._lastId3Timestamp
+            ) {
+                this._addToKitchenSink(aoaMessage);
+            }
+        }
+    }
 
     private _getMostRecentMessage(messages: AoAMessage[]): AoAMessage | null {
         let sortedLastFirst = messages.sort((a: AoAMessage, b: AoAMessage) => {
