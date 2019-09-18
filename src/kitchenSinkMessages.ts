@@ -2,6 +2,7 @@ import { QnaMessage } from "./qnaMessage";
 import { Utils } from "./utils";
 import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 import { KitchenSinkManager } from "@playkit-js-contrib/ui";
+import { AoAMessage } from "./aoaAdapter";
 
 export enum KitchenSinkEventTypes {
     MessagesUpdatedEvent = "MessagesUpdatedEvent"
@@ -59,8 +60,12 @@ export class KitchenSinkMessages {
         if (existingIndex === -1) {
             this._qnaMessages.push(newMessage);
         } else {
-            newMessage.replies = this._qnaMessages[existingIndex].replies; //getting current message replies
-            this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
+            const modifiedMessage: QnaMessage = {
+                ...this._qnaMessages[existingIndex],
+                messageContent: newMessage.messageContent,
+                willBeAnsweredOnAir: newMessage.willBeAnsweredOnAir
+            };
+            this._qnaMessages.splice(existingIndex, 1, modifiedMessage); // override to the new element
         }
         this._sortMessages();
 
@@ -123,7 +128,21 @@ export class KitchenSinkMessages {
         });
     }
 
-    public getMessageById(id: string): QnaMessage | undefined {
+    public updateMessageById(id: string, modifier: (message: QnaMessage) => QnaMessage): void {
+        const message = this._getMessageById(id);
+
+        if (!message) {
+            return;
+        }
+
+        const newMessage = modifier(message);
+
+        if (message !== newMessage) {
+            this.addOrUpdateMessage(newMessage);
+        }
+    }
+
+    private _getMessageById(id: string): QnaMessage | undefined {
         return this._qnaMessages.find(qnaMessage => {
             return qnaMessage.id === id;
         });

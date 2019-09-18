@@ -156,8 +156,4 @@ export class QnaMessage {
 
         return metadataInfo;
     }
-
-    isMasterQuestion(): boolean {
-        return this.parentId == null;
-    }
 }

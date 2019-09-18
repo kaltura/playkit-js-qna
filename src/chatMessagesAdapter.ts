@@ -264,21 +264,28 @@ export class ChatMessagesAdapter {
         //todo [am] handle pending
         //todo [sa] handle toasts
         qnaMessages.forEach((qnaMessage: QnaMessage) => {
-            if (qnaMessage.isMasterQuestion()) {
+            //is master question
+            if (qnaMessage.parentId === null) {
                 this._kitchenSinkMessages.addOrUpdateMessage(qnaMessage);
             } else if (qnaMessage.parentId) {
                 this._kitchenSinkMessages.addOrUpdateReply(qnaMessage.parentId, qnaMessage);
+                this._setWillBeAnsweredOnAir(qnaMessage.parentId);
             }
-            this._setWillBeAnsweredOnAir(qnaMessage.parentId || qnaMessage.id);
         });
     };
 
     private _setWillBeAnsweredOnAir(messageId: string): void {
-        let qnaMessage = this._kitchenSinkMessages.getMessageById(messageId);
-        if (!qnaMessage) return;
-        let aoaReplyIndex = (qnaMessage.replies || []).findIndex((reply: QnaMessage) => {
-            return reply.isAoAAutoReply;
+        this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
+            if (message.willBeAnsweredOnAir) {
+                return message;
+            }
+            let aoaReplyIndex = (message.replies || []).findIndex((reply: QnaMessage) => {
+                return reply.isAoAAutoReply;
+            });
+            if (aoaReplyIndex > -1) {
+                return { ...message, willBeAnsweredOnAir: true };
+            }
+            return message;
         });
-        qnaMessage.willBeAnsweredOnAir = aoaReplyIndex > -1;
     }
 }
