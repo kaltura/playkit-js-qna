@@ -50,7 +50,7 @@ export class AoaAdapter {
 
     private _initialize = false;
     // messages that will be displayed in the kitchenSink according to current ID3 timestamp
-    private _ksMessages: AoAMessage[] = [];
+    private _pendingKsMessages: AoAMessage[] = [];
 
     constructor(options: AoaAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
@@ -113,7 +113,7 @@ export class AoaAdapter {
         // outside of the CP engine.
         // also, since the registration to the push manager is done immediately and The player ID3 event can
         // be triggered only in a later time, there is a need to save them until ID3 tag will be triggered.
-        this._addKSMessages(aoaMessages);
+        this._addPendingKSMessages(aoaMessages);
         this._createCuePointEngine(aoaMessages);
     };
 
@@ -227,13 +227,6 @@ export class AoaAdapter {
         this._currentNotification = null;
     }
 
-    private _addToKitchenSink(aoaMessage: AoAMessage): void {
-        if (!aoaMessage.updated) {
-            aoaMessage.updated = true;
-            this._kitchenSinkMessages.addOrUpdateMessage(aoaMessage.qnaMessage);
-        }
-    }
-
     private _addPlayerListeners() {
         if (!this._playerApi) return;
         this._removePlayerListeners();
@@ -272,7 +265,7 @@ export class AoaAdapter {
                         method: "_onTimedMetadataLoaded"
                     }
                 );
-                this._handleKsMessages();
+                this._handlePendingKsMessages();
                 this._triggerAndHandleCuepointsData();
             } catch (e) {
                 logger.debug("failed retrieving id3 tag metadata", {
@@ -283,34 +276,31 @@ export class AoaAdapter {
         }
     };
 
-    private _addKSMessages(messages: AoAMessage[]) {
-        if (this._ksMessages.length === 0) {
-            this._ksMessages = messages;
+    private _addPendingKSMessages(messages: AoAMessage[]) {
+        if (this._pendingKsMessages.length === 0) {
+            this._pendingKsMessages = [...messages];
         } else {
             messages.forEach(newMessage => {
-                let foundIndex = this._ksMessages.findIndex(ksMessage => {
+                let foundIndex = this._pendingKsMessages.findIndex(ksMessage => {
                     return ksMessage.id === newMessage.id;
                 });
                 if (foundIndex === -1) {
-                    this._ksMessages.push(newMessage);
+                    this._pendingKsMessages.push({ ...newMessage });
                 }
             });
         }
-        this._ksMessages.sort((a, b) => {
+        this._pendingKsMessages.sort((a, b) => {
             return a.startTime - b.startTime;
         });
     }
 
-    private _handleKsMessages(): void {
-        if (!this._lastId3Timestamp || this._ksMessages.length === 0) return;
+    private _handlePendingKsMessages(): void {
+        if (!this._lastId3Timestamp || this._pendingKsMessages.length === 0) return;
 
-        let closestIndex = this._binarySearch(this._ksMessages, this._lastId3Timestamp);
-        if (closestIndex && closestIndex > -1) {
-            this._ksMessages.slice(0, closestIndex + 1).forEach(aoaMessage => {
-                let existing = this._kitchenSinkMessages.getMessageById(aoaMessage.id);
-                if (!existing || existing !== aoaMessage.qnaMessage) {
-                    this._addToKitchenSink(aoaMessage);
-                }
+        let closestIndex = this._binarySearch(this._pendingKsMessages, this._lastId3Timestamp);
+        if (closestIndex !== null && closestIndex > -1) {
+            this._pendingKsMessages.splice(0, closestIndex + 1).forEach(aoaMessage => {
+                this._kitchenSinkMessages.addOrUpdateMessage(aoaMessage.qnaMessage);
             });
         }
     }
