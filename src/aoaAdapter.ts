@@ -18,13 +18,14 @@ export interface AoaAdapterOptions {
     qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
     playerApi: PlayerAPI;
+    delayedEndTime: number;
     //todo [sa] toastsManager from contrib
 }
 
 export interface AoAMessage {
     id: string;
     startTime: number;
-    endTime?: number;
+    endTime: number;
     updated: boolean;
     qnaMessage: QnaMessage;
 }
@@ -41,18 +42,22 @@ export class AoaAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
     private _playerApi: PlayerAPI;
+    private _delayedEndTime: number;
 
     private _cuePointEngine: CuepointEngine<AoAMessage> | null = null;
     private _currentNotification: AoAMessage | null = null;
     private _lastId3Timestamp: number | null = null;
 
     private _initialize = false;
+    // messages that will be displayed in the kitchenSink according to current ID3 timestamp
+    private _pendingKsMessages: AoAMessage[] = [];
 
     constructor(options: AoaAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
         this._bannerManager = options.bannerManager;
         this._playerApi = options.playerApi;
+        this._delayedEndTime = options.delayedEndTime;
     }
 
     public init(): void {
@@ -85,22 +90,31 @@ export class AoaAdapter {
             method: "_handleAoaMessages",
             data: qnaMessages
         });
-        let notifications: AoAMessage[] = qnaMessages
+        let aoaMessages: AoAMessage[] = qnaMessages
             .filter((qnaMessage: QnaMessage) => {
                 return QnaMessageType.AnswerOnAir === qnaMessage.type;
             })
             .map(
                 (qnaMessage: QnaMessage): AoAMessage => {
-                    return <AoAMessage>{
+                    return {
                         id: qnaMessage.id,
-                        startTime: qnaMessage.startTime,
-                        endTime: qnaMessage.endTime,
+                        startTime: qnaMessage.createdAt.getTime(),
+                        endTime: qnaMessage.createdAt.getTime() + this._delayedEndTime,
                         updated: false,
                         qnaMessage
                     };
                 }
             );
-        this._createCuePointEngine(notifications);
+
+        // The KitchenSink should displays all AOA messages that were already displayed in the player's banner.
+        // since the player can be loaded in the middle of a live stream / DVR, there might be some AOA messages
+        // that were already passed their startTime and were already displayed in the player's banner.
+        // Since these messages won't be handled by the CP engine (already removed), there is a need to handle them
+        // outside of the CP engine.
+        // also, since the registration to the push manager is done immediately and The player ID3 event can
+        // be triggered only in a later time, there is a need to save them until ID3 tag will be triggered.
+        this._addPendingKSMessages(aoaMessages);
+        this._createCuePointEngine(aoaMessages);
     };
 
     private _createCuePointEngine(notifications: AoAMessage[]): void {
@@ -202,11 +216,6 @@ export class AoaAdapter {
                 }
             });
         }
-        //show is kitchenSink //todo [sa] will be developed as part of a specific story
-        // if (!newMessage.updated) {
-        //     newMessage.updated = true;
-        //     this._kitchenSinkMessages.addOrUpdateMessage(newMessage.qnaMessage);
-        // }
     }
 
     private _hideBannerNotification() {
@@ -256,6 +265,7 @@ export class AoaAdapter {
                         method: "_onTimedMetadataLoaded"
                     }
                 );
+                this._handlePendingKsMessages();
                 this._triggerAndHandleCuepointsData();
             } catch (e) {
                 logger.debug("failed retrieving id3 tag metadata", {
@@ -266,10 +276,72 @@ export class AoaAdapter {
         }
     };
 
+    private _addPendingKSMessages(messages: AoAMessage[]) {
+        if (this._pendingKsMessages.length === 0) {
+            this._pendingKsMessages = [...messages];
+        } else {
+            messages.forEach(newMessage => {
+                let foundIndex = this._pendingKsMessages.findIndex(ksMessage => {
+                    return ksMessage.id === newMessage.id;
+                });
+                if (foundIndex === -1) {
+                    this._pendingKsMessages.push({ ...newMessage });
+                }
+            });
+        }
+        this._pendingKsMessages.sort((a, b) => {
+            return a.startTime - b.startTime;
+        });
+    }
+
+    private _handlePendingKsMessages(): void {
+        if (!this._lastId3Timestamp || this._pendingKsMessages.length === 0) return;
+
+        let closestIndex = this._binarySearch(this._pendingKsMessages, this._lastId3Timestamp);
+        if (closestIndex !== null && closestIndex > -1) {
+            this._pendingKsMessages.splice(0, closestIndex + 1).forEach(aoaMessage => {
+                this._kitchenSinkMessages.add(aoaMessage.qnaMessage);
+            });
+        }
+    }
+
     private _getMostRecentMessage(messages: AoAMessage[]): AoAMessage | null {
         let sortedLastFirst = messages.sort((a: AoAMessage, b: AoAMessage) => {
             return b.startTime - a.startTime;
         });
         return sortedLastFirst && sortedLastFirst[0] ? sortedLastFirst[0] : null;
+    }
+
+    private _binarySearch(items: AoAMessage[], target: number): number | null {
+        if (!items || items.length === 0) {
+            // empty array, no index to return
+            return null;
+        }
+
+        if (target < items[0].startTime) {
+            // value less then the first item. return -1
+            return -1;
+        }
+        if (target > items[items.length - 1].startTime) {
+            // value bigger then the last item, return last item index
+            return items.length - 1;
+        }
+
+        let lo = 0;
+        let hi = items.length - 1;
+
+        while (lo <= hi) {
+            let mid = Math.floor((hi + lo + 1) / 2);
+
+            if (target < items[mid].startTime) {
+                hi = mid - 1;
+            } else if (target > items[mid].startTime) {
+                lo = mid + 1;
+            } else {
+                return mid;
+            }
+        }
+
+        return Math.min(lo, hi); // return the lowest index which represent the last visual item
     }
 }
