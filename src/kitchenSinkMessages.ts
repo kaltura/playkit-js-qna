@@ -49,24 +49,19 @@ export class KitchenSinkMessages {
     //todo [am] not fully implemented yet
     public addPendingQuestion(): void {}
 
-    public addOrUpdateMessage(
+    public add(
         newMessage: QnaMessage,
         options?: { disableUpdateEvent?: boolean; pendingMessageId?: string }
     ): void {
         let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
             return qnaMessage.id === newMessage.id;
         });
-
         if (existingIndex === -1) {
             this._qnaMessages.push(newMessage);
-        } else {
-            const modifiedMessage: QnaMessage = {
-                ...this._qnaMessages[existingIndex],
-                messageContent: newMessage.messageContent,
-                willBeAnsweredOnAir: newMessage.willBeAnsweredOnAir
-            };
-            this._qnaMessages.splice(existingIndex, 1, modifiedMessage); // override to the new element
         }
+
+        //todo [am] handle pending question scenario
+
         this._sortMessages();
 
         if (!options || !options.disableUpdateEvent) {
@@ -88,32 +83,27 @@ export class KitchenSinkMessages {
         }
     }
 
-    public addOrUpdateReply(
-        parentId: string,
-        reply: QnaMessage,
-        disableUpdateEvent?: boolean
-    ): void {
+    public addReply(parentId: string, reply: QnaMessage, disableUpdateEvent?: boolean): void {
         // find if the new reply is a reply for some master question
         let indexOfMaterQuestion = this._qnaMessages.findIndex(qnaMessage => {
             return qnaMessage.id === parentId;
         });
         if (indexOfMaterQuestion === -1) {
             logger.warn("Dropping reply as there is no matching (master) question", {
-                method: "addOrUpdateReply",
+                method: "addReply",
                 data: { reply }
             });
             return;
         }
-        // find the old reply and replace old reply with the new one
+
         let replies = this._qnaMessages[indexOfMaterQuestion].replies;
         let indexOfReplay = replies.findIndex(qnaMessage => {
             return qnaMessage.id === reply.id;
         });
         if (indexOfReplay === -1) {
             replies.push(reply);
-        } else {
-            replies.splice(indexOfReplay, 1, reply); // replace old reply with the new element
         }
+
         this._sortReplies(replies);
 
         if (!disableUpdateEvent) {
@@ -138,7 +128,10 @@ export class KitchenSinkMessages {
         const newMessage = modifier(message);
 
         if (message !== newMessage) {
-            this.addOrUpdateMessage(newMessage);
+            let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
+                return qnaMessage.id === newMessage.id;
+            });
+            this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
         }
     }
 

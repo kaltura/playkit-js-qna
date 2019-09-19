@@ -300,7 +300,7 @@ export class AoaAdapter {
         let closestIndex = this._binarySearch(this._pendingKsMessages, this._lastId3Timestamp);
         if (closestIndex !== null && closestIndex > -1) {
             this._pendingKsMessages.splice(0, closestIndex + 1).forEach(aoaMessage => {
-                this._kitchenSinkMessages.addOrUpdateMessage(aoaMessage.qnaMessage);
+                this._kitchenSinkMessages.add(aoaMessage.qnaMessage);
             });
         }
     }

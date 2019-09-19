@@ -266,9 +266,9 @@ export class ChatMessagesAdapter {
         qnaMessages.forEach((qnaMessage: QnaMessage) => {
             //is master question
             if (qnaMessage.parentId === null) {
-                this._kitchenSinkMessages.addOrUpdateMessage(qnaMessage);
+                this._kitchenSinkMessages.add(qnaMessage);
             } else if (qnaMessage.parentId) {
-                this._kitchenSinkMessages.addOrUpdateReply(qnaMessage.parentId, qnaMessage);
+                this._kitchenSinkMessages.addReply(qnaMessage.parentId, qnaMessage);
                 this._setWillBeAnsweredOnAir(qnaMessage.parentId);
             }
         });
