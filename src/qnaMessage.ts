@@ -32,15 +32,15 @@ export interface MetadataInfo {
 export interface QnaMessageParams {
     metadataInfo: MetadataInfo;
     id: string;
-    time: Date;
+    createdAt: Date;
     tags: string[];
 }
 
+const AOAAutoReplyTag = "aoa_auto_reply";
+
 export class QnaMessage {
     public id: string;
-    public time: Date;
-    public startTime: number;
-    public endTime?: number;
+    public createdAt: Date;
     public messageContent: string | null = null;
     public type: QnaMessageType;
     public state: MessageState;
@@ -48,7 +48,8 @@ export class QnaMessage {
     public replies: QnaMessage[];
     public deliveryStatus: MessageStatusEnum | null = null;
     public userId: string | null = null;
-    public tags: string[] = [];
+    public isAoAAutoReply: boolean = false;
+    public willBeAnsweredOnAir: boolean = false;
 
     public static create(cuePoint: KalturaAnnotation): QnaMessage | null {
         try {
@@ -56,7 +57,7 @@ export class QnaMessage {
             const qnaMessageParams: QnaMessageParams = {
                 metadataInfo: this.getMetadata(cuePoint),
                 id: cuePoint.id,
-                time: cuePoint.createdAt,
+                createdAt: cuePoint.createdAt,
                 tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
             };
 
@@ -86,7 +87,7 @@ export class QnaMessage {
                 state: MessageState.Pending
             },
             id: cuePoint.id,
-            time: cuePoint.createdAt,
+            createdAt: cuePoint.createdAt,
             tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
         };
 
@@ -100,13 +101,12 @@ export class QnaMessage {
 
     constructor(qnaMessageParams: QnaMessageParams) {
         this.id = qnaMessageParams.id;
-        this.time = qnaMessageParams.time;
-        this.startTime = this.time.getTime();
+        this.createdAt = qnaMessageParams.createdAt;
         this.parentId = qnaMessageParams.metadataInfo.parentId;
         this.type = qnaMessageParams.metadataInfo.type;
         this.state = qnaMessageParams.metadataInfo.state;
         this.replies = [];
-        this.tags = qnaMessageParams.tags;
+        this.isAoAAutoReply = qnaMessageParams.tags.indexOf(AOAAutoReplyTag) > -1;
     }
 
     private static getMetadata(cuePoint: KalturaAnnotation): MetadataInfo {
@@ -155,9 +155,5 @@ export class QnaMessage {
         };
 
         return metadataInfo;
-    }
-
-    isMasterQuestion(): boolean {
-        return this.parentId == null;
     }
 }

@@ -14,11 +14,6 @@ export enum PushNotificationEventTypes {
     PushNotificationsError = "PUSH_NOTIFICATIONS_ERROR"
 }
 
-export interface QnAPushNotificationOptions {
-    pushServerOptions: PushNotificationsOptions;
-    delayedEndTime?: number;
-}
-
 export interface UserQnaNotificationsEvent {
     type: PushNotificationEventTypes.UserNotifications;
     qnaMessages: QnaMessage[];
@@ -45,8 +40,6 @@ const logger = getContribLogger({
  * handles push notification registration and results.
  */
 export class QnaPushNotification {
-    private _delayedEndTime: number = 60 * 1000;
-
     private _pushServerInstance: PushNotifications | null = null;
 
     private _registeredToQnaMessages = false;
@@ -58,12 +51,11 @@ export class QnaPushNotification {
     on: EventsManager<Events>["on"] = this._events.on.bind(this._events);
     off: EventsManager<Events>["off"] = this._events.off.bind(this._events);
 
-    public init({ pushServerOptions, delayedEndTime }: QnAPushNotificationOptions) {
+    public init(pushServerOptions: PushNotificationsOptions) {
         if (this._initialized) return;
 
         this._initialized = true;
         this._pushServerInstance = PushNotifications.getInstance(pushServerOptions);
-        this._delayedEndTime = delayedEndTime || this._delayedEndTime;
     }
 
     /**
@@ -182,11 +174,6 @@ export class QnaPushNotification {
                 kalturaAnnotation.fromResponseObject(item);
                 let qnaMessage = QnaMessage.create(kalturaAnnotation);
                 if (qnaMessage) {
-                    if (
-                        qnaMessage.type === QnaMessageType.Announcement ||
-                        qnaMessage.type === QnaMessageType.AnswerOnAir
-                    )
-                        qnaMessage.endTime = qnaMessage.startTime + this._delayedEndTime;
                     qnaMessages.push(qnaMessage);
                 }
             }

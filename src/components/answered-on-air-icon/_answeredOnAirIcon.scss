@@ -1,0 +1,18 @@
+.ovalContainer {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+  background-color: #666666;
+  border-radius: 50%;
+}
+
+.iconImage {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: calc(50% - 8px);
+  top: calc(50% - 8px);
+  object-fit: contain;
+  background-image: url('./assets/answered-on-air.svg');
+}

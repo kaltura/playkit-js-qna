@@ -54,7 +54,7 @@ export class AnnouncementsAdapter {
             if (qnaMessage.state === MessageState.Deleted) {
                 this._kitchenSinkMessages.deleteMessage(qnaMessage.id);
             } else {
-                this._kitchenSinkMessages.addOrUpdateMessage(qnaMessage);
+                this._kitchenSinkMessages.add(qnaMessage);
             }
         });
     };

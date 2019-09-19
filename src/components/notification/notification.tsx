@@ -37,7 +37,7 @@ export class Notification extends Component<NotificationProps> {
                     <div className={styles.secondInfoLine}>
                         <TimeDisplay
                             className={styles.threadTime}
-                            time={qnaMessage.time}
+                            time={qnaMessage.createdAt}
                             dateFormat={dateFormat}
                         />
                     </div>

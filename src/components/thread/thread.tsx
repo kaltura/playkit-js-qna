@@ -5,6 +5,7 @@ import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
 import { TrimmedText } from "../trimmed-text";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
+import { AnsweredOnAirIcon } from "../answered-on-air-icon";
 
 interface ThreadProps {
     thread: QnaMessage;
@@ -47,13 +48,19 @@ export class Thread extends Component<ThreadProps, ThreadState> {
 
         return (
             <div className={styles.thread}>
+                {/* if this master question will be answered on air - add an icon */
+                thread.willBeAnsweredOnAir && (
+                    <div className={styles.aoaIconContainer}>
+                        <AnsweredOnAirIcon />
+                    </div>
+                )}
                 <div className={styles.messageContent}>
                     <TrimmedText maxLength={120} text={thread.messageContent} />
                 </div>
                 <div className={styles.secondInfoLine}>
                     <TimeDisplay
                         className={styles.threadTime}
-                        time={thread.time}
+                        time={thread.createdAt}
                         dateFormat={dateFormat}
                     />
                     {/*    Show Number of Replies/Show Less button and thread time  */
@@ -90,7 +97,11 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                     })}
                                 >
                                     <div>
-                                        <div className={styles.reply}>
+                                        <div
+                                            className={classNames(styles.reply, {
+                                                [styles.autoReplay]: reply.isAoAAutoReply
+                                            })}
+                                        >
                                             {reply.type === QnaMessageType.Answer && (
                                                 <div className={styles.username}>
                                                     {reply.userId}
@@ -106,7 +117,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                         <div>
                                             <TimeDisplay
                                                 className={styles.threadTime}
-                                                time={reply.time}
+                                                time={reply.createdAt}
                                                 dateFormat={dateFormat}
                                             />
                                         </div>
