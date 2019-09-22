@@ -5,7 +5,7 @@ import {
     PushNotifications,
     PushNotificationsOptions
 } from "@playkit-js-contrib/push-notifications";
-import { QnaMessage, QnaMessageType } from "./qnaMessage";
+import { QnaMessage, QnaMessageFactory } from "./qnaMessageFactory";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 
 export enum PushNotificationEventTypes {
@@ -172,7 +172,7 @@ export class QnaPushNotification {
             if (item.objectType === "KalturaAnnotation") {
                 const kalturaAnnotation: KalturaAnnotation = new KalturaAnnotation();
                 kalturaAnnotation.fromResponseObject(item);
-                let qnaMessage = QnaMessage.create(kalturaAnnotation);
+                let qnaMessage = QnaMessageFactory.create(kalturaAnnotation);
                 if (qnaMessage) {
                     qnaMessages.push(qnaMessage);
                 }

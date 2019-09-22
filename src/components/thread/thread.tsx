@@ -1,6 +1,6 @@
 import { Component, h } from "preact";
 import * as styles from "./thread.scss";
-import { MessageStatusEnum, QnaMessage, QnaMessageType } from "../../qnaMessage";
+import { MessageDeliveryStatus, QnaMessage, QnaMessageType } from "../../qnaMessageFactory";
 import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
 import { TrimmedText } from "../trimmed-text";
@@ -49,9 +49,9 @@ export class Thread extends Component<ThreadProps, ThreadState> {
 
     private showTimeOrStatus(qnaMessage: QnaMessage, dateFormat: string) {
         switch (qnaMessage.deliveryStatus) {
-            case MessageStatusEnum.SENDING:
+            case MessageDeliveryStatus.SENDING:
                 return <span className={styles.sendingIndication}>Sending...</span>;
-            case MessageStatusEnum.SEND_FAILED:
+            case MessageDeliveryStatus.SEND_FAILED:
                 return (
                     <button
                         onClick={this.handleResend.bind(this, qnaMessage)}
@@ -158,6 +158,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         enableBlackInputTheme={true}
                         initialFocus={true}
                         open={true}
+                        disabled={thread.deliveryStatus === MessageDeliveryStatus.SEND_FAILED}
                     />
                 ) : (
                     <div className={styles.lastInfoLine}>

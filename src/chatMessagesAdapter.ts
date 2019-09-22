@@ -5,7 +5,7 @@ import {
     UserQnaNotificationsEvent
 } from "./qnaPushNotification";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { QnaMessage, QnaMessageType } from "./qnaMessage";
+import { QnaMessage, QnaMessageFactory, QnaMessageType } from "./qnaMessageFactory";
 import {
     KalturaClient,
     KalturaMultiRequest,
@@ -101,7 +101,7 @@ export class ChatMessagesAdapter {
         // todo [am] temp
         const uuid = Date.now().toString();
 
-        const pendingQnaMessage = QnaMessage.createPendingQnaMessage({
+        const pendingQnaMessage = QnaMessageFactory.createPendingQnaMessage({
             id: uuid,
             text: question + "___Pending", // todo [am] remove
             threadId: thread ? thread.id : undefined,

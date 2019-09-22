@@ -4,7 +4,7 @@ import {
     PushNotificationEventTypes,
     QnaPushNotification
 } from "./qnaPushNotification";
-import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
+import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { getContribLogger } from "@playkit-js-contrib/common";
 
 export interface AnnouncementsAdapterOptions {

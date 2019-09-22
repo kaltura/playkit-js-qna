@@ -11,7 +11,7 @@ import {
     PlayerAPI,
     UpdateTimeResponse
 } from "@playkit-js-contrib/common";
-import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
+import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 
 export interface AoaAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;

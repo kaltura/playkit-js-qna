@@ -8,6 +8,7 @@ interface AutoExpandTextAreaProps {
     enableBlackInputTheme?: boolean;
     initialFocus?: boolean;
     open?: boolean;
+    disabled?: boolean;
 }
 
 interface AutoExpandTextAreaState {
@@ -142,7 +143,7 @@ export class AutoExpandTextArea extends Component<
 
     render() {
         const { text, openByEvent } = this.state;
-        const { enableBlackInputTheme, placeholder, open } = this.props;
+        const { enableBlackInputTheme, placeholder, open, disabled } = this.props;
 
         return (
             <div
@@ -172,7 +173,7 @@ export class AutoExpandTextArea extends Component<
                             onClick={this._handleOnSend}
                             className={styles.sendButton}
                             type={"button"}
-                            disabled={!text.length}
+                            disabled={!text.length || disabled}
                             ref={button => (this._sendButtonRef = button)}
                         >
                             {"Send"}

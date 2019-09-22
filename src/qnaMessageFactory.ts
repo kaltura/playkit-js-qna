@@ -9,7 +9,7 @@ export enum QnaMessageType {
     AnswerOnAir = "AnswerOnAir"
 }
 
-export enum MessageStatusEnum {
+export enum MessageDeliveryStatus {
     CREATED = "CREATED",
     SENDING = "SENDING",
     SEND_FAILED = "SEND_FAILED",
@@ -45,40 +45,43 @@ export interface PendingQnaMessageOptions {
     createdAt: Date;
 }
 
-export class QnaMessage {
-    public id: string;
-    public createdAt: Date;
-    public messageContent: string | null = null;
-    public type: QnaMessageType;
-    public state: MessageState;
-    public parentId: string | null;
-    public replies: QnaMessage[];
-    public deliveryStatus: MessageStatusEnum | null = null;
-    public userId: string | null = null;
-    public isAoAAutoReply: boolean = false;
-    public willBeAnsweredOnAir: boolean = false;
+export interface QnaMessage {
+    id: string;
+    createdAt: Date;
+    messageContent?: string;
+    type: QnaMessageType;
+    state: MessageState;
+    parentId: string | null;
+    replies: QnaMessage[];
+    deliveryStatus?: MessageDeliveryStatus;
+    userId: string | null;
+    isAoAAutoReply: boolean;
+    willBeAnsweredOnAir: boolean;
+}
 
+export class QnaMessageFactory {
     public static create(cuePoint: KalturaAnnotation): QnaMessage | null {
         try {
-            // throw parsing errors
-            const qnaMessageParams: QnaMessageParams = {
-                metadataInfo: QnaMessage.getMetadata(cuePoint),
+            const metadata = QnaMessageFactory.getMetadata(cuePoint);
+            const tags = cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : [];
+
+            const qnaMessage: QnaMessage = {
                 id: cuePoint.id,
                 createdAt: cuePoint.createdAt,
-                tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
+                parentId: metadata.parentId,
+                type: metadata.type,
+                state: metadata.state,
+                replies: [],
+                isAoAAutoReply: tags.indexOf(AOAAutoReplyTag) > -1,
+                userId: cuePoint.userId,
+                willBeAnsweredOnAir: false,
+                messageContent: cuePoint.text,
+                deliveryStatus: cuePoint.createdAt
+                    ? MessageDeliveryStatus.CREATED
+                    : MessageDeliveryStatus.SENDING
             };
 
-            const result = new QnaMessage(qnaMessageParams);
-
-            // add optional if any
-            result.messageContent = cuePoint.text;
-            result.deliveryStatus = cuePoint.createdAt
-                ? MessageStatusEnum.CREATED
-                : MessageStatusEnum.SENDING;
-
-            result.userId = cuePoint.userId;
-
-            return result;
+            return qnaMessage;
         } catch (e) {
             // todo [am] static logging to this;
             console.warn(`Error: couldn't create QnaMessage, mandatory field(s) are missing`, e);
@@ -87,35 +90,21 @@ export class QnaMessage {
     }
 
     public static createPendingQnaMessage(pendingQnaMessageOptions: PendingQnaMessageOptions) {
-        const qnaMessageParams: QnaMessageParams = {
-            metadataInfo: {
-                type: QnaMessageType.Question,
-                parentId: pendingQnaMessageOptions.threadId
-                    ? pendingQnaMessageOptions.threadId
-                    : null,
-                state: MessageState.Pending
-            },
+        const qnaMessage: QnaMessage = {
             id: pendingQnaMessageOptions.id,
             createdAt: pendingQnaMessageOptions.createdAt,
-            tags: []
+            parentId: pendingQnaMessageOptions.threadId ? pendingQnaMessageOptions.threadId : null,
+            type: QnaMessageType.Question,
+            state: MessageState.Pending,
+            replies: [],
+            isAoAAutoReply: false,
+            messageContent: pendingQnaMessageOptions.text,
+            userId: null,
+            willBeAnsweredOnAir: false,
+            deliveryStatus: MessageDeliveryStatus.SEND_FAILED
         };
 
-        const qnaMessage = new QnaMessage(qnaMessageParams);
-
-        qnaMessage.messageContent = pendingQnaMessageOptions.text;
-        qnaMessage.deliveryStatus = MessageStatusEnum.SEND_FAILED;
-
         return qnaMessage;
-    }
-
-    constructor(qnaMessageParams: QnaMessageParams) {
-        this.id = qnaMessageParams.id;
-        this.createdAt = qnaMessageParams.createdAt;
-        this.parentId = qnaMessageParams.metadataInfo.parentId;
-        this.type = qnaMessageParams.metadataInfo.type;
-        this.state = qnaMessageParams.metadataInfo.state;
-        this.replies = [];
-        this.isAoAAutoReply = qnaMessageParams.tags.indexOf(AOAAutoReplyTag) > -1;
     }
 
     private static getMetadata(cuePoint: KalturaAnnotation): MetadataInfo {

@@ -1,4 +1,4 @@
-import { QnaMessage, QnaMessageType } from "./qnaMessage";
+import { QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 
 export class Utils {
     public static ONE_DAY_IN_MS: number = 1000 * 60 * 60 * 24;

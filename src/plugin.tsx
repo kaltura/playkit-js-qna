@@ -17,16 +17,15 @@ import {
 } from "@playkit-js-contrib/plugin";
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
-import { QnaMessage } from "./qnaMessage";
+import { QnaMessage } from "./qnaMessageFactory";
 import { getContribLogger } from "@playkit-js-contrib/common";
 import { PushNotificationEventTypes, QnaPushNotification } from "./qnaPushNotification";
-import { AoaAdapter, AoaAdapterOptions } from "./aoaAdapter";
+import { AoaAdapter } from "./aoaAdapter";
 import { AnnouncementsAdapter } from "./announcementsAdapter";
 import { ChatMessagesAdapter } from "./chatMessagesAdapter";
 import {
     KitchenSinkEventTypes,
     KitchenSinkMessages,
-    KitchenSinkMessagesOptions,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
 
