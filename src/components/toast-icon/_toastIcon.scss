@@ -1,0 +1,26 @@
+.container {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+
+.iconWrapper {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: calc(50% - 8px);
+  top: calc(50% - 8px);
+  object-fit: contain;
+}
+
+.announcementIcon {
+  background-image: url('./assets/announcement.svg');
+}
+
+.aoaIcon {
+  background-image: url('./assets/aoa.svg');
+}
+
+.replyIcon {
+  background-image: url('./assets/reply.svg');
+}
