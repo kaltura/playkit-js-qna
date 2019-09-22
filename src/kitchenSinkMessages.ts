@@ -47,7 +47,12 @@ export class KitchenSinkMessages {
     }
 
     //todo [am] not fully implemented yet
-    public addPendingQuestion(): void {}
+    // public addPendingQuestion(data: { parentId?: string, contentMessage: string}): void {
+    //     this.addOrUpdateMessage({
+    //         id: '' // generate uuid
+    //         status: 'sending'
+    //     })
+    // }
 
     public add(
         newMessage: QnaMessage,

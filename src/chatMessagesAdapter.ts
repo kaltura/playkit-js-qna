@@ -98,7 +98,23 @@ export class ChatMessagesAdapter {
     }
 
     public submitQuestion = async (question: string, thread?: QnaMessage) => {
+        // todo [am] temp
+        const uuid = Date.now().toString();
+
+        const pendingQnaMessage = QnaMessage.createPendingQnaMessage({
+            id: uuid,
+            text: question + "___Pending", // todo [am] remove
+            threadId: thread ? thread.id : undefined,
+            createdAt: new Date()
+        });
+
+        this._addOrUpdateQnaMessage([pendingQnaMessage]);
+
+        let a = 1;
+        if (a === 1) return;
+
         const { requests, missingProfileId, requestIndexCorrection } = this._prepareSubmitRequest(
+            uuid,
             question,
             thread
         );
@@ -162,7 +178,16 @@ export class ChatMessagesAdapter {
                     }
                 });
             }
-            //todo [am] actually handle pending message
+
+            // debugger;
+            // // if all went well:
+            // const indexOfMetadata = 1 + requestIndexCorrection;
+            //
+            //
+            // const qnaMessage = QnaMessage.create(cuePoint);
+            // if (qnaMessage) {
+            //     this._addOrUpdateQnaMessage([qnaMessage]);
+            // }
         } catch (err) {
             // TODO [am] handle Error then submitting a question
             logger.error("Failed to submit new question", {
@@ -174,7 +199,15 @@ export class ChatMessagesAdapter {
         }
     };
 
-    private _prepareSubmitRequest(question: string, thread?: QnaMessage): SubmitRequestParams {
+    public resendQuestion(qnaMessage: QnaMessage) {
+        debugger;
+    }
+
+    private _prepareSubmitRequest(
+        uuid: string,
+        question: string,
+        thread?: QnaMessage
+    ): SubmitRequestParams {
         const requests: KalturaRequest<any>[] = [];
         const missingProfileId = !this._metadataProfileId;
         const requestIndexCorrection = missingProfileId ? 1 : 0;
@@ -199,7 +232,8 @@ export class ChatMessagesAdapter {
             startTime: Date.now(), // TODO get server/player time
             text: question,
             isPublic: 1, // TODO verify with backend team
-            searchableOnEntry: 0
+            searchableOnEntry: 0,
+            systemName: uuid
         };
 
         if (thread) {
@@ -261,8 +295,11 @@ export class ChatMessagesAdapter {
     }
 
     private _processMessages = ({ qnaMessages }: UserQnaNotificationsEvent): void => {
-        //todo [am] handle pending
         //todo [sa] handle toasts
+        this._addOrUpdateQnaMessage(qnaMessages);
+    };
+
+    private _addOrUpdateQnaMessage = (qnaMessages: QnaMessage[]): void => {
         qnaMessages.forEach((qnaMessage: QnaMessage) => {
             //is master question
             if (qnaMessage.parentId === null) {

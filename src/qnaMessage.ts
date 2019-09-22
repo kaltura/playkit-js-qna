@@ -38,6 +38,13 @@ export interface QnaMessageParams {
 
 const AOAAutoReplyTag = "aoa_auto_reply";
 
+export interface PendingQnaMessageOptions {
+    threadId?: string;
+    id: string;
+    text: string;
+    createdAt: Date;
+}
+
 export class QnaMessage {
     public id: string;
     public createdAt: Date;
@@ -55,7 +62,7 @@ export class QnaMessage {
         try {
             // throw parsing errors
             const qnaMessageParams: QnaMessageParams = {
-                metadataInfo: this.getMetadata(cuePoint),
+                metadataInfo: QnaMessage.getMetadata(cuePoint),
                 id: cuePoint.id,
                 createdAt: cuePoint.createdAt,
                 tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
@@ -79,24 +86,26 @@ export class QnaMessage {
         }
     }
 
-    public static createPendingMessage(cuePoint: KalturaAnnotation, threadId?: string) {
+    public static createPendingQnaMessage(pendingQnaMessageOptions: PendingQnaMessageOptions) {
         const qnaMessageParams: QnaMessageParams = {
             metadataInfo: {
                 type: QnaMessageType.Question,
-                parentId: threadId ? threadId : null,
+                parentId: pendingQnaMessageOptions.threadId
+                    ? pendingQnaMessageOptions.threadId
+                    : null,
                 state: MessageState.Pending
             },
-            id: cuePoint.id,
-            createdAt: cuePoint.createdAt,
-            tags: cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : []
+            id: pendingQnaMessageOptions.id,
+            createdAt: pendingQnaMessageOptions.createdAt,
+            tags: []
         };
 
-        const result = new QnaMessage(qnaMessageParams);
+        const qnaMessage = new QnaMessage(qnaMessageParams);
 
-        result.messageContent = cuePoint.text;
-        result.deliveryStatus = MessageStatusEnum.SENDING;
+        qnaMessage.messageContent = pendingQnaMessageOptions.text;
+        qnaMessage.deliveryStatus = MessageStatusEnum.SEND_FAILED;
 
-        return result;
+        return qnaMessage;
     }
 
     constructor(qnaMessageParams: QnaMessageParams) {
@@ -130,8 +139,12 @@ export class QnaMessage {
             throw new Error("DOMParser is not exits at window, cant parse the metadata xml");
         }
 
+        return this._parseXml(metadata.xml);
+    }
+
+    private static _parseXml(metadata: string) {
         let parser = new DOMParser();
-        let xmlDoc = parser.parseFromString(metadata.xml, "text/xml");
+        let xmlDoc = parser.parseFromString(metadata, "text/xml");
 
         const typeString = Utils.getValueFromXml(xmlDoc, "Type");
         if (!typeString) {

@@ -1,6 +1,6 @@
-import { h, Component } from "preact";
+import { Component, h } from "preact";
 import * as styles from "./thread.scss";
-import { QnaMessage, QnaMessageType } from "../../qnaMessage";
+import { MessageStatusEnum, QnaMessage, QnaMessageType } from "../../qnaMessage";
 import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
 import { TrimmedText } from "../trimmed-text";
@@ -11,6 +11,7 @@ interface ThreadProps {
     thread: QnaMessage;
     dateFormat: string;
     onReply: (text: string, thread?: QnaMessage) => void;
+    onResend: (qnaMessage: QnaMessage) => void;
 }
 
 interface ThreadState {
@@ -20,7 +21,8 @@ interface ThreadState {
 
 export class Thread extends Component<ThreadProps, ThreadState> {
     static defaultProps = {
-        onReply: (text: string, parentId?: string) => {}
+        onReply: (text: string, parentId?: string) => {},
+        onResend: (qnaMessage: QnaMessage) => {}
     };
 
     state = {
@@ -41,6 +43,36 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         this.props.onReply(text, this.props.thread);
     };
 
+    handleResend = (qnaMessage: QnaMessage) => {
+        this.props.onResend(qnaMessage);
+    };
+
+    private showTimeOrStatus(qnaMessage: QnaMessage, dateFormat: string) {
+        switch (qnaMessage.deliveryStatus) {
+            case MessageStatusEnum.SENDING:
+                return <span className={styles.sendingIndication}>Sending...</span>;
+            case MessageStatusEnum.SEND_FAILED:
+                return (
+                    <button
+                        onClick={this.handleResend.bind(this, qnaMessage)}
+                        className={classNames(styles.clearStyledButton, styles.resendButton)}
+                        type={"button"}
+                    >
+                        <span className={styles.resendTitle}>{"Resend"}</span>
+                        <span className={styles.resendIcon} />
+                    </button>
+                );
+            default:
+                return (
+                    <TimeDisplay
+                        className={styles.threadTime}
+                        time={qnaMessage.createdAt}
+                        dateFormat={dateFormat}
+                    />
+                );
+        }
+    }
+
     render() {
         const { thread, dateFormat } = this.props;
         const { replies } = thread;
@@ -58,11 +90,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                     <TrimmedText maxLength={120} text={thread.messageContent} />
                 </div>
                 <div className={styles.secondInfoLine}>
-                    <TimeDisplay
-                        className={styles.threadTime}
-                        time={thread.createdAt}
-                        dateFormat={dateFormat}
-                    />
+                    {this.showTimeOrStatus(thread, dateFormat)}
                     {/*    Show Number of Replies/Show Less button and thread time  */
                     replies.length > 0 && (
                         <button
@@ -114,13 +142,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                                 />
                                             </div>
                                         </div>
-                                        <div>
-                                            <TimeDisplay
-                                                className={styles.threadTime}
-                                                time={reply.createdAt}
-                                                dateFormat={dateFormat}
-                                            />
-                                        </div>
+                                        <div>{this.showTimeOrStatus(reply, dateFormat)}</div>
                                     </div>
                                 </div>
                             );

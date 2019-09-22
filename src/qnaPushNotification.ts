@@ -130,7 +130,7 @@ export class QnaPushNotification {
             data: { entryId }
         });
         return {
-            eventName: "PUBLIC_QNA_NOTIFICATIONS",
+            eventName: PushNotificationEventTypes.PublicNotifications,
             eventParams: {
                 entryId: entryId
             },
@@ -153,7 +153,7 @@ export class QnaPushNotification {
             data: { entryId, userId }
         });
         return {
-            eventName: "USER_QNA_NOTIFICATIONS",
+            eventName: PushNotificationEventTypes.UserNotifications,
             eventParams: {
                 entryId: entryId,
                 userId: userId // TODO [am] temp solutions for userId need to handle anonymous user id

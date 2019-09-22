@@ -13,6 +13,7 @@ export interface KitchenSinkProps {
     hasError: boolean;
     loading: boolean;
     onSubmit: (text: string, thread?: QnaMessage) => void;
+    onResend: (qnaMessage: QnaMessage) => void;
 }
 
 interface KitchenSinkState {}
@@ -22,13 +23,18 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     static defaultProps = {
         hasError: false,
         loading: false,
-        onSubmit: (text: string, thread?: QnaMessage) => {}
+        onSubmit: (text: string, thread?: QnaMessage) => {},
+        OnResend: (qnaMessage: QnaMessage) => {}
     };
 
     state = {};
 
     handleOnSubmit = (text: string, thread?: QnaMessage) => {
         this.props.onSubmit(text, thread);
+    };
+
+    handleOnResend = (qnaMessage: QnaMessage) => {
+        this.props.onResend(qnaMessage);
     };
 
     private _generateContent(props: KitchenSinkProps) {
@@ -77,6 +83,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             dateFormat={props.dateFormat}
                             key={qnaMessage.id}
                             onReply={this.handleOnSubmit}
+                            onResend={this.handleOnResend}
                         />
                     );
                 }
