@@ -6,11 +6,22 @@ import {
 } from "./qnaPushNotification";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
 import { getContribLogger } from "@playkit-js-contrib/common";
+import {
+    KitchenSinkExpandModes,
+    KitchenSinkManager,
+    KitchenSinkPositions,
+    ToastSeverity,
+    ToastsManager
+} from "@playkit-js-contrib/ui";
+import { ToastIcon, ToastsType } from "./components/toast-icon";
+import { h } from "preact";
 
 export interface AnnouncementsAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    //todo [sa] toastsManager from contrib
+    kitchenSinkManager: KitchenSinkManager;
+    toastsManager: ToastsManager;
+    toastDuration: number;
 }
 
 const logger = getContribLogger({
@@ -21,11 +32,18 @@ const logger = getContribLogger({
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
+    private _kitchenSinkManager: KitchenSinkManager;
+    private _toastsManager: ToastsManager;
+    private _toastDuration: number;
+
     private _initialize = false;
 
     constructor(options: AnnouncementsAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
+        this._kitchenSinkManager = options.kitchenSinkManager;
+        this._toastsManager = options.toastsManager;
+        this._toastDuration = options.toastDuration;
     }
 
     public init(): void {
@@ -55,7 +73,29 @@ export class AnnouncementsAdapter {
                 this._kitchenSinkMessages.deleteMessage(qnaMessage.id);
             } else {
                 this._kitchenSinkMessages.add(qnaMessage);
+                this._showAnnouncementToast();
             }
         });
     };
+
+    private _showAnnouncementToast() {
+        if (
+            this._kitchenSinkManager.getSidePanelMode(KitchenSinkPositions.Right) ===
+            KitchenSinkExpandModes.Hidden
+        ) {
+            this._toastsManager.add({
+                title: "Notifications",
+                text: "New Announcement",
+                icon: <ToastIcon type={ToastsType.ANNOUNCEMENT} />,
+                duration: this._toastDuration,
+                severity: ToastSeverity.INFO,
+                onClick: () => {
+                    this._kitchenSinkManager.expand(
+                        KitchenSinkPositions.Right,
+                        KitchenSinkExpandModes.OverTheVideo
+                    );
+                }
+            });
+        }
+    }
 }
