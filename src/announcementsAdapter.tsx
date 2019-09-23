@@ -29,6 +29,8 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
+const NewReplyTimeDelay = 2000;
+
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
@@ -73,7 +75,9 @@ export class AnnouncementsAdapter {
                 this._kitchenSinkMessages.deleteMessage(qnaMessage.id);
             } else {
                 this._kitchenSinkMessages.add(qnaMessage);
-                this._showAnnouncementToast();
+                if (qnaMessage.createdAt.getTime() >= new Date().getTime() - NewReplyTimeDelay) {
+                    this._showAnnouncementToast();
+                }
             }
         });
     };
