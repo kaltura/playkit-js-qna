@@ -1,3 +1,4 @@
+import { h } from "preact";
 import { KitchenSinkMessages } from "./kitchenSinkMessages";
 import {
     PushNotificationEventTypes,
@@ -5,6 +6,7 @@ import {
     UserQnaNotificationsEvent
 } from "./qnaPushNotification";
 import { getContribLogger } from "@playkit-js-contrib/common";
+import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
 import { QnaMessage, QnaMessageType } from "./qnaMessage";
 import {
     KalturaClient,
@@ -24,11 +26,13 @@ import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/type
 import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataAddAction";
 import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { Utils } from "./utils";
+import { ToastIcon, ToastsType } from "./components/toast-icon";
 
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    //todo [sa] toastsManager from contrib
+    toastsManager: ToastsManager;
+    toastDuration: number;
 }
 
 interface SubmitRequestParams {
@@ -42,10 +46,14 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
+const NewReplyTimeDelay = 2000;
+
 export class ChatMessagesAdapter {
     private _kalturaClient = new KalturaClient();
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
+    private _toastsManager: ToastsManager;
+    private _toastDuration: number;
 
     private _config: ContribConfig | null = null;
     private _userId: string | undefined;
@@ -57,6 +65,8 @@ export class ChatMessagesAdapter {
     constructor(options: ChatMessagesAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
+        this._toastsManager = options.toastsManager;
+        this._toastDuration = options.toastDuration;
     }
 
     public init(config: ContribConfig): void {
@@ -262,7 +272,6 @@ export class ChatMessagesAdapter {
 
     private _processMessages = ({ qnaMessages }: UserQnaNotificationsEvent): void => {
         //todo [am] handle pending
-        //todo [sa] handle toasts
         qnaMessages.forEach((qnaMessage: QnaMessage) => {
             //is master question
             if (qnaMessage.parentId === null) {
@@ -270,9 +279,24 @@ export class ChatMessagesAdapter {
             } else if (qnaMessage.parentId) {
                 this._kitchenSinkMessages.addReply(qnaMessage.parentId, qnaMessage);
                 this._setWillBeAnsweredOnAir(qnaMessage.parentId);
+                //display toasts only for newly created replies
+                if (qnaMessage.createdAt.getTime() >= new Date().getTime() - NewReplyTimeDelay) {
+                    this._showReplyToast();
+                }
             }
         });
     };
+
+    private _showReplyToast() {
+        this._toastsManager.add({
+            title: "Notifications",
+            text: "New Reply",
+            icon: <ToastIcon type={ToastsType.REPLY} />,
+            duration: this._toastDuration,
+            severity: ToastSeverity.INFO,
+            onClick: () => {}
+        });
+    }
 
     private _setWillBeAnsweredOnAir(messageId: string): void {
         this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {

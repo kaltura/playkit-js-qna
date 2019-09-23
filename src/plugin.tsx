@@ -20,20 +20,21 @@ import { MenuIcon } from "./components/menu-icon";
 import { QnaMessage } from "./qnaMessage";
 import { getContribLogger } from "@playkit-js-contrib/common";
 import { PushNotificationEventTypes, QnaPushNotification } from "./qnaPushNotification";
-import { AoaAdapter, AoaAdapterOptions } from "./aoaAdapter";
+import { AoaAdapter } from "./aoaAdapter";
 import { AnnouncementsAdapter } from "./announcementsAdapter";
 import { ChatMessagesAdapter } from "./chatMessagesAdapter";
 import {
     KitchenSinkEventTypes,
     KitchenSinkMessages,
-    KitchenSinkMessagesOptions,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
 const DefaultBannerDuration: number = 60 * 1000;
+const DefaultToastDuration: number = 5 * 1000;
 const MinBannerDuration: number = 5 * 1000;
+const MinToastDuration: number = 5 * 1000;
 
 const logger = getContribLogger({
     class: "QnaPlugin",
@@ -44,6 +45,7 @@ export class QnaPlugin extends PlayerContribPlugin
     implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     static defaultConfig = {
         bannerDuration: DefaultBannerDuration,
+        toastDuration: DefaultToastDuration,
         dateFormat: "dd/mm/yyyy"
     };
 
@@ -67,6 +69,10 @@ export class QnaPlugin extends PlayerContribPlugin
             this.config.bannerDuration && this.config.bannerDuration >= MinBannerDuration
                 ? this.config.bannerDuration
                 : DefaultBannerDuration;
+        let toastDuration =
+            this.config.toastDuration && this.config.toastDuration >= MinToastDuration
+                ? this.config.toastDuration
+                : DefaultToastDuration;
         //adapters
         this._qnaPushNotification = new QnaPushNotification();
         this._kitchenSinkMessages = new KitchenSinkMessages({
@@ -88,7 +94,9 @@ export class QnaPlugin extends PlayerContribPlugin
         });
         this._chatMessagesAdapter = new ChatMessagesAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
-            qnaPushNotification: this._qnaPushNotification
+            qnaPushNotification: this._qnaPushNotification,
+            toastsManager: this.uiManager.toast,
+            toastDuration: toastDuration
         });
         //listeners
         this._constructPluginListener();

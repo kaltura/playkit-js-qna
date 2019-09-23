@@ -2,7 +2,6 @@ import { QnaMessage } from "./qnaMessage";
 import { Utils } from "./utils";
 import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 import { KitchenSinkManager } from "@playkit-js-contrib/ui";
-import { AoAMessage } from "./aoaAdapter";
 
 export enum KitchenSinkEventTypes {
     MessagesUpdatedEvent = "MessagesUpdatedEvent"
