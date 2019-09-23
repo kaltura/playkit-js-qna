@@ -95,6 +95,7 @@ export class QnaPlugin extends PlayerContribPlugin
         this._chatMessagesAdapter = new ChatMessagesAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
+            kitchenSinkManager: this.uiManager.kitchenSink,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });

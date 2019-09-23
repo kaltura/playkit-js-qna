@@ -6,7 +6,13 @@ import {
     UserQnaNotificationsEvent
 } from "./qnaPushNotification";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
+import {
+    ToastSeverity,
+    ToastsManager,
+    KitchenSinkManager,
+    KitchenSinkPositions,
+    KitchenSinkExpandModes
+} from "@playkit-js-contrib/ui";
 import { QnaMessage, QnaMessageType } from "./qnaMessage";
 import {
     KalturaClient,
@@ -31,6 +37,7 @@ import { ToastIcon, ToastsType } from "./components/toast-icon";
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
+    kitchenSinkManager: KitchenSinkManager;
     toastsManager: ToastsManager;
     toastDuration: number;
 }
@@ -52,6 +59,7 @@ export class ChatMessagesAdapter {
     private _kalturaClient = new KalturaClient();
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
+    private _kitchenSinkManager: KitchenSinkManager;
     private _toastsManager: ToastsManager;
     private _toastDuration: number;
 
@@ -65,6 +73,7 @@ export class ChatMessagesAdapter {
     constructor(options: ChatMessagesAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
+        this._kitchenSinkManager = options.kitchenSinkManager;
         this._toastsManager = options.toastsManager;
         this._toastDuration = options.toastDuration;
     }
@@ -294,7 +303,12 @@ export class ChatMessagesAdapter {
             icon: <ToastIcon type={ToastsType.REPLY} />,
             duration: this._toastDuration,
             severity: ToastSeverity.INFO,
-            onClick: () => {}
+            onClick: () => {
+                this._kitchenSinkManager.expand(
+                    KitchenSinkPositions.Right,
+                    KitchenSinkExpandModes.OverTheVideo
+                );
+            }
         });
     }
 
