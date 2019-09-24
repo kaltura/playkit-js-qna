@@ -249,7 +249,7 @@ export class AoaAdapter {
                 text: "New Audience asks",
                 icon: <ToastIcon type={ToastsType.AOA} />,
                 duration: this._toastDuration,
-                severity: ToastSeverity.INFO,
+                severity: ToastSeverity.Info,
                 onClick: () => {
                     this._kitchenSinkManager.expand(
                         KitchenSinkPositions.Right,

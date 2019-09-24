@@ -92,7 +92,7 @@ export class AnnouncementsAdapter {
                 text: "New Announcement",
                 icon: <ToastIcon type={ToastsType.ANNOUNCEMENT} />,
                 duration: this._toastDuration,
-                severity: ToastSeverity.INFO,
+                severity: ToastSeverity.Info,
                 onClick: () => {
                     this._kitchenSinkManager.expand(
                         KitchenSinkPositions.Right,

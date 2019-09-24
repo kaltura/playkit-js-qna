@@ -302,7 +302,7 @@ export class ChatMessagesAdapter {
             text: "New Reply",
             icon: <ToastIcon type={ToastsType.REPLY} />,
             duration: this._toastDuration,
-            severity: ToastSeverity.INFO,
+            severity: ToastSeverity.Info,
             onClick: () => {
                 this._kitchenSinkManager.expand(
                     KitchenSinkPositions.Right,
