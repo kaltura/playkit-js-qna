@@ -133,7 +133,7 @@ export class AoaAdapter {
 
         let wasUpdated = false;
         notifications.forEach((notification: AoAMessage) => {
-            let existingIndex = Utils.findIndexById(engineMessages, item => {
+            let existingIndex = Utils.findIndex(engineMessages, item => {
                 return item.id === notification.id;
             });
             if (existingIndex === -1) {
@@ -282,7 +282,7 @@ export class AoaAdapter {
             this._pendingKsMessages = [...messages];
         } else {
             messages.forEach(newMessage => {
-                let foundIndex = Utils.findIndexById(this._pendingKsMessages, item => {
+                let foundIndex = Utils.findIndex(this._pendingKsMessages, item => {
                     return item.id === newMessage.id;
                 });
                 if (foundIndex === -1) {
