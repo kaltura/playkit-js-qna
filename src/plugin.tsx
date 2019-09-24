@@ -86,7 +86,10 @@ export class QnaPlugin extends PlayerContribPlugin
                 kalturaPlayer: this.player,
                 eventManager: this.eventManager
             },
-            delayedEndTime: bannerDuration
+            delayedEndTime: bannerDuration,
+            kitchenSinkManager: this.uiManager.kitchenSink,
+            toastsManager: this.uiManager.toast,
+            toastDuration: toastDuration
         });
         this._announcementAdapter = new AnnouncementsAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,

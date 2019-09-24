@@ -4,7 +4,16 @@ import {
     PushNotificationEventTypes,
     QnaPushNotification
 } from "./qnaPushNotification";
-import { BannerManager } from "@playkit-js-contrib/ui";
+import {
+    BannerManager,
+    VisibilityMode,
+    KitchenSinkPositions,
+    KitchenSinkExpandModes,
+    KitchenSinkManager,
+    BannerState,
+    ToastsManager,
+    ToastSeverity
+} from "@playkit-js-contrib/ui";
 import {
     CuepointEngine,
     getContribLogger,
@@ -12,14 +21,18 @@ import {
     UpdateTimeResponse
 } from "@playkit-js-contrib/common";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
+import { ToastIcon, ToastsType } from "./components/toast-icon";
+import { h } from "preact";
 
 export interface AoaAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
+    kitchenSinkManager: KitchenSinkManager;
+    toastsManager: ToastsManager;
+    toastDuration: number;
     playerApi: PlayerAPI;
     delayedEndTime: number;
-    //todo [sa] toastsManager from contrib
 }
 
 export interface AoAMessage {
@@ -41,6 +54,9 @@ export class AoaAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
+    private _kitchenSinkManager: KitchenSinkManager;
+    private _toastsManager: ToastsManager;
+    private _toastDuration: number;
     private _playerApi: PlayerAPI;
     private _delayedEndTime: number;
 
@@ -56,6 +72,9 @@ export class AoaAdapter {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
         this._bannerManager = options.bannerManager;
+        this._kitchenSinkManager = options.kitchenSinkManager;
+        this._toastsManager = options.toastsManager;
+        this._toastDuration = options.toastDuration;
         this._playerApi = options.playerApi;
         this._delayedEndTime = options.delayedEndTime;
     }
@@ -208,11 +227,34 @@ export class AoaAdapter {
         //show in banner
         if (!this._currentNotification || newMessage.id !== this._currentNotification.id) {
             this._currentNotification = newMessage;
-            this._bannerManager.add({
+            let currentBannerState = this._bannerManager.add({
                 content: {
                     text: newMessage.qnaMessage.messageContent
                         ? newMessage.qnaMessage.messageContent
                         : ""
+                }
+            });
+            this._showAAOAToast(currentBannerState);
+        }
+    }
+
+    private _showAAOAToast(bannerState: BannerState) {
+        if (
+            bannerState.visibilityMode === VisibilityMode.HIDDEN &&
+            this._kitchenSinkManager.getSidePanelMode(KitchenSinkPositions.Right) ===
+                KitchenSinkExpandModes.Hidden
+        ) {
+            this._toastsManager.add({
+                title: "Notifications",
+                text: "New Audience asks",
+                icon: <ToastIcon type={ToastsType.AOA} />,
+                duration: this._toastDuration,
+                severity: ToastSeverity.INFO,
+                onClick: () => {
+                    this._kitchenSinkManager.expand(
+                        KitchenSinkPositions.Right,
+                        KitchenSinkExpandModes.OverTheVideo
+                    );
                 }
             });
         }
