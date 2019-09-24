@@ -279,7 +279,7 @@ export class ChatMessagesAdapter {
             if (message.willBeAnsweredOnAir) {
                 return message;
             }
-            let aoaReplyIndex = Utils.findIndexById(message.replies || [], item => {
+            let aoaReplyIndex = Utils.findIndex(message.replies || [], item => {
                 return item.isAoAAutoReply;
             });
             if (aoaReplyIndex > -1) {
