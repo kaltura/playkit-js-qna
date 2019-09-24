@@ -279,8 +279,8 @@ export class ChatMessagesAdapter {
             if (message.willBeAnsweredOnAir) {
                 return message;
             }
-            let aoaReplyIndex = (message.replies || []).findIndex((reply: QnaMessage) => {
-                return reply.isAoAAutoReply;
+            let aoaReplyIndex = Utils.findIndexById(message.replies || [], item => {
+                return item.isAoAAutoReply;
             });
             if (aoaReplyIndex > -1) {
                 return { ...message, willBeAnsweredOnAir: true };
