@@ -52,9 +52,7 @@ export class KitchenSinkMessages {
         newMessage: QnaMessage,
         options?: { disableUpdateEvent?: boolean; pendingMessageId?: string }
     ): void {
-        let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
-            return qnaMessage.id === newMessage.id;
-        });
+        let existingIndex = Utils.findIndex(this._qnaMessages, this._idComparator(newMessage.id));
         if (existingIndex === -1) {
             this._qnaMessages.push(newMessage);
         }
@@ -69,9 +67,7 @@ export class KitchenSinkMessages {
     }
 
     public deleteMessage(messageId: string, disableUpdateEvent?: boolean) {
-        let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
-            return qnaMessage.id === messageId;
-        });
+        let existingIndex = Utils.findIndex(this._qnaMessages, this._idComparator(messageId));
         if (existingIndex > -1) {
             this._qnaMessages.splice(existingIndex, 1);
         }
@@ -84,9 +80,7 @@ export class KitchenSinkMessages {
 
     public addReply(parentId: string, reply: QnaMessage, disableUpdateEvent?: boolean): void {
         // find if the new reply is a reply for some master question
-        let indexOfMaterQuestion = this._qnaMessages.findIndex(qnaMessage => {
-            return qnaMessage.id === parentId;
-        });
+        let indexOfMaterQuestion = Utils.findIndex(this._qnaMessages, this._idComparator(parentId));
         if (indexOfMaterQuestion === -1) {
             logger.warn("Dropping reply as there is no matching (master) question", {
                 method: "addReply",
@@ -96,9 +90,7 @@ export class KitchenSinkMessages {
         }
 
         let replies = this._qnaMessages[indexOfMaterQuestion].replies;
-        let indexOfReplay = replies.findIndex(qnaMessage => {
-            return qnaMessage.id === reply.id;
-        });
+        let indexOfReplay = Utils.findIndex(replies, this._idComparator(reply.id));
         if (indexOfReplay === -1) {
             replies.push(reply);
         }
@@ -127,9 +119,10 @@ export class KitchenSinkMessages {
         const newMessage = modifier(message);
 
         if (message !== newMessage) {
-            let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
-                return qnaMessage.id === newMessage.id;
-            });
+            let existingIndex = Utils.findIndex(
+                this._qnaMessages,
+                this._idComparator(newMessage.id)
+            );
             this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
         }
     }
@@ -150,5 +143,11 @@ export class KitchenSinkMessages {
         replies.sort((a: QnaMessage, b: QnaMessage) => {
             return a.createdAt.valueOf() - b.createdAt.valueOf();
         });
+    }
+
+    private _idComparator(id: string): (item: QnaMessage) => boolean {
+        return (item): boolean => {
+            return item.id === id;
+        };
     }
 }
