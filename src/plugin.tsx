@@ -235,6 +235,7 @@ export class QnaPlugin extends PlayerContribPlugin
                 hasError={this._hasError}
                 loading={this._loading}
                 onSubmit={this._chatMessagesAdapter.submitQuestion}
+                onMassageRead={this._chatMessagesAdapter.onMessageRead}
             />
         );
     };

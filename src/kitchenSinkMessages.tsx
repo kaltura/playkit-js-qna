@@ -124,6 +124,7 @@ export class KitchenSinkMessages {
                 this._idComparator(newMessage.id)
             );
             this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
+            this.triggerUpdateUIEvent();
         }
     }
 

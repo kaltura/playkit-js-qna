@@ -53,7 +53,7 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
-const NewReplyTimeDelay = 2000;
+const NewReplyTimeDelay = 5000;
 
 export class ChatMessagesAdapter {
     private _kalturaClient = new KalturaClient();
@@ -115,6 +115,15 @@ export class ChatMessagesAdapter {
         );
         this.reset();
     }
+
+    public onMessageRead = (messageId: string): void => {
+        this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
+            // there is no need ot update message since it was already read
+            if (message.unRead === false) return message;
+
+            return { ...message, unRead: false };
+        });
+    };
 
     public submitQuestion = async (question: string, thread?: QnaMessage) => {
         const { requests, missingProfileId, requestIndexCorrection } = this._prepareSubmitRequest(
@@ -288,6 +297,7 @@ export class ChatMessagesAdapter {
             } else if (qnaMessage.parentId) {
                 this._kitchenSinkMessages.addReply(qnaMessage.parentId, qnaMessage);
                 this._setWillBeAnsweredOnAir(qnaMessage.parentId);
+                this._setMessageAsUnRead(qnaMessage.parentId, qnaMessage);
                 //display toasts only for newly created replies
                 if (qnaMessage.createdAt.getTime() >= new Date().getTime() - NewReplyTimeDelay) {
                     this._showReplyToast();
@@ -324,6 +334,15 @@ export class ChatMessagesAdapter {
                 return { ...message, willBeAnsweredOnAir: true };
             }
             return message;
+        });
+    }
+
+    private _setMessageAsUnRead(messageId: string, reply: QnaMessage): void {
+        // and old reply
+        if (reply.createdAt.getTime() < new Date().getTime() - NewReplyTimeDelay) return;
+        // new reply
+        this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
+            return { ...message, unRead: true };
         });
     }
 }
