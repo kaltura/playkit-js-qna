@@ -266,9 +266,9 @@ export class ChatMessagesAdapter {
         qnaMessages.forEach((qnaMessage: QnaMessage) => {
             //is master question
             if (qnaMessage.parentId === null) {
-                this._kitchenSinkMessages.addOrUpdateMessage(qnaMessage);
+                this._kitchenSinkMessages.add(qnaMessage);
             } else if (qnaMessage.parentId) {
-                this._kitchenSinkMessages.addOrUpdateReply(qnaMessage.parentId, qnaMessage);
+                this._kitchenSinkMessages.addReply(qnaMessage.parentId, qnaMessage);
                 this._setWillBeAnsweredOnAir(qnaMessage.parentId);
             }
         });
@@ -279,8 +279,8 @@ export class ChatMessagesAdapter {
             if (message.willBeAnsweredOnAir) {
                 return message;
             }
-            let aoaReplyIndex = (message.replies || []).findIndex((reply: QnaMessage) => {
-                return reply.isAoAAutoReply;
+            let aoaReplyIndex = Utils.findIndex(message.replies || [], item => {
+                return item.isAoAAutoReply;
             });
             if (aoaReplyIndex > -1) {
                 return { ...message, willBeAnsweredOnAir: true };
