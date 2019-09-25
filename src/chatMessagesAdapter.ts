@@ -5,7 +5,12 @@ import {
     UserQnaNotificationsEvent
 } from "./qnaPushNotification";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { QnaMessage, QnaMessageFactory, QnaMessageType } from "./qnaMessageFactory";
+import {
+    MessageDeliveryStatus,
+    QnaMessage,
+    QnaMessageFactory,
+    QnaMessageType
+} from "./qnaMessageFactory";
 import {
     KalturaClient,
     KalturaMultiRequest,
@@ -97,116 +102,127 @@ export class ChatMessagesAdapter {
         this.reset();
     }
 
-    public submitQuestion = async (question: string, thread?: QnaMessage) => {
+    public submitQuestion = async (question: string, parentId?: string) => {
         // todo [am] temp
-        const uuid = Date.now().toString();
+        const uuid = Date.now().toString(); // todo [am] $$$ shai uuid
 
         const pendingQnaMessage = QnaMessageFactory.createPendingQnaMessage({
             id: uuid,
             text: question + "___Pending", // todo [am] remove
-            threadId: thread ? thread.id : undefined,
+            parentId: parentId ? parentId : undefined,
             createdAt: new Date()
         });
 
         this._addOrUpdateQnaMessage([pendingQnaMessage]);
 
-        let a = 1;
-        if (a === 1) return;
+        try {
+            await this._multiRequestForAddMessage(uuid, question, parentId);
+        } catch (err) {
+            this._handleMultiRequestsError(err, uuid, pendingQnaMessage);
+        }
+    };
 
+    private async _multiRequestForAddMessage(uuid: string, question: string, parentId?: string) {
         const { requests, missingProfileId, requestIndexCorrection } = this._prepareSubmitRequest(
             uuid,
             question,
-            thread
+            parentId
         );
 
         const multiRequest = new KalturaMultiRequest(...requests);
 
-        try {
-            let responses: KalturaMultiResponse | null = await this._kalturaClient.multiRequest(
-                multiRequest
-            );
+        let responses: KalturaMultiResponse | null = await this._kalturaClient.multiRequest(
+            multiRequest
+        );
 
-            if (!responses) {
-                logger.error("no response", {
-                    method: "_submitQuestion",
-                    data: {
-                        responses
-                    }
-                });
-                throw new Error("no response");
-            }
-
-            if (responses.hasErrors() || !responses.length) {
-                const firstError = responses.getFirstError();
-                logger.error("Add cue point multi-request failed", {
-                    method: "_submitQuestion",
-                    data: {
-                        firstError
-                    }
-                });
-                throw new Error("Add cue point multi-request failed");
-            }
-
-            if (missingProfileId) {
-                this._metadataProfileId = responses[0].result.objects[0].id;
-            }
-
-            const index = 0 + requestIndexCorrection;
-            const hasCuePoint = responses.length > index + 1;
-
-            if (!hasCuePoint) {
-                throw new Error(
-                    "Add cue-point multi-request error: There is no cue-point object added"
-                );
-            }
-
-            const cuePoint = responses[index].result;
-
-            if (!cuePoint || !(cuePoint instanceof KalturaAnnotation)) {
-                throw new Error(
-                    "Add cue-point multi-request error: There is no KalturaAnnotation cue-point object added"
-                );
-            }
-
-            if (this._entryId !== cuePoint.entryId) {
-                // drop this cuePoint as it doesn't belong to this entryId
-                logger.info("dropping cuePoint as it it doesn't belong to this entryId", {
-                    method: "_submitQuestion",
-                    data: {
-                        entryId: cuePoint.entryId,
-                        cuePointEntryId: cuePoint.entryId
-                    }
-                });
-            }
-
-            // debugger;
-            // // if all went well:
-            // const indexOfMetadata = 1 + requestIndexCorrection;
-            //
-            //
-            // const qnaMessage = QnaMessage.create(cuePoint);
-            // if (qnaMessage) {
-            //     this._addOrUpdateQnaMessage([qnaMessage]);
-            // }
-        } catch (err) {
-            // TODO [am] handle Error then submitting a question
-            logger.error("Failed to submit new question", {
+        if (!responses) {
+            logger.error("no response", {
                 method: "_submitQuestion",
                 data: {
-                    err
+                    responses
                 }
             });
+            throw new Error("no response");
         }
-    };
 
-    public resendQuestion(qnaMessage: QnaMessage) {
-        debugger;
+        if (responses.hasErrors() || !responses.length) {
+            const firstError = responses.getFirstError();
+            logger.error("Add cue point multi-request failed", {
+                method: "_submitQuestion",
+                data: {
+                    firstError
+                }
+            });
+            throw new Error("Add cue point multi-request failed");
+        }
+
+        if (missingProfileId) {
+            this._metadataProfileId = responses[0].result.objects[0].id;
+        }
+
+        const index = 0 + requestIndexCorrection;
+        const hasCuePoint = responses.length > index + 1;
+
+        if (!hasCuePoint) {
+            throw new Error(
+                "Add cue-point multi-request error: There is no cue-point object added"
+            );
+        }
+
+        const cuePoint = responses[index].result;
+
+        if (!cuePoint || !(cuePoint instanceof KalturaAnnotation)) {
+            throw new Error(
+                "Add cue-point multi-request error: There is no KalturaAnnotation cue-point object added"
+            );
+        }
+    }
+
+    private _handleMultiRequestsError(err: any, oldUuid: string, pendingQnaMessage: QnaMessage) {
+        logger.error("Failed to submit new question", {
+            method: "_submitQuestion",
+            data: {
+                err
+            }
+        });
+
+        const newUuid = Date.now().toString();
+        const newMessage = this._kitchenSinkMessages.updateMessageId(
+            oldUuid,
+            newUuid,
+            pendingQnaMessage.parentId
+        );
+
+        if (!newMessage) {
+            return;
+        }
+
+        newMessage.deliveryStatus = MessageDeliveryStatus.SEND_FAILED;
+        this._addOrUpdateQnaMessage([newMessage]);
+
+        // $$$$ todo [am] Add toast
+    }
+
+    public async resendQuestion(qnaMessage: QnaMessage, parentId?: string) {
+        if (!qnaMessage.messageContent) {
+            return;
+        }
+
+        try {
+            await this._multiRequestForAddMessage(
+                qnaMessage.id,
+                qnaMessage.messageContent,
+                parentId
+            );
+        } catch (err) {
+            this._handleMultiRequestsError(err, qnaMessage.id, qnaMessage);
+        }
     }
 
     private _prepareSubmitRequest(
         uuid: string,
         question: string,
-        thread?: QnaMessage
+        parentId?: string
     ): SubmitRequestParams {
         const requests: KalturaRequest<any>[] = [];
         const missingProfileId = !this._metadataProfileId;
@@ -227,6 +243,10 @@ export class ChatMessagesAdapter {
         /*
             2 - Prepare to add annotation cuePoint request
          */
+        if (!this._entryId) {
+            throw new Error("Can't make requests without entryId");
+        }
+
         const kalturaAnnotationArgs: KalturaAnnotationArgs = {
             entryId: this._entryId,
             startTime: Date.now(), // TODO get server/player time
@@ -236,11 +256,22 @@ export class ChatMessagesAdapter {
             systemName: uuid
         };
 
-        if (thread) {
-            const parentId = thread.replies.length
-                ? thread.replies[thread.replies.length - 1].id
+        let thread;
+        if (parentId) {
+            thread = this._kitchenSinkMessages._getMasterMessageById(parentId);
+
+            if (!thread) {
+                throw new Error("Can't make reply requests without thread");
+            }
+
+            // create a created Reply List that omit all the failed/ pending message leaving with the created only
+            const createdReplyList = thread.replies.filter((qnaMessage: QnaMessage) => {
+                return qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED;
+            });
+            const cuePointParentId = createdReplyList.length
+                ? createdReplyList[createdReplyList.length - 1].id
                 : thread.id;
-            kalturaAnnotationArgs.parentId = parentId;
+            kalturaAnnotationArgs.parentId = cuePointParentId;
         }
 
         const addAnnotationCuePointRequest = new CuePointAddAction({

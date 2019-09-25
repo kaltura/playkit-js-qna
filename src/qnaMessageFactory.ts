@@ -12,8 +12,7 @@ export enum QnaMessageType {
 export enum MessageDeliveryStatus {
     CREATED = "CREATED",
     SENDING = "SENDING",
-    SEND_FAILED = "SEND_FAILED",
-    SENT = "SENT"
+    SEND_FAILED = "SEND_FAILED"
 }
 
 export enum MessageState {
@@ -39,7 +38,7 @@ export interface QnaMessageParams {
 const AOAAutoReplyTag = "aoa_auto_reply";
 
 export interface PendingQnaMessageOptions {
-    threadId?: string;
+    parentId?: string;
     id: string;
     text: string;
     createdAt: Date;
@@ -57,12 +56,13 @@ export interface QnaMessage {
     userId: string | null;
     isAoAAutoReply: boolean;
     willBeAnsweredOnAir: boolean;
+    pendingMessageId: string | null;
 }
 
 export class QnaMessageFactory {
-    public static create(cuePoint: KalturaAnnotation): QnaMessage | null {
+    public static create(cuePoint: KalturaAnnotation, metadataXml: string): QnaMessage | null {
         try {
-            const metadata = QnaMessageFactory.getMetadata(cuePoint);
+            const metadata = QnaMessageFactory._parseXml(metadataXml);
             const tags = cuePoint.tags ? cuePoint.tags.split(",").map(value => value.trim()) : [];
 
             const qnaMessage: QnaMessage = {
@@ -78,7 +78,8 @@ export class QnaMessageFactory {
                 messageContent: cuePoint.text,
                 deliveryStatus: cuePoint.createdAt
                     ? MessageDeliveryStatus.CREATED
-                    : MessageDeliveryStatus.SENDING
+                    : MessageDeliveryStatus.SENDING,
+                pendingMessageId: cuePoint.systemName
             };
 
             return qnaMessage;
@@ -93,7 +94,7 @@ export class QnaMessageFactory {
         const qnaMessage: QnaMessage = {
             id: pendingQnaMessageOptions.id,
             createdAt: pendingQnaMessageOptions.createdAt,
-            parentId: pendingQnaMessageOptions.threadId ? pendingQnaMessageOptions.threadId : null,
+            parentId: pendingQnaMessageOptions.parentId ? pendingQnaMessageOptions.parentId : null,
             type: QnaMessageType.Question,
             state: MessageState.Pending,
             replies: [],
@@ -101,34 +102,11 @@ export class QnaMessageFactory {
             messageContent: pendingQnaMessageOptions.text,
             userId: null,
             willBeAnsweredOnAir: false,
-            deliveryStatus: MessageDeliveryStatus.SEND_FAILED
+            deliveryStatus: MessageDeliveryStatus.SEND_FAILED,
+            pendingMessageId: null
         };
 
         return qnaMessage;
-    }
-
-    private static getMetadata(cuePoint: KalturaAnnotation): MetadataInfo {
-        if (!cuePoint.relatedObjects || !cuePoint.relatedObjects["QandA_ResponseProfile"]) {
-            throw new Error("Missing QandA_ResponseProfile at cuePoint.relatedObjects");
-        }
-
-        const relatedObject = cuePoint.relatedObjects["QandA_ResponseProfile"];
-
-        if (!(relatedObject instanceof KalturaMetadataListResponse)) {
-            throw new Error("QandA_ResponseProfile expected to be KalturaMetadataListResponse");
-        }
-
-        if (relatedObject.objects.length === 0) {
-            throw new Error("There are no metadata objects xml at KalturaMetadataListResponse");
-        }
-
-        const metadata = relatedObject.objects[0];
-
-        if (!("DOMParser" in window)) {
-            throw new Error("DOMParser is not exits at window, cant parse the metadata xml");
-        }
-
-        return this._parseXml(metadata.xml);
     }
 
     private static _parseXml(metadata: string) {

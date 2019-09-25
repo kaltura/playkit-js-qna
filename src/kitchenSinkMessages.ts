@@ -45,26 +45,26 @@ export class KitchenSinkMessages {
         this.reset();
     }
 
-    //todo [am] not fully implemented yet
-    // public addPendingQuestion(data: { parentId?: string, contentMessage: string}): void {
-    //     this.addOrUpdateMessage({
-    //         id: '' // generate uuid
-    //         status: 'sending'
-    //     })
-    // }
+    public add(newMessage: QnaMessage, options?: { disableUpdateEvent?: boolean }): void {
+        // if there is pending message in _qnaMessages delete it
+        if (newMessage.pendingMessageId) {
+            let pendingMessageIndex = this._qnaMessages.findIndex(qnaMessage => {
+                return qnaMessage.id === newMessage.pendingMessageId;
+            });
 
-    public add(
-        newMessage: QnaMessage,
-        options?: { disableUpdateEvent?: boolean; pendingMessageId?: string }
-    ): void {
+            if (pendingMessageIndex !== -1) {
+                this._qnaMessages.splice(pendingMessageIndex, 1); // delete if pending message was found
+            }
+        }
+
+        // Add new message if doesn't exits
         let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
             return qnaMessage.id === newMessage.id;
         });
+
         if (existingIndex === -1) {
             this._qnaMessages.push(newMessage);
         }
-
-        //todo [am] handle pending question scenario
 
         this._sortMessages();
 
@@ -87,7 +87,11 @@ export class KitchenSinkMessages {
         }
     }
 
-    public addReply(parentId: string, reply: QnaMessage, disableUpdateEvent?: boolean): void {
+    public addReply(
+        parentId: string,
+        reply: QnaMessage,
+        options?: { disableUpdateEvent?: boolean }
+    ): void {
         // find if the new reply is a reply for some master question
         let indexOfMaterQuestion = this._qnaMessages.findIndex(qnaMessage => {
             return qnaMessage.id === parentId;
@@ -101,16 +105,30 @@ export class KitchenSinkMessages {
         }
 
         let replies = this._qnaMessages[indexOfMaterQuestion].replies;
+
+        // if there is pending reply in _qnaMessages delete it
+        if (reply.pendingMessageId) {
+            let indexOfPendingReplay = replies.findIndex(qnaMessage => {
+                return qnaMessage.id === reply.pendingMessageId;
+            });
+
+            if (indexOfPendingReplay !== -1) {
+                this._qnaMessages.splice(indexOfPendingReplay, 1); // delete if pending message was found
+            }
+        }
+
+        // Add new message if doesn't exits
         let indexOfReplay = replies.findIndex(qnaMessage => {
             return qnaMessage.id === reply.id;
         });
+
         if (indexOfReplay === -1) {
             replies.push(reply);
         }
 
         this._sortReplies(replies);
 
-        if (!disableUpdateEvent) {
+        if (!options || !options.disableUpdateEvent) {
             this.triggerUpdateUIEvent();
         }
     }
@@ -122,8 +140,53 @@ export class KitchenSinkMessages {
         });
     }
 
-    public updateMessageById(id: string, modifier: (message: QnaMessage) => QnaMessage): void {
-        const message = this._getMessageById(id);
+    public updateMessageId(
+        currentId: string,
+        newId: string,
+        parentId?: string | null
+    ): QnaMessage | null {
+        let newMessage = null;
+
+        if (parentId) {
+            let indexOfMaterQuestion = this._qnaMessages.findIndex(qnaMessage => {
+                return qnaMessage.id === parentId;
+            });
+            let replies = this._qnaMessages[indexOfMaterQuestion].replies;
+
+            let indexOfReply = replies.findIndex(qnaMessage => {
+                return qnaMessage.id === currentId;
+            });
+
+            if (indexOfReply !== -1) {
+                newMessage = {
+                    ...replies[indexOfReply],
+                    id: newId
+                };
+                this._qnaMessages.splice(indexOfReply, 1, newMessage);
+            }
+        } else {
+            let indexOfMaterQuestion = this._qnaMessages.findIndex(qnaMessage => {
+                return qnaMessage.id === currentId;
+            });
+
+            if (indexOfMaterQuestion !== -1) {
+                newMessage = {
+                    ...this._qnaMessages[indexOfMaterQuestion],
+                    id: newId
+                };
+                this._qnaMessages.splice(indexOfMaterQuestion, 1, newMessage);
+            }
+        }
+
+        return newMessage;
+    }
+
+    public updateMessageById(
+        id: string,
+        modifier: (message: QnaMessage) => QnaMessage,
+        options?: { disableUpdateEvent?: boolean }
+    ): void {
+        const message = this._getMasterMessageById(id);
 
         if (!message) {
             return;
@@ -136,10 +199,14 @@ export class KitchenSinkMessages {
                 return qnaMessage.id === newMessage.id;
             });
             this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
+
+            if (!options || !options.disableUpdateEvent) {
+                this.triggerUpdateUIEvent();
+            }
         }
     }
 
-    private _getMessageById(id: string): QnaMessage | undefined {
+    public _getMasterMessageById(id: string): QnaMessage | undefined {
         return this._qnaMessages.find(qnaMessage => {
             return qnaMessage.id === id;
         });
