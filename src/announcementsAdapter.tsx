@@ -90,7 +90,7 @@ export class AnnouncementsAdapter {
             this._toastsManager.add({
                 title: "Notifications",
                 text: "New Announcement",
-                icon: <ToastIcon type={ToastsType.ANNOUNCEMENT} />,
+                icon: <ToastIcon type={ToastsType.Announcement} />,
                 duration: this._toastDuration,
                 severity: ToastSeverity.Info,
                 onClick: () => {

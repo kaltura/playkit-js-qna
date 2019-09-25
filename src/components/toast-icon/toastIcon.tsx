@@ -3,9 +3,9 @@ import * as styles from "./_toastIcon.scss";
 import classNames from "classnames";
 
 export enum ToastsType {
-    ANNOUNCEMENT = "ANNOUNCEMENT",
+    Announcement = "Announcement",
     AOA = "AOA",
-    REPLY = "REPLY"
+    Reply = "Reply"
 }
 
 export interface ToastIconProps {
@@ -18,9 +18,9 @@ export class ToastIcon extends Component<ToastIconProps> {
             <div className={styles.container}>
                 <div
                     className={classNames(styles.iconWrapper, {
-                        [styles.announcementIcon]: this.props.type === ToastsType.ANNOUNCEMENT,
+                        [styles.announcementIcon]: this.props.type === ToastsType.Announcement,
                         [styles.aoaIcon]: this.props.type === ToastsType.AOA,
-                        [styles.replyIcon]: this.props.type === ToastsType.REPLY
+                        [styles.replyIcon]: this.props.type === ToastsType.Reply
                     })}
                 />
             </div>

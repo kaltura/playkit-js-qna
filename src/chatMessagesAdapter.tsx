@@ -310,7 +310,7 @@ export class ChatMessagesAdapter {
         this._toastsManager.add({
             title: "Notifications",
             text: "New Reply",
-            icon: <ToastIcon type={ToastsType.REPLY} />,
+            icon: <ToastIcon type={ToastsType.Reply} />,
             duration: this._toastDuration,
             severity: ToastSeverity.Info,
             onClick: () => {
