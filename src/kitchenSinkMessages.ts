@@ -48,9 +48,10 @@ export class KitchenSinkMessages {
     public add(newMessage: QnaMessage, options?: { disableUpdateEvent?: boolean }): void {
         // if there is pending message in _qnaMessages delete it
         if (newMessage.pendingMessageId) {
-            let pendingMessageIndex = this._qnaMessages.findIndex(qnaMessage => {
-                return qnaMessage.id === newMessage.pendingMessageId;
-            });
+            let pendingMessageIndex = Utils.findIndex(
+                this._qnaMessages,
+                this._idComparator(newMessage.pendingMessageId)
+            );
 
             if (pendingMessageIndex !== -1) {
                 this._qnaMessages.splice(pendingMessageIndex, 1); // delete if pending message was found
@@ -58,9 +59,7 @@ export class KitchenSinkMessages {
         }
 
         // Add new message if doesn't exits
-        let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
-            return qnaMessage.id === newMessage.id;
-        });
+        let existingIndex = Utils.findIndex(this._qnaMessages, this._idComparator(newMessage.id));
 
         if (existingIndex === -1) {
             this._qnaMessages.push(newMessage);
@@ -74,9 +73,7 @@ export class KitchenSinkMessages {
     }
 
     public deleteMessage(messageId: string, disableUpdateEvent?: boolean) {
-        let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
-            return qnaMessage.id === messageId;
-        });
+        let existingIndex = Utils.findIndex(this._qnaMessages, this._idComparator(messageId));
         if (existingIndex > -1) {
             this._qnaMessages.splice(existingIndex, 1);
         }
@@ -93,9 +90,7 @@ export class KitchenSinkMessages {
         options?: { disableUpdateEvent?: boolean }
     ): void {
         // find if the new reply is a reply for some master question
-        let indexOfMaterQuestion = this._qnaMessages.findIndex(qnaMessage => {
-            return qnaMessage.id === parentId;
-        });
+        let indexOfMaterQuestion = Utils.findIndex(this._qnaMessages, this._idComparator(parentId));
         if (indexOfMaterQuestion === -1) {
             logger.warn("Dropping reply as there is no matching (master) question", {
                 method: "addReply",
@@ -108,20 +103,17 @@ export class KitchenSinkMessages {
 
         // if there is pending reply in _qnaMessages delete it
         if (reply.pendingMessageId) {
-            let indexOfPendingReplay = replies.findIndex(qnaMessage => {
-                return qnaMessage.id === reply.pendingMessageId;
-            });
-
+            let indexOfPendingReplay = Utils.findIndex(
+                replies,
+                this._idComparator(reply.pendingMessageId)
+            );
             if (indexOfPendingReplay !== -1) {
-                this._qnaMessages.splice(indexOfPendingReplay, 1); // delete if pending message was found
+                replies.splice(indexOfPendingReplay, 1); // delete if pending message was found
             }
         }
 
         // Add new message if doesn't exits
-        let indexOfReplay = replies.findIndex(qnaMessage => {
-            return qnaMessage.id === reply.id;
-        });
-
+        let indexOfReplay = Utils.findIndex(replies, this._idComparator(reply.id));
         if (indexOfReplay === -1) {
             replies.push(reply);
         }
@@ -148,14 +140,13 @@ export class KitchenSinkMessages {
         let newMessage = null;
 
         if (parentId) {
-            let indexOfMaterQuestion = this._qnaMessages.findIndex(qnaMessage => {
-                return qnaMessage.id === parentId;
-            });
+            let indexOfMaterQuestion = Utils.findIndex(
+                this._qnaMessages,
+                this._idComparator(parentId)
+            );
             let replies = this._qnaMessages[indexOfMaterQuestion].replies;
 
-            let indexOfReply = replies.findIndex(qnaMessage => {
-                return qnaMessage.id === currentId;
-            });
+            let indexOfReply = Utils.findIndex(replies, this._idComparator(currentId));
 
             if (indexOfReply !== -1) {
                 newMessage = {
@@ -165,9 +156,10 @@ export class KitchenSinkMessages {
                 this._qnaMessages.splice(indexOfReply, 1, newMessage);
             }
         } else {
-            let indexOfMaterQuestion = this._qnaMessages.findIndex(qnaMessage => {
-                return qnaMessage.id === currentId;
-            });
+            let indexOfMaterQuestion = Utils.findIndex(
+                this._qnaMessages,
+                this._idComparator(currentId)
+            );
 
             if (indexOfMaterQuestion !== -1) {
                 newMessage = {
@@ -195,9 +187,10 @@ export class KitchenSinkMessages {
         const newMessage = modifier(message);
 
         if (message !== newMessage) {
-            let existingIndex = this._qnaMessages.findIndex(qnaMessage => {
-                return qnaMessage.id === newMessage.id;
-            });
+            let existingIndex = Utils.findIndex(
+                this._qnaMessages,
+                this._idComparator(newMessage.id)
+            );
             this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
 
             if (!options || !options.disableUpdateEvent) {
@@ -207,9 +200,13 @@ export class KitchenSinkMessages {
     }
 
     public _getMasterMessageById(id: string): QnaMessage | undefined {
-        return this._qnaMessages.find(qnaMessage => {
-            return qnaMessage.id === id;
-        });
+        let index = Utils.findIndex(this._qnaMessages, this._idComparator(id));
+
+        if (index === -1) {
+            return;
+        }
+
+        return this._qnaMessages[index];
     }
 
     private _sortMessages(): void {
@@ -222,5 +219,11 @@ export class KitchenSinkMessages {
         replies.sort((a: QnaMessage, b: QnaMessage) => {
             return a.createdAt.valueOf() - b.createdAt.valueOf();
         });
+    }
+
+    private _idComparator(id: string): (item: QnaMessage) => boolean {
+        return (item): boolean => {
+            return item.id === id;
+        };
     }
 }

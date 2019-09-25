@@ -12,6 +12,7 @@ import {
     UpdateTimeResponse
 } from "@playkit-js-contrib/common";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
+import { Utils } from "./utils";
 
 export interface AoaAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
@@ -132,8 +133,8 @@ export class AoaAdapter {
 
         let wasUpdated = false;
         notifications.forEach((notification: AoAMessage) => {
-            let existingIndex = engineMessages.findIndex((item: AoAMessage) => {
-                return item.id === notification.id; //find by Id and not reference to support deleted annotations
+            let existingIndex = Utils.findIndex(engineMessages, item => {
+                return item.id === notification.id;
             });
             if (existingIndex === -1) {
                 //add new AoAMessage
@@ -281,8 +282,8 @@ export class AoaAdapter {
             this._pendingKsMessages = [...messages];
         } else {
             messages.forEach(newMessage => {
-                let foundIndex = this._pendingKsMessages.findIndex(ksMessage => {
-                    return ksMessage.id === newMessage.id;
+                let foundIndex = Utils.findIndex(this._pendingKsMessages, item => {
+                    return item.id === newMessage.id;
                 });
                 if (foundIndex === -1) {
                     this._pendingKsMessages.push({ ...newMessage });

@@ -326,6 +326,7 @@ export class ChatMessagesAdapter {
     }
 
     private _processMessages = ({ qnaMessages }: UserQnaNotificationsEvent): void => {
+        debugger;
         //todo [sa] handle toasts
         this._addOrUpdateQnaMessage(qnaMessages);
     };
@@ -347,8 +348,8 @@ export class ChatMessagesAdapter {
             if (message.willBeAnsweredOnAir) {
                 return message;
             }
-            let aoaReplyIndex = (message.replies || []).findIndex((reply: QnaMessage) => {
-                return reply.isAoAAutoReply;
+            let aoaReplyIndex = Utils.findIndex(message.replies || [], item => {
+                return item.isAoAAutoReply;
             });
             if (aoaReplyIndex > -1) {
                 return { ...message, willBeAnsweredOnAir: true };
