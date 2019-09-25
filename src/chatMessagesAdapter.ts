@@ -187,7 +187,12 @@ export class ChatMessagesAdapter {
         pendingQnaMessage.deliveryStatus = MessageDeliveryStatus.SEND_FAILED;
         this._addOrUpdateQnaMessage([pendingQnaMessage]);
 
-        // todo [shai] Add toast
+        /*
+         *  todo [shai] Add toast:
+         *  Notification Message: "Couldn't sent message"
+         *  Status: Error (red bar)
+         *  AND we need to redirect him to message using pendingQnaMessage.id (Note that it could be a reply message)
+         * */
     }
 
     public async resendQuestion(pendingQnaMessage: QnaMessage, parentId?: string) {
