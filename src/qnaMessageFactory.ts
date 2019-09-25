@@ -102,7 +102,7 @@ export class QnaMessageFactory {
             messageContent: pendingQnaMessageOptions.text,
             userId: null,
             willBeAnsweredOnAir: false,
-            deliveryStatus: MessageDeliveryStatus.SEND_FAILED,
+            deliveryStatus: MessageDeliveryStatus.SENDING,
             pendingMessageId: null
         };
 

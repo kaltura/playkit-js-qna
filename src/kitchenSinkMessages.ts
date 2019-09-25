@@ -1,4 +1,4 @@
-import { QnaMessage } from "./qnaMessageFactory";
+import { MessageDeliveryStatus, QnaMessage } from "./qnaMessageFactory";
 import { Utils } from "./utils";
 import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 import { KitchenSinkManager } from "@playkit-js-contrib/ui";
@@ -53,7 +53,11 @@ export class KitchenSinkMessages {
                 this._idComparator(newMessage.pendingMessageId)
             );
 
-            if (pendingMessageIndex !== -1) {
+            if (
+                pendingMessageIndex !== -1 &&
+                this._qnaMessages[pendingMessageIndex].deliveryStatus ===
+                    MessageDeliveryStatus.SENDING
+            ) {
                 this._qnaMessages.splice(pendingMessageIndex, 1); // delete if pending message was found
             }
         }
@@ -107,7 +111,10 @@ export class KitchenSinkMessages {
                 replies,
                 this._idComparator(reply.pendingMessageId)
             );
-            if (indexOfPendingReplay !== -1) {
+            if (
+                indexOfPendingReplay !== -1 &&
+                replies[indexOfPendingReplay].deliveryStatus === MessageDeliveryStatus.SENDING
+            ) {
                 replies.splice(indexOfPendingReplay, 1); // delete if pending message was found
             }
         }

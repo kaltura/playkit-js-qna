@@ -4,7 +4,7 @@ import {
     QnaPushNotification,
     UserQnaNotificationsEvent
 } from "./qnaPushNotification";
-import { getContribLogger } from "@playkit-js-contrib/common";
+import { getContribLogger, UUID } from "@playkit-js-contrib/common";
 import {
     MessageDeliveryStatus,
     QnaMessage,
@@ -33,7 +33,6 @@ import { Utils } from "./utils";
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    //todo [sa] toastsManager from contrib
 }
 
 interface SubmitRequestParams {
@@ -103,8 +102,7 @@ export class ChatMessagesAdapter {
     }
 
     public submitQuestion = async (question: string, parentId?: string) => {
-        // todo [am] temp
-        const uuid = Date.now().toString(); // todo [am] $$$ shai uuid
+        const uuid = UUID.uuidV1();
 
         const pendingQnaMessage = QnaMessageFactory.createPendingQnaMessage({
             id: uuid,
@@ -118,7 +116,7 @@ export class ChatMessagesAdapter {
         try {
             await this._multiRequestForAddMessage(uuid, question, parentId);
         } catch (err) {
-            this._handleMultiRequestsError(err, uuid, pendingQnaMessage);
+            this._handleMultiRequestsError(err, pendingQnaMessage);
         }
     };
 
@@ -178,7 +176,7 @@ export class ChatMessagesAdapter {
         }
     }
 
-    private _handleMultiRequestsError(err: any, oldUuid: string, pendingQnaMessage: QnaMessage) {
+    private _handleMultiRequestsError(err: any, pendingQnaMessage: QnaMessage) {
         logger.error("Failed to submit new question", {
             method: "_submitQuestion",
             data: {
@@ -186,36 +184,43 @@ export class ChatMessagesAdapter {
             }
         });
 
-        const newUuid = Date.now().toString();
+        pendingQnaMessage.deliveryStatus = MessageDeliveryStatus.SEND_FAILED;
+        this._addOrUpdateQnaMessage([pendingQnaMessage]);
+
+        // todo [shai] Add toast
+    }
+
+    public async resendQuestion(pendingQnaMessage: QnaMessage, parentId?: string) {
+        if (!pendingQnaMessage.messageContent) {
+            return;
+        }
+
+        if (pendingQnaMessage.deliveryStatus === MessageDeliveryStatus.SENDING) {
+            return;
+        }
+
+        const newUuid = UUID.uuidV1();
         const newMessage = this._kitchenSinkMessages.updateMessageId(
-            oldUuid,
+            pendingQnaMessage.id,
             newUuid,
             pendingQnaMessage.parentId
         );
 
-        if (!newMessage) {
+        if (!newMessage || !newMessage.messageContent) {
             return;
         }
 
-        newMessage.deliveryStatus = MessageDeliveryStatus.SEND_FAILED;
+        newMessage.deliveryStatus = MessageDeliveryStatus.SENDING;
         this._addOrUpdateQnaMessage([newMessage]);
-
-        // $$$$ todo [am] Add toast
-    }
-
-    public async resendQuestion(qnaMessage: QnaMessage, parentId?: string) {
-        if (!qnaMessage.messageContent) {
-            return;
-        }
 
         try {
             await this._multiRequestForAddMessage(
-                qnaMessage.id,
-                qnaMessage.messageContent,
+                newMessage.id,
+                newMessage.messageContent,
                 parentId
             );
         } catch (err) {
-            this._handleMultiRequestsError(err, qnaMessage.id, qnaMessage);
+            this._handleMultiRequestsError(err, newMessage);
         }
     }
 
@@ -326,7 +331,6 @@ export class ChatMessagesAdapter {
     }
 
     private _processMessages = ({ qnaMessages }: UserQnaNotificationsEvent): void => {
-        debugger;
         //todo [sa] handle toasts
         this._addOrUpdateQnaMessage(qnaMessages);
     };

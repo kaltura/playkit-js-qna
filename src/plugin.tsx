@@ -219,7 +219,7 @@ export class QnaPlugin extends PlayerContribPlugin
                 hasError={this._hasError}
                 loading={this._loading}
                 onSubmit={this._chatMessagesAdapter.submitQuestion}
-                onResend={this._chatMessagesAdapter.resendQuestion}
+                onResend={this._chatMessagesAdapter.resendQuestion.bind(this._chatMessagesAdapter)}
             />
         );
     };
