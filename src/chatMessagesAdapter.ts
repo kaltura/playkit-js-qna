@@ -188,10 +188,11 @@ export class ChatMessagesAdapter {
         this._addOrUpdateQnaMessage([pendingQnaMessage]);
 
         /*
-         *  todo [shai] Add toast:
+         *  todo [sa] Add toast OR
+         *  todo [am] Add toast:
          *  Notification Message: "Couldn't sent message"
          *  Status: Error (red bar)
-         *  AND we need to redirect him to message using pendingQnaMessage.id (Note that it could be a reply message)
+         *  AND we need to open kitchen sink on click
          * */
     }
 
