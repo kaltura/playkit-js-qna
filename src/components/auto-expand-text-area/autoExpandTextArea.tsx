@@ -162,23 +162,24 @@ export class AutoExpandTextArea extends Component<
                     rows={1}
                     maxLength={MAX_NUM_OF_CHARS}
                 />
-                {(open || openByEvent) && (
-                    <div
-                        className={styles.inputActionsContainer}
-                        ref={element => (this._actionsContainer = element)}
+                <div
+                    className={classNames({
+                        [styles.inputActionsContainer]: open || openByEvent,
+                        [styles.hide]: !open && !openByEvent
+                    })}
+                    ref={element => (this._actionsContainer = element)}
+                >
+                    <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
+                    <button
+                        onClick={this._handleOnSend}
+                        className={styles.sendButton}
+                        type={"button"}
+                        disabled={!text.length}
+                        ref={button => (this._sendButtonRef = button)}
                     >
-                        <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
-                        <button
-                            onClick={this._handleOnSend}
-                            className={styles.sendButton}
-                            type={"button"}
-                            disabled={!text.length}
-                            ref={button => (this._sendButtonRef = button)}
-                        >
-                            {"Send"}
-                        </button>
-                    </div>
-                )}
+                        {"Send"}
+                    </button>
+                </div>
             </div>
         );
     }
