@@ -65,9 +65,12 @@ export class KitchenSinkMessages {
         // Add new message if doesn't exits
         let existingIndex = Utils.findIndex(this._qnaMessages, this._idComparator(newMessage.id));
 
-        if (existingIndex === -1) {
-            this._qnaMessages.push(newMessage);
+        // if found: return
+        if (existingIndex > -1) {
+            return;
         }
+
+        this._qnaMessages.push(newMessage);
 
         this._sortMessages();
 
@@ -80,11 +83,12 @@ export class KitchenSinkMessages {
         let existingIndex = Utils.findIndex(this._qnaMessages, this._idComparator(messageId));
         if (existingIndex > -1) {
             this._qnaMessages.splice(existingIndex, 1);
-        }
-        this._sortMessages();
 
-        if (!disableUpdateEvent) {
-            this.triggerUpdateUIEvent();
+            this._sortMessages();
+
+            if (!disableUpdateEvent) {
+                this.triggerUpdateUIEvent();
+            }
         }
     }
 
@@ -121,9 +125,13 @@ export class KitchenSinkMessages {
 
         // Add new message if doesn't exits
         let indexOfReplay = Utils.findIndex(replies, this._idComparator(reply.id));
-        if (indexOfReplay === -1) {
-            replies.push(reply);
+
+        // if found: return
+        if (indexOfReplay > -1) {
+            return;
         }
+
+        replies.push(reply);
 
         this._sortReplies(replies);
 

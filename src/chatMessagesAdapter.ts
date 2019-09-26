@@ -200,7 +200,7 @@ export class ChatMessagesAdapter {
          * */
     }
 
-    public async resendQuestion(pendingQnaMessage: QnaMessage, parentId: string | null) {
+    resendQuestion = async (pendingQnaMessage: QnaMessage, parentId: string | null) => {
         if (!pendingQnaMessage.messageContent) {
             return;
         }
@@ -232,7 +232,7 @@ export class ChatMessagesAdapter {
         } catch (err) {
             this._handleMultiRequestsError(err, newMessage);
         }
-    }
+    };
 
     private _prepareSubmitRequest(
         uuid: string,
