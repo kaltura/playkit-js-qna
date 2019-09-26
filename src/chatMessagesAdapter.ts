@@ -106,7 +106,7 @@ export class ChatMessagesAdapter {
 
         const pendingQnaMessage = QnaMessageFactory.createPendingQnaMessage({
             id: uuid,
-            text: question + "___Pending", // todo [am] remove
+            text: question,
             parentId: parentId ? parentId : undefined,
             createdAt: new Date()
         });
@@ -324,7 +324,7 @@ export class ChatMessagesAdapter {
         const updateCuePointAction = new CuePointUpdateAction({
             id: "",
             cuePoint: new KalturaAnnotation({
-                tags: "qna, " + uuid // todo [am] clean to ->     tags: "qna"
+                tags: "qna, " + uuid // todo [am] change to ->     tags: "qna"
             })
         }).setDependency(["id", 0 + requestIndexCorrection, "id"]);
 
