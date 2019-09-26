@@ -50,6 +50,7 @@ export class QnaMessage {
     public userId: string | null = null;
     public isAoAAutoReply: boolean = false;
     public willBeAnsweredOnAir: boolean = false;
+    public unRead: boolean = false;
 
     public static create(cuePoint: KalturaAnnotation): QnaMessage | null {
         try {

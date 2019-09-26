@@ -14,6 +14,7 @@ export interface KitchenSinkProps {
     hasError: boolean;
     loading: boolean;
     onSubmit: (text: string, thread?: QnaMessage) => void;
+    onMassageRead: (id: string) => void;
 }
 
 interface KitchenSinkState {}
@@ -109,6 +110,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             dateFormat={props.dateFormat}
                             key={qnaMessage.id}
                             onReply={this._handleOnSubmit}
+                            onMassageRead={props.onMassageRead}
                         />
                     );
                 }
