@@ -10,8 +10,8 @@ import { AnsweredOnAirIcon } from "../answered-on-air-icon";
 interface ThreadProps {
     thread: QnaMessage;
     dateFormat: string;
-    onReply: (text: string, parentId?: string) => void;
-    onResend: (qnaMessage: QnaMessage, parentId: string) => void;
+    onReply: (text: string, parentId: string | null) => void;
+    onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
 }
 
 interface ThreadState {
@@ -22,7 +22,7 @@ interface ThreadState {
 export class Thread extends Component<ThreadProps, ThreadState> {
     static defaultProps = {
         onReply: (text: string, parentId?: string) => {},
-        onResend: (qnaMessage: QnaMessage, parentId: string) => {}
+        onResend: (qnaMessage: QnaMessage, parentId: string | null) => {}
     };
 
     state = {
@@ -44,7 +44,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     };
 
     handleResend = (qnaMessage: QnaMessage) => {
-        this.props.onResend(qnaMessage, this.props.thread.id);
+        this.props.onResend(qnaMessage, qnaMessage.parentId);
     };
 
     private showTimeOrStatus(qnaMessage: QnaMessage, dateFormat: string) {

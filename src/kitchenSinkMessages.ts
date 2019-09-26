@@ -160,7 +160,7 @@ export class KitchenSinkMessages {
                     ...replies[indexOfReply],
                     id: newId
                 };
-                this._qnaMessages.splice(indexOfReply, 1, newMessage);
+                replies.splice(indexOfReply, 1, newMessage);
             }
         } else {
             let indexOfMaterQuestion = Utils.findIndex(

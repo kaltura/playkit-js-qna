@@ -101,7 +101,7 @@ export class ChatMessagesAdapter {
         this.reset();
     }
 
-    public submitQuestion = async (question: string, parentId?: string) => {
+    public submitQuestion = async (question: string, parentId: string | null) => {
         const uuid = UUID.uuidV1();
 
         const pendingQnaMessage = QnaMessageFactory.createPendingQnaMessage({
@@ -120,7 +120,11 @@ export class ChatMessagesAdapter {
         }
     };
 
-    private async _multiRequestForAddMessage(uuid: string, question: string, parentId?: string) {
+    private async _multiRequestForAddMessage(
+        uuid: string,
+        question: string,
+        parentId: string | null
+    ) {
         const { requests, missingProfileId, requestIndexCorrection } = this._prepareSubmitRequest(
             uuid,
             question,
@@ -196,7 +200,7 @@ export class ChatMessagesAdapter {
          * */
     }
 
-    public async resendQuestion(pendingQnaMessage: QnaMessage, parentId?: string) {
+    public async resendQuestion(pendingQnaMessage: QnaMessage, parentId: string | null) {
         if (!pendingQnaMessage.messageContent) {
             return;
         }
@@ -233,7 +237,7 @@ export class ChatMessagesAdapter {
     private _prepareSubmitRequest(
         uuid: string,
         question: string,
-        parentId?: string
+        parentId: string | null
     ): SubmitRequestParams {
         const requests: KalturaRequest<any>[] = [];
         const missingProfileId = !this._metadataProfileId;
@@ -320,7 +324,7 @@ export class ChatMessagesAdapter {
         const updateCuePointAction = new CuePointUpdateAction({
             id: "",
             cuePoint: new KalturaAnnotation({
-                tags: "qna"
+                tags: "qna, " + uuid // todo [am] clean to ->     tags: "qna"
             })
         }).setDependency(["id", 0 + requestIndexCorrection, "id"]);
 
