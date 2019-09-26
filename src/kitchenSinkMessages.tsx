@@ -2,7 +2,6 @@ import { QnaMessage } from "./qnaMessage";
 import { Utils } from "./utils";
 import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 import { KitchenSinkManager } from "@playkit-js-contrib/ui";
-import { AoAMessage } from "./aoaAdapter";
 
 export enum KitchenSinkEventTypes {
     MessagesUpdatedEvent = "MessagesUpdatedEvent"
@@ -125,6 +124,7 @@ export class KitchenSinkMessages {
                 this._idComparator(newMessage.id)
             );
             this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
+            this.triggerUpdateUIEvent();
         }
     }
 

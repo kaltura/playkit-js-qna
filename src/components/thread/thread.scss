@@ -4,7 +4,13 @@
   color: #ffffffe6;
   min-height: 84px;
   width: 100%;
-  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.unreadThread {
+  border-left-style: solid;
+  border-left-width: 2px;
+  border-left-color: #01ACCD
 }
 
 .message-content {
