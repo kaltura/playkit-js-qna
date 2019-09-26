@@ -12,6 +12,7 @@ interface ThreadProps {
     dateFormat: string;
     onReply: (text: string, parentId: string | null) => void;
     onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
+    onMassageRead: (id: string) => void;
 }
 
 interface ThreadState {
@@ -73,13 +74,22 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         }
     }
 
+    handleThreadClick = (): void => {
+        this.props.onMassageRead(this.props.thread.id);
+    };
+
     render() {
         const { thread, dateFormat } = this.props;
         const { replies } = thread;
         const { isThreadOpen, showInputText } = this.state;
 
         return (
-            <div className={styles.thread}>
+            <div
+                className={classNames(styles.thread, {
+                    [styles.unreadThread]: thread.unRead
+                })}
+                onClick={this.handleThreadClick}
+            >
                 {/* if this master question will be answered on air - add an icon */
                 thread.willBeAnsweredOnAir && (
                     <div className={styles.aoaIconContainer}>

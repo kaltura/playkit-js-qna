@@ -1,3 +1,4 @@
+import { h } from "preact";
 import { KitchenSinkMessages } from "./kitchenSinkMessages";
 import {
     PushNotificationEventTypes,
@@ -11,6 +12,7 @@ import {
     QnaMessageFactory,
     QnaMessageType
 } from "./qnaMessageFactory";
+import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
 import {
     KalturaClient,
     KalturaMultiRequest,
@@ -29,10 +31,15 @@ import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/type
 import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataAddAction";
 import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { Utils } from "./utils";
+import { ToastIcon, ToastsType } from "./components/toast-icon";
 
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
+    activateKitchenSink: () => void;
+    isKitchenSinkActive: () => boolean;
+    toastsManager: ToastsManager;
+    toastDuration: number;
 }
 
 interface SubmitRequestParams {
@@ -46,10 +53,16 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
+const NewReplyTimeDelay = 5000;
+
 export class ChatMessagesAdapter {
     private _kalturaClient = new KalturaClient();
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
+    private _activateKitchenSink: () => void;
+    private _isKitchenSinkActive: () => boolean;
+    private _toastsManager: ToastsManager;
+    private _toastDuration: number;
 
     private _config: ContribConfig | null = null;
     private _userId: string | undefined;
@@ -61,6 +74,10 @@ export class ChatMessagesAdapter {
     constructor(options: ChatMessagesAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
+        this._activateKitchenSink = options.activateKitchenSink;
+        this._isKitchenSinkActive = options.isKitchenSinkActive;
+        this._toastsManager = options.toastsManager;
+        this._toastDuration = options.toastDuration;
     }
 
     public init(config: ContribConfig): void {
@@ -100,6 +117,15 @@ export class ChatMessagesAdapter {
         );
         this.reset();
     }
+
+    public onMessageRead = (messageId: string): void => {
+        this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
+            // there is no need ot update message since it was already read
+            if (message.unRead === false) return message;
+
+            return { ...message, unRead: false };
+        });
+    };
 
     public submitQuestion = async (question: string, parentId: string | null) => {
         const uuid = UUID.uuidV1();
@@ -341,7 +367,6 @@ export class ChatMessagesAdapter {
     }
 
     private _processMessages = ({ qnaMessages }: UserQnaNotificationsEvent): void => {
-        //todo [sa] handle toasts
         this._addOrUpdateQnaMessage(qnaMessages);
     };
 
@@ -353,9 +378,30 @@ export class ChatMessagesAdapter {
             } else if (qnaMessage.parentId) {
                 this._kitchenSinkMessages.addReply(qnaMessage.parentId, qnaMessage);
                 this._setWillBeAnsweredOnAir(qnaMessage.parentId);
+                this._setMessageAsUnRead(qnaMessage.parentId, qnaMessage);
+                //display toasts only for newly created messages in server (not pending/failed)
+                if (
+                    Utils.isMessageInTimeFrame(qnaMessage) &&
+                    qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED
+                ) {
+                    this._showReplyToast();
+                }
             }
         });
     };
+
+    private _showReplyToast() {
+        this._toastsManager.add({
+            title: "Notifications",
+            text: "New Reply",
+            icon: <ToastIcon type={ToastsType.Reply} />,
+            duration: this._toastDuration,
+            severity: ToastSeverity.Info,
+            onClick: () => {
+                this._activateKitchenSink();
+            }
+        });
+    }
 
     private _setWillBeAnsweredOnAir(messageId: string): void {
         this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
@@ -369,6 +415,15 @@ export class ChatMessagesAdapter {
                 return { ...message, willBeAnsweredOnAir: true };
             }
             return message;
+        });
+    }
+
+    private _setMessageAsUnRead(messageId: string, reply: QnaMessage): void {
+        // an old reply
+        if (!Utils.isMessageInTimeFrame(reply)) return;
+        // new reply
+        this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
+            return { ...message, unRead: true };
         });
     }
 }

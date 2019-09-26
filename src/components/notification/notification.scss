@@ -77,9 +77,9 @@
 }
 
 .second-info-line {
-  overflow: auto;
   background-color: #333333cc;
-  min-height: 16px;
+  display: flex;
+  flex-direction: column-reverse;
   border-bottom: 1px solid #222222e6;
   padding: 0 8px 8px 8px;
   box-sizing: initial;

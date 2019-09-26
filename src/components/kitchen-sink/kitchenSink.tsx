@@ -14,6 +14,7 @@ export interface KitchenSinkProps {
     loading: boolean;
     onSubmit: (text: string, parentId: string | null) => void;
     onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
+    onMassageRead: (id: string) => void;
 }
 
 interface KitchenSinkState {}
@@ -84,6 +85,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             key={qnaMessage.id}
                             onReply={this.handleOnSubmit}
                             onResend={this.handleOnResend}
+                            onMassageRead={props.onMassageRead}
                         />
                     );
                 }

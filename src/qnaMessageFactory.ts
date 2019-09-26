@@ -35,8 +35,6 @@ export interface QnaMessageParams {
     tags: string[];
 }
 
-const AOAAutoReplyTag = "aoa_auto_reply";
-
 export interface PendingQnaMessageOptions {
     parentId?: string;
     id: string;
@@ -57,7 +55,10 @@ export interface QnaMessage {
     isAoAAutoReply: boolean;
     willBeAnsweredOnAir: boolean;
     pendingMessageId: string | null;
+    unRead: boolean;
 }
+
+const AOAAutoReplyTag = "aoa_auto_reply";
 
 const logger = getContribLogger({
     class: "QnaMessageFactory",
@@ -84,7 +85,8 @@ export class QnaMessageFactory {
                 deliveryStatus: cuePoint.createdAt
                     ? MessageDeliveryStatus.CREATED
                     : MessageDeliveryStatus.SENDING,
-                pendingMessageId: tags.length >= 2 ? tags[1] : null //  todo [am] change to -> pendingMessageId: cuePoint.systemName
+                pendingMessageId: tags.length >= 2 ? tags[1] : null, //  todo [am] change to -> pendingMessageId: cuePoint.systemName
+                unRead: false
             };
 
             return qnaMessage;
@@ -110,7 +112,8 @@ export class QnaMessageFactory {
             userId: null,
             willBeAnsweredOnAir: false,
             deliveryStatus: MessageDeliveryStatus.SENDING,
-            pendingMessageId: null
+            pendingMessageId: null,
+            unRead: false
         };
 
         return qnaMessage;
