@@ -7,9 +7,6 @@ import {
 import {
     BannerManager,
     VisibilityMode,
-    KitchenSinkPositions,
-    KitchenSinkExpandModes,
-    KitchenSinkManager,
     BannerState,
     ToastsManager,
     ToastSeverity
@@ -29,7 +26,8 @@ export interface AoaAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
-    kitchenSinkManager: KitchenSinkManager;
+    activateKitchenSink: () => void;
+    isKitchenSinkActive: () => boolean;
     toastsManager: ToastsManager;
     toastDuration: number;
     playerApi: PlayerAPI;
@@ -55,7 +53,8 @@ export class AoaAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
-    private _kitchenSinkManager: KitchenSinkManager;
+    private _activateKitchenSink: () => void;
+    private _isKitchenSinkActive: () => boolean;
     private _toastsManager: ToastsManager;
     private _toastDuration: number;
     private _playerApi: PlayerAPI;
@@ -73,7 +72,8 @@ export class AoaAdapter {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
         this._bannerManager = options.bannerManager;
-        this._kitchenSinkManager = options.kitchenSinkManager;
+        this._activateKitchenSink = options.activateKitchenSink;
+        this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._toastsManager = options.toastsManager;
         this._toastDuration = options.toastDuration;
         this._playerApi = options.playerApi;
@@ -228,23 +228,19 @@ export class AoaAdapter {
         //show in banner
         if (!this._currentNotification || newMessage.id !== this._currentNotification.id) {
             this._currentNotification = newMessage;
-            let currentBannerState = this._bannerManager.add({
+            const currentBannerState = this._bannerManager.add({
                 content: {
                     text: newMessage.qnaMessage.messageContent
                         ? newMessage.qnaMessage.messageContent
                         : ""
                 }
             });
-            this._showAAOAToast(currentBannerState);
+            this._showAOAToast(currentBannerState);
         }
     }
 
-    private _showAAOAToast(bannerState: BannerState) {
-        if (
-            bannerState.visibilityMode === VisibilityMode.HIDDEN &&
-            this._kitchenSinkManager.getSidePanelMode(KitchenSinkPositions.Right) ===
-                KitchenSinkExpandModes.Hidden
-        ) {
+    private _showAOAToast(bannerState: BannerState) {
+        if (bannerState.visibilityMode === VisibilityMode.HIDDEN && !this._isKitchenSinkActive()) {
             this._toastsManager.add({
                 title: "Notifications",
                 text: "New Audience asks",
@@ -252,10 +248,7 @@ export class AoaAdapter {
                 duration: this._toastDuration,
                 severity: ToastSeverity.Info,
                 onClick: () => {
-                    this._kitchenSinkManager.expand(
-                        KitchenSinkPositions.Right,
-                        KitchenSinkExpandModes.OverTheVideo
-                    );
+                    this._activateKitchenSink();
                 }
             });
         }

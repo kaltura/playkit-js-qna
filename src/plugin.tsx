@@ -87,21 +87,24 @@ export class QnaPlugin extends PlayerContribPlugin
                 eventManager: this.eventManager
             },
             delayedEndTime: bannerDuration,
-            kitchenSinkManager: this.uiManager.kitchenSink,
+            activateKitchenSink: this._activateKitchenSink,
+            isKitchenSinkActive: this._isKitchenSinkActive,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
         this._announcementAdapter = new AnnouncementsAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
-            kitchenSinkManager: this.uiManager.kitchenSink,
+            activateKitchenSink: this._activateKitchenSink,
+            isKitchenSinkActive: this._isKitchenSinkActive,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
         this._chatMessagesAdapter = new ChatMessagesAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
-            kitchenSinkManager: this.uiManager.kitchenSink,
+            activateKitchenSink: this._activateKitchenSink,
+            isKitchenSinkActive: this._isKitchenSinkActive,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
@@ -210,6 +213,17 @@ export class QnaPlugin extends PlayerContribPlugin
         this._loading = false;
         this._hasError = true;
         this._updateKitchenSink();
+    };
+
+    private _isKitchenSinkActive = (): boolean => {
+        if (!this._kitchenSinkItem) return false;
+        return this._kitchenSinkItem.isActive();
+    };
+
+    private _activateKitchenSink = (): void => {
+        if (this._kitchenSinkItem) {
+            this._kitchenSinkItem.activate();
+        }
     };
 
     onRegisterUI(uiManager: UIManager): void {

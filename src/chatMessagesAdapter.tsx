@@ -6,13 +6,7 @@ import {
     UserQnaNotificationsEvent
 } from "./qnaPushNotification";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import {
-    ToastSeverity,
-    ToastsManager,
-    KitchenSinkManager,
-    KitchenSinkPositions,
-    KitchenSinkExpandModes
-} from "@playkit-js-contrib/ui";
+import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
 import { QnaMessage, QnaMessageType } from "./qnaMessage";
 import {
     KalturaClient,
@@ -37,7 +31,8 @@ import { ToastIcon, ToastsType } from "./components/toast-icon";
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    kitchenSinkManager: KitchenSinkManager;
+    activateKitchenSink: () => void;
+    isKitchenSinkActive: () => boolean;
     toastsManager: ToastsManager;
     toastDuration: number;
 }
@@ -59,7 +54,8 @@ export class ChatMessagesAdapter {
     private _kalturaClient = new KalturaClient();
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
-    private _kitchenSinkManager: KitchenSinkManager;
+    private _activateKitchenSink: () => void;
+    private _isKitchenSinkActive: () => boolean;
     private _toastsManager: ToastsManager;
     private _toastDuration: number;
 
@@ -73,7 +69,8 @@ export class ChatMessagesAdapter {
     constructor(options: ChatMessagesAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
-        this._kitchenSinkManager = options.kitchenSinkManager;
+        this._activateKitchenSink = options.activateKitchenSink;
+        this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._toastsManager = options.toastsManager;
         this._toastDuration = options.toastDuration;
     }
@@ -298,8 +295,8 @@ export class ChatMessagesAdapter {
                 this._kitchenSinkMessages.addReply(qnaMessage.parentId, qnaMessage);
                 this._setWillBeAnsweredOnAir(qnaMessage.parentId);
                 this._setMessageAsUnRead(qnaMessage.parentId, qnaMessage);
-                //display toasts only for newly created replies
-                if (qnaMessage.createdAt.getTime() >= new Date().getTime() - NewReplyTimeDelay) {
+                //display toasts only for newly created messages
+                if (Utils.isMessageInTimeFrame(qnaMessage)) {
                     this._showReplyToast();
                 }
             }
@@ -314,10 +311,7 @@ export class ChatMessagesAdapter {
             duration: this._toastDuration,
             severity: ToastSeverity.Info,
             onClick: () => {
-                this._kitchenSinkManager.expand(
-                    KitchenSinkPositions.Right,
-                    KitchenSinkExpandModes.OverTheVideo
-                );
+                this._activateKitchenSink();
             }
         });
     }
@@ -338,8 +332,8 @@ export class ChatMessagesAdapter {
     }
 
     private _setMessageAsUnRead(messageId: string, reply: QnaMessage): void {
-        // and old reply
-        if (reply.createdAt.getTime() < new Date().getTime() - NewReplyTimeDelay) return;
+        // an old reply
+        if (!Utils.isMessageInTimeFrame(reply)) return;
         // new reply
         this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
             return { ...message, unRead: true };

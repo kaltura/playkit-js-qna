@@ -6,20 +6,16 @@ import {
 } from "./qnaPushNotification";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import {
-    KitchenSinkExpandModes,
-    KitchenSinkManager,
-    KitchenSinkPositions,
-    ToastSeverity,
-    ToastsManager
-} from "@playkit-js-contrib/ui";
+import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
+import { Utils } from "./utils";
 
 export interface AnnouncementsAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    kitchenSinkManager: KitchenSinkManager;
+    activateKitchenSink: () => void;
+    isKitchenSinkActive: () => boolean;
     toastsManager: ToastsManager;
     toastDuration: number;
 }
@@ -34,7 +30,8 @@ const NewReplyTimeDelay = 2000;
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
-    private _kitchenSinkManager: KitchenSinkManager;
+    private _activateKitchenSink: () => void;
+    private _isKitchenSinkActive: () => boolean;
     private _toastsManager: ToastsManager;
     private _toastDuration: number;
 
@@ -43,7 +40,8 @@ export class AnnouncementsAdapter {
     constructor(options: AnnouncementsAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
-        this._kitchenSinkManager = options.kitchenSinkManager;
+        this._activateKitchenSink = options.activateKitchenSink;
+        this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._toastsManager = options.toastsManager;
         this._toastDuration = options.toastDuration;
     }
@@ -75,7 +73,8 @@ export class AnnouncementsAdapter {
                 this._kitchenSinkMessages.deleteMessage(qnaMessage.id);
             } else {
                 this._kitchenSinkMessages.add(qnaMessage);
-                if (qnaMessage.createdAt.getTime() >= new Date().getTime() - NewReplyTimeDelay) {
+                //display toasts only for newly created messages
+                if (Utils.isMessageInTimeFrame(qnaMessage)) {
                     this._showAnnouncementToast();
                 }
             }
@@ -83,10 +82,7 @@ export class AnnouncementsAdapter {
     };
 
     private _showAnnouncementToast() {
-        if (
-            this._kitchenSinkManager.getSidePanelMode(KitchenSinkPositions.Right) ===
-            KitchenSinkExpandModes.Hidden
-        ) {
+        if (!this._isKitchenSinkActive()) {
             this._toastsManager.add({
                 title: "Notifications",
                 text: "New Announcement",
@@ -94,10 +90,7 @@ export class AnnouncementsAdapter {
                 duration: this._toastDuration,
                 severity: ToastSeverity.Info,
                 onClick: () => {
-                    this._kitchenSinkManager.expand(
-                        KitchenSinkPositions.Right,
-                        KitchenSinkExpandModes.OverTheVideo
-                    );
+                    this._activateKitchenSink();
                 }
             });
         }
