@@ -6,6 +6,7 @@ import { Spinner } from "../spinner";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
 import { Notification } from "../notification";
 import { ScrollDownButton } from "../scroll-down-button";
+import classNames from "classnames";
 
 export interface KitchenSinkProps {
     onClose: () => void;
@@ -56,7 +57,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
         clearTimeout(this._scrollingTimeoutId);
         this._scrollingTimeoutId = setTimeout(() => {
             this.setState({ autoScroll: this._isBottom() });
-        }, 600);
+        });
     };
 
     private _isBottom(): boolean {
@@ -152,11 +153,13 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
                 {/* footer */}
                 <div className={styles.footer}>
-                    {!this.state.autoScroll && (
-                        <div className={styles.scrollDownButton}>
-                            <ScrollDownButton onClick={this._scrollToBottom} />
-                        </div>
-                    )}
+                    <div
+                        className={classNames(styles.scrollDownButton, {
+                            [styles.scrollDownButtonHidden]: state.autoScroll
+                        })}
+                    >
+                        <ScrollDownButton onClick={this._scrollToBottom} />
+                    </div>
                     <AutoExpandTextArea
                         onSubmit={this._handleOnSubmit}
                         placeholder={"Type a private question"}
