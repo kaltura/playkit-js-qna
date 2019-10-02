@@ -85,7 +85,7 @@ export class QnaMessageFactory {
                 deliveryStatus: cuePoint.createdAt
                     ? MessageDeliveryStatus.CREATED
                     : MessageDeliveryStatus.SENDING,
-                pendingMessageId: tags.length >= 2 ? tags[1] : null, //  todo [am] change to -> pendingMessageId: cuePoint.systemName
+                pendingMessageId: cuePoint.systemName,
                 unRead: false
             };
 

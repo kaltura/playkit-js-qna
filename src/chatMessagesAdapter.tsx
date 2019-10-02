@@ -363,7 +363,7 @@ export class ChatMessagesAdapter {
         const updateCuePointAction = new CuePointUpdateAction({
             id: "",
             cuePoint: new KalturaAnnotation({
-                tags: "qna, " + uuid // todo [am] change to ->     tags: "qna"
+                tags: "qna"
             })
         }).setDependency(["id", 0 + requestIndexCorrection, "id"]);
 
