@@ -21,10 +21,7 @@ interface ThreadState {
 }
 
 export class Thread extends Component<ThreadProps, ThreadState> {
-    static defaultProps = {
-        onReply: (text: string, parentId?: string) => {},
-        onResend: (qnaMessage: QnaMessage, parentId: string | null) => {}
-    };
+    static defaultProps = {};
 
     state = {
         isThreadOpen: false,
@@ -169,6 +166,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         initialFocus={true}
                         open={true}
                         disabled={thread.deliveryStatus === MessageDeliveryStatus.SEND_FAILED}
+                        showLockIcon={false}
                     />
                 ) : (
                     <div className={styles.lastInfoLine}>

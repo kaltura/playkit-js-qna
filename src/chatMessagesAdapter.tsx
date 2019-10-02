@@ -119,7 +119,7 @@ export class ChatMessagesAdapter {
     }
 
     public onMessageRead = (messageId: string): void => {
-        this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
+        this._kitchenSinkMessages.updateMessageById(messageId, null, (message: QnaMessage) => {
             // there is no need ot update message since it was already read
             if (message.unRead === false) return message;
 
@@ -137,7 +137,7 @@ export class ChatMessagesAdapter {
             createdAt: new Date()
         });
 
-        this._addOrUpdateQnaMessage([pendingQnaMessage]);
+        this._addAnyQnaMessage([pendingQnaMessage]);
 
         try {
             await this._multiRequestForAddMessage(uuid, question, parentId);
@@ -214,16 +214,24 @@ export class ChatMessagesAdapter {
             }
         });
 
-        pendingQnaMessage.deliveryStatus = MessageDeliveryStatus.SEND_FAILED;
-        this._addOrUpdateQnaMessage([pendingQnaMessage]);
+        this._kitchenSinkMessages.updateMessageById(
+            pendingQnaMessage.id,
+            pendingQnaMessage.parentId,
+            (message: QnaMessage) => {
+                return { ...message, deliveryStatus: MessageDeliveryStatus.SEND_FAILED };
+            }
+        );
 
-        /*
-         *  todo [sa] Add toast OR
-         *  todo [am] Add toast:
-         *  Notification Message: "Couldn't sent message"
-         *  Status: Error (red bar)
-         *  AND we need to open kitchen sink on click
-         * */
+        this._toastsManager.add({
+            title: "Notifications",
+            text: "Couldn't sent message",
+            icon: <ToastIcon type={ToastsType.Error} />,
+            duration: this._toastDuration,
+            severity: ToastSeverity.Error,
+            onClick: () => {
+                this._activateKitchenSink();
+            }
+        });
     }
 
     resendQuestion = async (pendingQnaMessage: QnaMessage, parentId: string | null) => {
@@ -246,8 +254,13 @@ export class ChatMessagesAdapter {
             return;
         }
 
-        newMessage.deliveryStatus = MessageDeliveryStatus.SENDING;
-        this._addOrUpdateQnaMessage([newMessage]);
+        this._kitchenSinkMessages.updateMessageById(
+            newMessage.id,
+            newMessage.parentId,
+            (message: QnaMessage) => {
+                return { ...message, deliveryStatus: MessageDeliveryStatus.SENDING };
+            }
+        );
 
         try {
             await this._multiRequestForAddMessage(
@@ -299,7 +312,7 @@ export class ChatMessagesAdapter {
 
         let thread;
         if (parentId) {
-            thread = this._kitchenSinkMessages._getMasterMessageById(parentId);
+            thread = this._kitchenSinkMessages.getMasterMessageById(parentId);
 
             if (!thread) {
                 throw new Error("Can't make reply requests without thread");
@@ -367,10 +380,10 @@ export class ChatMessagesAdapter {
     }
 
     private _processMessages = ({ qnaMessages }: UserQnaNotificationsEvent): void => {
-        this._addOrUpdateQnaMessage(qnaMessages);
+        this._addAnyQnaMessage(qnaMessages);
     };
 
-    private _addOrUpdateQnaMessage = (qnaMessages: QnaMessage[]): void => {
+    private _addAnyQnaMessage = (qnaMessages: QnaMessage[]): void => {
         qnaMessages.forEach((qnaMessage: QnaMessage) => {
             //is master question
             if (qnaMessage.parentId === null) {
@@ -404,7 +417,7 @@ export class ChatMessagesAdapter {
     }
 
     private _setWillBeAnsweredOnAir(messageId: string): void {
-        this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
+        this._kitchenSinkMessages.updateMessageById(messageId, null, (message: QnaMessage) => {
             if (message.willBeAnsweredOnAir) {
                 return message;
             }
@@ -422,7 +435,7 @@ export class ChatMessagesAdapter {
         // an old reply
         if (!Utils.isMessageInTimeFrame(reply)) return;
         // new reply
-        this._kitchenSinkMessages.updateMessageById(messageId, (message: QnaMessage) => {
+        this._kitchenSinkMessages.updateMessageById(messageId, null, (message: QnaMessage) => {
             return { ...message, unRead: true };
         });
     }

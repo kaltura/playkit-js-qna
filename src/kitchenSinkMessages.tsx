@@ -190,31 +190,47 @@ export class KitchenSinkMessages {
 
     public updateMessageById(
         id: string,
+        parentId: string | null,
         modifier: (message: QnaMessage) => QnaMessage,
         options?: { disableUpdateEvent?: boolean }
     ): void {
-        const message = this._getMasterMessageById(id);
+        if (parentId) {
+            let indexOfMaterQuestion = Utils.findIndex(
+                this._qnaMessages,
+                this._idComparator(parentId)
+            );
+            let replies = this._qnaMessages[indexOfMaterQuestion].replies;
 
-        if (!message) {
-            return;
+            let indexOfReply = Utils.findIndex(replies, this._idComparator(id));
+
+            if (indexOfReply !== -1) {
+                const newMessage = modifier(replies[indexOfReply]);
+                replies.splice(indexOfReply, 1, newMessage);
+            }
+        } else {
+            const message = this.getMasterMessageById(id);
+
+            if (!message) {
+                return;
+            }
+
+            const newMessage = modifier(message);
+
+            if (message !== newMessage) {
+                let existingIndex = Utils.findIndex(
+                    this._qnaMessages,
+                    this._idComparator(newMessage.id)
+                );
+                this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
+            }
         }
 
-        const newMessage = modifier(message);
-
-        if (message !== newMessage) {
-            let existingIndex = Utils.findIndex(
-                this._qnaMessages,
-                this._idComparator(newMessage.id)
-            );
-            this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
-
-            if (!options || !options.disableUpdateEvent) {
-                this.triggerUpdateUIEvent();
-            }
+        if (!options || !options.disableUpdateEvent) {
+            this.triggerUpdateUIEvent();
         }
     }
 
-    public _getMasterMessageById(id: string): QnaMessage | undefined {
+    public getMasterMessageById(id: string): QnaMessage | undefined {
         let index = Utils.findIndex(this._qnaMessages, this._idComparator(id));
 
         if (index === -1) {

@@ -9,6 +9,7 @@ interface AutoExpandTextAreaProps {
     initialFocus?: boolean;
     open?: boolean;
     disabled?: boolean;
+    showLockIcon?: boolean;
 }
 
 interface AutoExpandTextAreaState {
@@ -31,7 +32,8 @@ export class AutoExpandTextArea extends Component<
 
     static defaultProps = {
         placeholder: "",
-        enableBlackInputTheme: false
+        enableBlackInputTheme: false,
+        showLockIcon: true
     };
 
     state: AutoExpandTextAreaState = { text: "", openByEvent: false };
@@ -143,14 +145,16 @@ export class AutoExpandTextArea extends Component<
 
     render() {
         const { text, openByEvent } = this.state;
-        const { enableBlackInputTheme, placeholder, open, disabled } = this.props;
+        const { enableBlackInputTheme, placeholder, open, disabled, showLockIcon } = this.props;
 
         return (
             <div
                 className={styles.textareaContainer}
                 ref={textareaContainer => (this._textareaContainer = textareaContainer)}
             >
-                <i className={classNames(styles.privateIcon, styles.ignoreClicks)} />
+                {showLockIcon && (
+                    <i className={classNames(styles.privateIcon, styles.ignoreClicks)} />
+                )}
                 <textarea
                     value={text}
                     className={classNames(styles.textarea, {
