@@ -70,13 +70,11 @@ export class AutoExpandTextArea extends Component<
             return;
         }
 
-        this.setState({ bleepingAnimation: true });
-
         // this helps to catch the click on an outside element (like, button) when clicking outsides the element.
         // otherwise the click is missed and swallowed.
         this._allowClickTimeout = setTimeout(() => {
             this.setState(() => ({ openByEvent: false, bleepingAnimation: false }));
-        }, AnimationDuration);
+        }, 200);
     };
 
     focusOnInput = () => {
