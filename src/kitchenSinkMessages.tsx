@@ -150,42 +150,19 @@ export class KitchenSinkMessages {
     public updateMessageId(
         currentId: string,
         newId: string,
-        parentId?: string | null
-    ): QnaMessage | null {
-        let newMessage = null;
-
-        if (parentId) {
-            let indexOfMaterQuestion = Utils.findIndex(
-                this._qnaMessages,
-                this._idComparator(parentId)
-            );
-            let replies = this._qnaMessages[indexOfMaterQuestion].replies;
-
-            let indexOfReply = Utils.findIndex(replies, this._idComparator(currentId));
-
-            if (indexOfReply !== -1) {
-                newMessage = {
-                    ...replies[indexOfReply],
+        parentId: string | null
+    ): QnaMessage | undefined {
+        return this.updateMessageById(
+            currentId,
+            parentId,
+            message => {
+                return {
+                    ...message,
                     id: newId
                 };
-                replies.splice(indexOfReply, 1, newMessage);
-            }
-        } else {
-            let indexOfMaterQuestion = Utils.findIndex(
-                this._qnaMessages,
-                this._idComparator(currentId)
-            );
-
-            if (indexOfMaterQuestion !== -1) {
-                newMessage = {
-                    ...this._qnaMessages[indexOfMaterQuestion],
-                    id: newId
-                };
-                this._qnaMessages.splice(indexOfMaterQuestion, 1, newMessage);
-            }
-        }
-
-        return newMessage;
+            },
+            { disableUpdateEvent: true }
+        );
     }
 
     public updateMessageById(
@@ -193,41 +170,42 @@ export class KitchenSinkMessages {
         parentId: string | null,
         modifier: (message: QnaMessage) => QnaMessage,
         options?: { disableUpdateEvent?: boolean }
-    ): void {
+    ): QnaMessage | undefined {
+        let newMessage = undefined;
+
         if (parentId) {
-            let indexOfMaterQuestion = Utils.findIndex(
-                this._qnaMessages,
-                this._idComparator(parentId)
-            );
-            let replies = this._qnaMessages[indexOfMaterQuestion].replies;
+            let masterMessage = this.getMasterMessageById(parentId);
+
+            if (!masterMessage) {
+                return;
+            }
+
+            let replies = masterMessage.replies;
 
             let indexOfReply = Utils.findIndex(replies, this._idComparator(id));
 
             if (indexOfReply !== -1) {
-                const newMessage = modifier(replies[indexOfReply]);
+                newMessage = modifier(replies[indexOfReply]);
                 replies.splice(indexOfReply, 1, newMessage);
             }
         } else {
-            const message = this.getMasterMessageById(id);
+            let indexOfMaterQuestion = Utils.findIndex(this._qnaMessages, this._idComparator(id));
 
-            if (!message) {
-                return;
-            }
+            if (indexOfMaterQuestion !== -1) {
+                let message = this._qnaMessages[indexOfMaterQuestion];
+                newMessage = modifier(message);
 
-            const newMessage = modifier(message);
-
-            if (message !== newMessage) {
-                let existingIndex = Utils.findIndex(
-                    this._qnaMessages,
-                    this._idComparator(newMessage.id)
-                );
-                this._qnaMessages.splice(existingIndex, 1, newMessage); // override to the new element
+                if (newMessage && message !== newMessage) {
+                    this._qnaMessages.splice(indexOfMaterQuestion, 1, newMessage);
+                }
             }
         }
 
         if (!options || !options.disableUpdateEvent) {
             this.triggerUpdateUIEvent();
         }
+
+        return newMessage;
     }
 
     public getMasterMessageById(id: string): QnaMessage | undefined {
