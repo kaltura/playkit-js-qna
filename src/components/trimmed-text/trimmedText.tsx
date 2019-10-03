@@ -1,5 +1,6 @@
 import { h, Component } from "preact";
 import * as styles from "./trimmedText.scss";
+import { LinkifyString } from "@playkit-js-contrib/linkify";
 
 interface TrimmedTextProps {
     maxLength: number;
@@ -28,7 +29,9 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
         return text && text.length > maxLength ? (
             <span>
                 <span className={styles.text}>
-                    {isTrimmed ? `${text.substring(0, maxLength).trim()}...` : text}
+                    <LinkifyString
+                        htmlString={isTrimmed ? `${text.substring(0, maxLength).trim()}...` : text}
+                    />
                 </span>
                 <button
                     className={styles.showMoreOrLess}
@@ -39,7 +42,9 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
                 </button>
             </span>
         ) : (
-            <span className={styles.text}>{text}</span>
+            <span className={styles.text}>
+                <LinkifyString htmlString={text || ""} />
+            </span>
         );
     }
 }
