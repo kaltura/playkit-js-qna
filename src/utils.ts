@@ -1,4 +1,4 @@
-import { QnaMessage, QnaMessageType } from "./qnaMessage";
+import { QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 
 const NewMessageTimeDelay = 5000;
 

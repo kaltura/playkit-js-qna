@@ -1,0 +1,23 @@
+.ovalContainer {
+  position: relative;
+  border: none;
+  width: 32px;
+  height: 32px;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+  background-color: #01accd;
+  border-radius: 50%;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.iconImage {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: calc(50% - 8px);
+  top: calc(50% - 8px);
+  object-fit: contain;
+  background-image: url('./assets/down.svg');
+}

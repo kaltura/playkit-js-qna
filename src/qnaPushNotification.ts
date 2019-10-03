@@ -5,8 +5,9 @@ import {
     PushNotifications,
     PushNotificationsOptions
 } from "@playkit-js-contrib/push-notifications";
-import { QnaMessage, QnaMessageType } from "./qnaMessage";
+import { QnaMessage, QnaMessageFactory } from "./qnaMessageFactory";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
+import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types";
 
 export enum PushNotificationEventTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
@@ -130,7 +131,7 @@ export class QnaPushNotification {
             data: { entryId }
         });
         return {
-            eventName: "PUBLIC_QNA_NOTIFICATIONS",
+            eventName: PushNotificationEventTypes.PublicNotifications,
             eventParams: {
                 entryId: entryId
             },
@@ -153,7 +154,7 @@ export class QnaPushNotification {
             data: { entryId, userId }
         });
         return {
-            eventName: "USER_QNA_NOTIFICATIONS",
+            eventName: PushNotificationEventTypes.UserNotifications,
             eventParams: {
                 entryId: entryId,
                 userId: userId // TODO [am] temp solutions for userId need to handle anonymous user id
@@ -172,12 +173,37 @@ export class QnaPushNotification {
             if (item.objectType === "KalturaAnnotation") {
                 const kalturaAnnotation: KalturaAnnotation = new KalturaAnnotation();
                 kalturaAnnotation.fromResponseObject(item);
-                let qnaMessage = QnaMessage.create(kalturaAnnotation);
+                const metadataXml: string = QnaPushNotification.getMetadata(kalturaAnnotation);
+                let qnaMessage = QnaMessageFactory.create(kalturaAnnotation, metadataXml);
                 if (qnaMessage) {
                     qnaMessages.push(qnaMessage);
                 }
             }
             return qnaMessages;
         }, []);
+    }
+
+    private static getMetadata(cuePoint: KalturaAnnotation): string {
+        if (!cuePoint.relatedObjects || !cuePoint.relatedObjects["QandA_ResponseProfile"]) {
+            throw new Error("Missing QandA_ResponseProfile at cuePoint.relatedObjects");
+        }
+
+        const relatedObject = cuePoint.relatedObjects["QandA_ResponseProfile"];
+
+        if (!(relatedObject instanceof KalturaMetadataListResponse)) {
+            throw new Error("QandA_ResponseProfile expected to be KalturaMetadataListResponse");
+        }
+
+        if (relatedObject.objects.length === 0) {
+            throw new Error("There are no metadata objects xml at KalturaMetadataListResponse");
+        }
+
+        const metadata = relatedObject.objects[0];
+
+        if (!("DOMParser" in window)) {
+            throw new Error("DOMParser is not exits at window, cant parse the metadata xml");
+        }
+
+        return metadata.xml;
     }
 }

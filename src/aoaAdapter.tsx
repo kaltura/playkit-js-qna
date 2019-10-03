@@ -17,7 +17,7 @@ import {
     PlayerAPI,
     UpdateTimeResponse
 } from "@playkit-js-contrib/common";
-import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
+import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
 import { Utils } from "./utils";

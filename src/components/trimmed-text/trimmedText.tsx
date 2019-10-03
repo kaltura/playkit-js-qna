@@ -4,7 +4,7 @@ import { LinkifyString } from "@playkit-js-contrib/linkify";
 
 interface TrimmedTextProps {
     maxLength: number;
-    text: string | null;
+    text: string | undefined;
 }
 
 interface TrimmedTextState {

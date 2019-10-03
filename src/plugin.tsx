@@ -17,7 +17,7 @@ import {
 } from "@playkit-js-contrib/plugin";
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
-import { QnaMessage } from "./qnaMessage";
+import { QnaMessage } from "./qnaMessageFactory";
 import { getContribLogger } from "@playkit-js-contrib/common";
 import { PushNotificationEventTypes, QnaPushNotification } from "./qnaPushNotification";
 import { AoaAdapter } from "./aoaAdapter";
@@ -249,6 +249,7 @@ export class QnaPlugin extends PlayerContribPlugin
                 hasError={this._hasError}
                 loading={this._loading}
                 onSubmit={this._chatMessagesAdapter.submitQuestion}
+                onResend={this._chatMessagesAdapter.resendQuestion}
                 onMassageRead={this._chatMessagesAdapter.onMessageRead}
             />
         );

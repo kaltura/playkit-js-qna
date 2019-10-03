@@ -3,4 +3,9 @@
   width: 32px;
   height: 32px;
   cursor: pointer;
+  opacity: 0.8;
+
+  &:hover {
+    opacity: 1;
+  }
 }

@@ -5,7 +5,8 @@ import classNames from "classnames";
 export enum ToastsType {
     Announcement = "Announcement",
     AOA = "AOA",
-    Reply = "Reply"
+    Reply = "Reply",
+    Error = "Error"
 }
 
 export interface ToastIconProps {
@@ -20,7 +21,8 @@ export class ToastIcon extends Component<ToastIconProps> {
                     className={classNames(styles.iconWrapper, {
                         [styles.announcementIcon]: this.props.type === ToastsType.Announcement,
                         [styles.aoaIcon]: this.props.type === ToastsType.AOA,
-                        [styles.replyIcon]: this.props.type === ToastsType.Reply
+                        [styles.replyIcon]: this.props.type === ToastsType.Reply,
+                        [styles.errorIcon]: this.props.type === ToastsType.Error
                     })}
                 />
             </div>
