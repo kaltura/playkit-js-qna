@@ -4,7 +4,7 @@ import {
     PushNotificationEventTypes,
     QnaPushNotification
 } from "./qnaPushNotification";
-import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
+import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { getContribLogger } from "@playkit-js-contrib/common";
 import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
@@ -24,8 +24,6 @@ const logger = getContribLogger({
     class: "AnnouncementsAdapter",
     module: "qna-plugin"
 });
-
-const NewReplyTimeDelay = 2000;
 
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;

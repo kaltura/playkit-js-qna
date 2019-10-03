@@ -4,6 +4,10 @@
   word-break: break-all;
   white-space: pre-wrap;
   font-family: Lato;
+
+  &::selection {
+    background: #c4c4c4;
+  }
 }
 
 .show-more-or-less {

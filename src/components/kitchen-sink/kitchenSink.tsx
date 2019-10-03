@@ -1,6 +1,6 @@
 import { Component, h } from "preact";
 import * as styles from "./kitchenSink.scss";
-import { QnaMessage, QnaMessageType } from "../../qnaMessage";
+import { QnaMessage, QnaMessageType } from "../../qnaMessageFactory";
 import { Thread } from "../thread";
 import { Spinner } from "../spinner";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
@@ -12,7 +12,8 @@ export interface KitchenSinkProps {
     dateFormat: string;
     hasError: boolean;
     loading: boolean;
-    onSubmit: (text: string, thread?: QnaMessage) => void;
+    onSubmit: (text: string, parentId: string | null) => void;
+    onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
     onMassageRead: (id: string) => void;
 }
 
@@ -23,13 +24,18 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     static defaultProps = {
         hasError: false,
         loading: false,
-        onSubmit: (text: string, thread?: QnaMessage) => {}
+        onSubmit: (text: string, parentId: string | null) => {},
+        OnResend: (qnaMessage: QnaMessage, parentId: string | null) => {}
     };
 
     state = {};
 
-    handleOnSubmit = (text: string, thread?: QnaMessage) => {
-        this.props.onSubmit(text, thread);
+    handleOnSubmit = (text: string, parentId?: string | null) => {
+        this.props.onSubmit(text, parentId ? parentId : null);
+    };
+
+    handleOnResend = (qnaMessage: QnaMessage, parentId: string | null) => {
+        this.props.onResend(qnaMessage, parentId);
     };
 
     private _generateContent(props: KitchenSinkProps) {
@@ -78,6 +84,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             dateFormat={props.dateFormat}
                             key={qnaMessage.id}
                             onReply={this.handleOnSubmit}
+                            onResend={this.handleOnResend}
                             onMassageRead={props.onMassageRead}
                         />
                     );

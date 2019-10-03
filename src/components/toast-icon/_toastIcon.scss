@@ -4,7 +4,7 @@
   height: 16px;
 }
 
-.iconWrapper {
+.icon-wrapper {
   position: absolute;
   width: 16px;
   height: 16px;
@@ -13,14 +13,18 @@
   object-fit: contain;
 }
 
-.announcementIcon {
+.announcement-icon {
   background-image: url('./assets/announcement.svg');
 }
 
-.aoaIcon {
+.aoa-icon {
   background-image: url('./assets/aoa.svg');
 }
 
-.replyIcon {
+.reply-icon {
   background-image: url('./assets/reply.svg');
+}
+
+.error-icon {
+  background-image: url('./assets/error.svg');
 }
