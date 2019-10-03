@@ -4,13 +4,20 @@ import {
     PushNotificationEventTypes,
     QnaPushNotification
 } from "./qnaPushNotification";
-import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessage";
+import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { getContribLogger } from "@playkit-js-contrib/common";
+import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
+import { ToastIcon, ToastsType } from "./components/toast-icon";
+import { h } from "preact";
+import { Utils } from "./utils";
 
 export interface AnnouncementsAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    //todo [sa] toastsManager from contrib
+    activateKitchenSink: () => void;
+    isKitchenSinkActive: () => boolean;
+    toastsManager: ToastsManager;
+    toastDuration: number;
 }
 
 const logger = getContribLogger({
@@ -21,11 +28,20 @@ const logger = getContribLogger({
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
+    private _activateKitchenSink: () => void;
+    private _isKitchenSinkActive: () => boolean;
+    private _toastsManager: ToastsManager;
+    private _toastDuration: number;
+
     private _initialize = false;
 
     constructor(options: AnnouncementsAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
+        this._activateKitchenSink = options.activateKitchenSink;
+        this._isKitchenSinkActive = options.isKitchenSinkActive;
+        this._toastsManager = options.toastsManager;
+        this._toastDuration = options.toastDuration;
     }
 
     public init(): void {
@@ -55,7 +71,26 @@ export class AnnouncementsAdapter {
                 this._kitchenSinkMessages.deleteMessage(qnaMessage.id);
             } else {
                 this._kitchenSinkMessages.add(qnaMessage);
+                //display toasts only for newly created messages
+                if (Utils.isMessageInTimeFrame(qnaMessage)) {
+                    this._showAnnouncementToast();
+                }
             }
         });
     };
+
+    private _showAnnouncementToast() {
+        if (!this._isKitchenSinkActive()) {
+            this._toastsManager.add({
+                title: "Notifications",
+                text: "New Announcement",
+                icon: <ToastIcon type={ToastsType.Announcement} />,
+                duration: this._toastDuration,
+                severity: ToastSeverity.Info,
+                onClick: () => {
+                    this._activateKitchenSink();
+                }
+            });
+        }
+    }
 }

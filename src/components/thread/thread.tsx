@@ -1,6 +1,6 @@
-import { h, Component } from "preact";
+import { Component, h } from "preact";
 import * as styles from "./thread.scss";
-import { QnaMessage, QnaMessageType } from "../../qnaMessage";
+import { MessageDeliveryStatus, QnaMessage, QnaMessageType } from "../../qnaMessageFactory";
 import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
 import { TrimmedText } from "../trimmed-text";
@@ -10,7 +10,9 @@ import { AnsweredOnAirIcon } from "../answered-on-air-icon";
 interface ThreadProps {
     thread: QnaMessage;
     dateFormat: string;
-    onReply: (text: string, thread?: QnaMessage) => void;
+    onReply: (text: string, parentId: string | null) => void;
+    onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
+    onMassageRead: (id: string) => void;
 }
 
 interface ThreadState {
@@ -19,9 +21,7 @@ interface ThreadState {
 }
 
 export class Thread extends Component<ThreadProps, ThreadState> {
-    static defaultProps = {
-        onReply: (text: string, parentId?: string) => {}
-    };
+    static defaultProps = {};
 
     state = {
         isThreadOpen: false,
@@ -38,7 +38,41 @@ export class Thread extends Component<ThreadProps, ThreadState> {
 
     handleReply = (text: string) => {
         this.setState({ showInputText: false });
-        this.props.onReply(text, this.props.thread);
+        this.props.onReply(text, this.props.thread.id);
+    };
+
+    handleResend = (qnaMessage: QnaMessage) => {
+        this.props.onResend(qnaMessage, qnaMessage.parentId);
+    };
+
+    private showTimeOrStatus(qnaMessage: QnaMessage, dateFormat: string) {
+        switch (qnaMessage.deliveryStatus) {
+            case MessageDeliveryStatus.SENDING:
+                return <span className={styles.sendingIndication}>Sending...</span>;
+            case MessageDeliveryStatus.SEND_FAILED:
+                return (
+                    <button
+                        onClick={this.handleResend.bind(this, qnaMessage)}
+                        className={classNames(styles.clearStyledButton, styles.resendButton)}
+                        type={"button"}
+                    >
+                        <span className={styles.resendTitle}>{"Resend"}</span>
+                        <span className={styles.resendIcon} />
+                    </button>
+                );
+            default:
+                return (
+                    <TimeDisplay
+                        className={styles.threadTime}
+                        time={qnaMessage.createdAt}
+                        dateFormat={dateFormat}
+                    />
+                );
+        }
+    }
+
+    handleThreadClick = (): void => {
+        this.props.onMassageRead(this.props.thread.id);
     };
 
     render() {
@@ -47,7 +81,12 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         const { isThreadOpen, showInputText } = this.state;
 
         return (
-            <div className={styles.thread}>
+            <div
+                className={classNames(styles.thread, {
+                    [styles.unreadThread]: thread.unRead
+                })}
+                onClick={this.handleThreadClick}
+            >
                 {/* if this master question will be answered on air - add an icon */
                 thread.willBeAnsweredOnAir && (
                     <div className={styles.aoaIconContainer}>
@@ -58,11 +97,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                     <TrimmedText maxLength={120} text={thread.messageContent} />
                 </div>
                 <div className={styles.secondInfoLine}>
-                    <TimeDisplay
-                        className={styles.threadTime}
-                        time={thread.createdAt}
-                        dateFormat={dateFormat}
-                    />
+                    {this.showTimeOrStatus(thread, dateFormat)}
                     {/*    Show Number of Replies/Show Less button and thread time  */
                     replies.length > 0 && (
                         <button
@@ -114,13 +149,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                                 />
                                             </div>
                                         </div>
-                                        <div>
-                                            <TimeDisplay
-                                                className={styles.threadTime}
-                                                time={reply.createdAt}
-                                                dateFormat={dateFormat}
-                                            />
-                                        </div>
+                                        <div>{this.showTimeOrStatus(reply, dateFormat)}</div>
                                     </div>
                                 </div>
                             );
@@ -136,6 +165,8 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         enableBlackInputTheme={true}
                         initialFocus={true}
                         open={true}
+                        disabled={thread.deliveryStatus === MessageDeliveryStatus.SEND_FAILED}
+                        showLockIcon={false}
                     />
                 ) : (
                     <div className={styles.lastInfoLine}>

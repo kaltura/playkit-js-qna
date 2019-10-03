@@ -8,6 +8,8 @@ interface AutoExpandTextAreaProps {
     enableBlackInputTheme?: boolean;
     initialFocus?: boolean;
     open?: boolean;
+    disabled?: boolean;
+    showLockIcon?: boolean;
 }
 
 interface AutoExpandTextAreaState {
@@ -32,7 +34,9 @@ export class AutoExpandTextArea extends Component<
 
     static defaultProps = {
         placeholder: "",
-        enableBlackInputTheme: false
+        enableBlackInputTheme: false,
+        disabled: false,
+        showLockIcon: true
     };
 
     state: AutoExpandTextAreaState = { text: "", openByEvent: false, bleepingAnimation: false };
@@ -147,19 +151,21 @@ export class AutoExpandTextArea extends Component<
 
     render() {
         const { text, openByEvent, bleepingAnimation } = this.state;
-        const { enableBlackInputTheme, placeholder, open } = this.props;
+        const { enableBlackInputTheme, placeholder, open, disabled, showLockIcon } = this.props;
 
         return (
             <div
                 className={styles.textareaContainer}
                 ref={textareaContainer => (this._textareaContainer = textareaContainer)}
             >
-                <i
-                    className={classNames(styles.ignoreClicks, {
-                        [styles.privateIcon]: open || openByEvent,
-                        [styles.beatingPrivateIcon]: bleepingAnimation
-                    })}
-                />
+                {showLockIcon && (
+                    <i
+                        className={classNames(styles.ignoreClicks, {
+                            [styles.privateIcon]: open || openByEvent,
+                            [styles.beatingPrivateIcon]: bleepingAnimation
+                        })}
+                    />
+                )}
                 <textarea
                     value={text}
                     className={classNames(styles.textarea, {
@@ -184,7 +190,7 @@ export class AutoExpandTextArea extends Component<
                         onClick={this._handleOnSend}
                         className={styles.sendButton}
                         type={"button"}
-                        disabled={!text.length}
+                        disabled={!text.length || disabled}
                         ref={button => (this._sendButtonRef = button)}
                     >
                         {"Send"}
