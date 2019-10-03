@@ -170,6 +170,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                     <AutoExpandTextArea
                         onSubmit={this._handleOnSubmit}
                         placeholder={"Type a private question"}
+                        enableAnimation={true}
                     />
                 </div>
             </div>

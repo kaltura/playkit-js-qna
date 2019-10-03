@@ -16,7 +16,6 @@
 
 .textarea-container {
   position: relative;
-  z-index: 2;
 }
 
 .textarea {
@@ -76,6 +75,9 @@
   flex-flow: row wrap;
   margin-top: 5px;
   max-height: 35px;
+}
+
+.input-actions-container-animation {
   transform: translateY(35px);
   animation: come-in 0.1s ease-in-out forwards;
   transition: max-height 0.1s ease-in-out;
@@ -113,6 +115,9 @@
   align-items: center;
   align-content: center;
   overflow: hidden;
+}
+
+.hide-animation {
   transition: max-height 0.1s ease-in-out;
 }
 

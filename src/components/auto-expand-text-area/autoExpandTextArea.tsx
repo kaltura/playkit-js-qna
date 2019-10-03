@@ -10,6 +10,7 @@ interface AutoExpandTextAreaProps {
     open?: boolean;
     disabled?: boolean;
     showLockIcon?: boolean;
+    enableAnimation?: boolean;
 }
 
 interface AutoExpandTextAreaState {
@@ -36,7 +37,8 @@ export class AutoExpandTextArea extends Component<
         placeholder: "",
         enableBlackInputTheme: false,
         disabled: false,
-        showLockIcon: true
+        showLockIcon: true,
+        enableAnimation: false
     };
 
     state: AutoExpandTextAreaState = { text: "", openByEvent: false, bleepingAnimation: false };
@@ -151,7 +153,14 @@ export class AutoExpandTextArea extends Component<
 
     render() {
         const { text, openByEvent, bleepingAnimation } = this.state;
-        const { enableBlackInputTheme, placeholder, open, disabled, showLockIcon } = this.props;
+        const {
+            enableBlackInputTheme,
+            placeholder,
+            open,
+            disabled,
+            showLockIcon,
+            enableAnimation
+        } = this.props;
 
         return (
             <div
@@ -181,7 +190,10 @@ export class AutoExpandTextArea extends Component<
                 <div
                     className={classNames({
                         [styles.inputActionsContainer]: open || openByEvent,
-                        [styles.hide]: !open && !openByEvent
+                        [styles.inputActionsContainerAnimation]:
+                            (open || openByEvent) && enableAnimation,
+                        [styles.hide]: !open && !openByEvent,
+                        [styles.hideAnimation]: !open && !openByEvent && enableAnimation
                     })}
                     ref={element => (this._actionsContainer = element)}
                 >
