@@ -185,8 +185,11 @@ export class KitchenSinkMessages {
             let indexOfReply = Utils.findIndex(replies, this._idComparator(id));
 
             if (indexOfReply !== -1) {
-                newMessage = modifier(replies[indexOfReply]);
-                replies.splice(indexOfReply, 1, newMessage);
+                let message = replies[indexOfReply];
+                newMessage = modifier(message);
+                if (newMessage && message !== newMessage) {
+                    replies.splice(indexOfReply, 1, newMessage);
+                }
             }
         } else {
             let indexOfMaterQuestion = Utils.findIndex(this._qnaMessages, this._idComparator(id));

@@ -318,6 +318,13 @@ export class ChatMessagesAdapter {
                 throw new Error("Can't make reply requests without thread");
             }
 
+            /**
+             * Disclaimer Start -
+             * This section which sets kalturaAnnotationArgs.parentId with the last reply is used
+             * for other applications and not for this one.
+             * For server cuePoint validation it can be change to kalturaAnnotationArgs.parentId = thread.id
+             * instead of last reply. (MasterQuestion -> reply -> reply....)
+             */
             // create a created Reply List that omit all the failed/ pending message leaving with the created only
             const createdReplyList = thread.replies.filter((qnaMessage: QnaMessage) => {
                 return qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED;
@@ -326,6 +333,9 @@ export class ChatMessagesAdapter {
                 ? createdReplyList[createdReplyList.length - 1].id
                 : thread.id;
             kalturaAnnotationArgs.parentId = cuePointParentId;
+            /**
+             * End.
+             */
         }
 
         const addAnnotationCuePointRequest = new CuePointAddAction({
