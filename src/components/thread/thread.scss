@@ -2,7 +2,6 @@
   position: relative;
   border-radius: 4px;
   color: #ffffffe6;
-  min-height: 84px;
   width: 100%;
   margin-top: 16px;
 }
@@ -62,6 +61,41 @@
   position: relative;
   top: -2px;
   margin-right: 1px;
+}
+
+.sending-indication {
+  float: right;
+  position: relative;
+  margin-right: 1px;
+  margin-top: 2px;
+
+  font-family: Lato;
+  font-size: 12px;
+  font-weight: bold;
+  color: #cccccce6;
+}
+
+.resend-button {
+  float: right;
+  position: relative;
+  margin-right: 1px;
+}
+
+.resend-title {
+  font-family: Lato;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ff6876;
+}
+
+.resend-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: transparent url('../../assets/resend.svg') center/11px no-repeat;
+  position: relative;
+  left: 0;
+  top: 4px;
 }
 
 .reply {
@@ -147,5 +181,5 @@
 .aoaIconContainer {
   position: absolute;
   right: -5px;
-  top: 7px;
+  top: -7px;
 }

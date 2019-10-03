@@ -1,15 +1,13 @@
 .notification{
   border-radius: 4px;
   color: #ffffffe6;
-  min-height: 84px;
   width: 100%;
-  margin-top: 12px;
+  margin-top: 16px;
   overflow: hidden;
   display: flex;
 }
 
 .leftContainer {
-  min-height: 84px;
   width: 36px;
   float: left;
   background-color: #333333cc;
@@ -69,7 +67,6 @@
   font-family: Lato;
   background-color: #333333cc;
   padding: 8px;
-  min-height: 45px;
   font-size: 15px;
   line-height: 1;
   color: #ffffffe6;
@@ -80,7 +77,6 @@
   background-color: #333333cc;
   display: flex;
   flex-direction: column-reverse;
-  border-bottom: 1px solid #222222e6;
   padding: 0 8px 8px 8px;
   box-sizing: initial;
 }
