@@ -10,15 +10,18 @@ interface AutoExpandTextAreaProps {
     open?: boolean;
     disabled?: boolean;
     showLockIcon?: boolean;
+    enableAnimation?: boolean;
 }
 
 interface AutoExpandTextAreaState {
     text: string;
     openByEvent: boolean;
+    bleepingAnimation: boolean;
 }
 
 const MAX_NUM_OF_CHARS = 500;
 const MAX_HEIGHT = 103;
+const AnimationDuration = 700;
 
 export class AutoExpandTextArea extends Component<
     AutoExpandTextAreaProps,
@@ -33,10 +36,12 @@ export class AutoExpandTextArea extends Component<
     static defaultProps = {
         placeholder: "",
         enableBlackInputTheme: false,
-        showLockIcon: true
+        disabled: false,
+        showLockIcon: true,
+        enableAnimation: false
     };
 
-    state: AutoExpandTextAreaState = { text: "", openByEvent: false };
+    state: AutoExpandTextAreaState = { text: "", openByEvent: false, bleepingAnimation: false };
 
     componentDidMount(): void {
         if (!this._textareaContainer) {
@@ -60,7 +65,10 @@ export class AutoExpandTextArea extends Component<
             this._allowClickTimeout = null;
         }
 
-        this.setState({ openByEvent: true });
+        this.setState({ openByEvent: true, bleepingAnimation: true });
+        setTimeout(() => {
+            this.setState({ bleepingAnimation: false });
+        }, AnimationDuration);
     };
 
     private _handleFocusOut = (e: any) => {
@@ -71,7 +79,7 @@ export class AutoExpandTextArea extends Component<
         // this helps to catch the click on an outside element (like, button) when clicking outsides the element.
         // otherwise the click is missed and swallowed.
         this._allowClickTimeout = setTimeout(() => {
-            this.setState({ openByEvent: false });
+            this.setState(() => ({ openByEvent: false, bleepingAnimation: false }));
         }, 200);
     };
 
@@ -144,8 +152,15 @@ export class AutoExpandTextArea extends Component<
     };
 
     render() {
-        const { text, openByEvent } = this.state;
-        const { enableBlackInputTheme, placeholder, open, disabled, showLockIcon } = this.props;
+        const { text, openByEvent, bleepingAnimation } = this.state;
+        const {
+            enableBlackInputTheme,
+            placeholder,
+            open,
+            disabled,
+            showLockIcon,
+            enableAnimation
+        } = this.props;
 
         return (
             <div
@@ -153,7 +168,12 @@ export class AutoExpandTextArea extends Component<
                 ref={textareaContainer => (this._textareaContainer = textareaContainer)}
             >
                 {showLockIcon && (
-                    <i className={classNames(styles.privateIcon, styles.ignoreClicks)} />
+                    <i
+                        className={classNames(styles.ignoreClicks, {
+                            [styles.privateIcon]: open || openByEvent,
+                            [styles.beatingPrivateIcon]: bleepingAnimation
+                        })}
+                    />
                 )}
                 <textarea
                     value={text}
@@ -167,23 +187,27 @@ export class AutoExpandTextArea extends Component<
                     rows={1}
                     maxLength={MAX_NUM_OF_CHARS}
                 />
-                {(open || openByEvent) && (
-                    <div
-                        className={styles.inputActionsContainer}
-                        ref={element => (this._actionsContainer = element)}
+                <div
+                    className={classNames({
+                        [styles.inputActionsContainer]: open || openByEvent,
+                        [styles.inputActionsContainerAnimation]:
+                            (open || openByEvent) && enableAnimation,
+                        [styles.hide]: !open && !openByEvent,
+                        [styles.hideAnimation]: !open && !openByEvent && enableAnimation
+                    })}
+                    ref={element => (this._actionsContainer = element)}
+                >
+                    <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
+                    <button
+                        onClick={this._handleOnSend}
+                        className={styles.sendButton}
+                        type={"button"}
+                        disabled={!text.length || disabled}
+                        ref={button => (this._sendButtonRef = button)}
                     >
-                        <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
-                        <button
-                            onClick={this._handleOnSend}
-                            className={styles.sendButton}
-                            type={"button"}
-                            disabled={!text.length || disabled}
-                            ref={button => (this._sendButtonRef = button)}
-                        >
-                            {"Send"}
-                        </button>
-                    </div>
-                )}
+                        {"Send"}
+                    </button>
+                </div>
             </div>
         );
     }
