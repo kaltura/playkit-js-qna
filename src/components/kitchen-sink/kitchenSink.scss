@@ -70,6 +70,7 @@ $background-color: #222222e6;
 }
 
 .footer {
+  position: relative;
   margin: 8px 16px 16px 12px;
 }
 
@@ -118,4 +119,26 @@ $background-color: #222222e6;
   text-align: center;
   font-size: 14px;
   color: #999999e6;
+}
+
+.messages-end-anchor {
+  float: left;
+  clear: both;
+}
+
+.scroll-down-button {
+  position: absolute;
+  z-index: 0;
+  top: -40px;
+  right: 0;
+  transition-property: top;
+  transition-timing-function: cubic-bezier(0.0, 0.0, 0.2, 1);
+  transition-duration: 0.15s;
+}
+
+.scroll-down-button-hidden {
+  top: 0px;
+  //visibility: hidden;
+  transition-property: top;
+  transition-timing-function: cubic-bezier(0.4, 0.0, 1, 1);
 }

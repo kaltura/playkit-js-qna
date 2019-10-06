@@ -63,6 +63,10 @@
   background: url(./../../assets/private.svg) no-repeat 7px 7px;
 }
 
+.beating-private-icon {
+  animation: heartbeat 0.7s;
+}
+
 .input-actions-container {
   display: flex;
   justify-content: flex-end;
@@ -70,6 +74,13 @@
   align-content: center;
   flex-flow: row wrap;
   margin-top: 5px;
+  max-height: 35px;
+}
+
+.input-actions-container-animation {
+  transform: translateY(35px);
+  animation: come-in 0.1s ease-in-out forwards;
+  transition: max-height 0.1s ease-in-out;
 }
 
 .ignore-clicks {
@@ -94,5 +105,49 @@
   &:disabled {
     background-color: #999999;
     cursor: default;
+  }
+}
+
+.hide {
+  max-height: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  align-content: center;
+  overflow: hidden;
+}
+
+.hide-animation {
+  transition: max-height 0.1s ease-in-out;
+}
+
+@keyframes come-in {
+  to { transform: translateY(0); }
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale( .60);
+  }
+  15% {
+    transform: scale( 0.75);
+  }
+  30% {
+    transform: scale( 1);
+  }
+  45% {
+    transform: scale( 1.2);
+  }
+  60% {
+    transform: scale( 1);
+  }
+  75% {
+    transform: scale( 0.9);
+  }
+  90% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
   }
 }

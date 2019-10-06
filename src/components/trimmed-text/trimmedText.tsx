@@ -3,7 +3,7 @@ import * as styles from "./trimmedText.scss";
 
 interface TrimmedTextProps {
     maxLength: number;
-    text: string | null;
+    text: string | undefined;
 }
 
 interface TrimmedTextState {

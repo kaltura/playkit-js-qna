@@ -1,4 +1,6 @@
-import { QnaMessage, QnaMessageType } from "./qnaMessage";
+import { QnaMessage, QnaMessageType } from "./qnaMessageFactory";
+
+const NewMessageTimeDelay = 5000;
 
 export class Utils {
     public static ONE_DAY_IN_MS: number = 1000 * 60 * 60 * 24;
@@ -107,6 +109,17 @@ export class Utils {
         return xml;
     }
 
+    public static findIndex<T>(arr: Array<T>, comparator: (item: T) => boolean): number {
+        let index = 0;
+        while (index < arr.length) {
+            if (comparator(arr[index])) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
+    }
+
     /**
      * Take the time of the newest QnaMessage
      */
@@ -151,5 +164,9 @@ export class Utils {
         }
 
         return Math.max(a_time, q_time);
+    }
+
+    public static isMessageInTimeFrame(qnaMessage: QnaMessage) {
+        return qnaMessage.createdAt.getTime() >= new Date().getTime() - NewMessageTimeDelay;
     }
 }

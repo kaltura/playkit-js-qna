@@ -1,10 +1,12 @@
 import { Component, h } from "preact";
 import * as styles from "./kitchenSink.scss";
-import { QnaMessage, QnaMessageType } from "../../qnaMessage";
+import { QnaMessage, QnaMessageType } from "../../qnaMessageFactory";
 import { Thread } from "../thread";
 import { Spinner } from "../spinner";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
 import { Notification } from "../notification";
+import { ScrollDownButton } from "../scroll-down-button";
+import classNames from "classnames";
 
 export interface KitchenSinkProps {
     onClose: () => void;
@@ -12,7 +14,9 @@ export interface KitchenSinkProps {
     dateFormat: string;
     hasError: boolean;
     loading: boolean;
-    onSubmit: (text: string, thread?: QnaMessage) => void;
+    onSubmit: (text: string, parentId: string | null) => void;
+    onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
+    onMassageRead: (id: string) => void;
 }
 
 interface KitchenSinkState {}
@@ -22,14 +26,50 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     static defaultProps = {
         hasError: false,
         loading: false,
-        onSubmit: (text: string, thread?: QnaMessage) => {}
+        onSubmit: (text: string, parentId: string | null) => {},
+        OnResend: (qnaMessage: QnaMessage, parentId: string | null) => {}
     };
 
-    state = {};
-
-    handleOnSubmit = (text: string, thread?: QnaMessage) => {
-        this.props.onSubmit(text, thread);
+    state = {
+        autoScroll: true
     };
+
+    private _messagesEnd: any;
+    private _scrollingTimeoutId: any = null;
+
+    componentDidMount() {
+        this._scrollToBottom();
+    }
+
+    componentDidUpdate() {
+        if (this.state.autoScroll) this._scrollToBottom();
+    }
+
+    private _handleOnSubmit = (text: string, parentId?: string | null) => {
+        this.props.onSubmit(text, parentId ? parentId : null);
+    };
+
+    handleOnResend = (qnaMessage: QnaMessage, parentId: string | null) => {
+        this.props.onResend(qnaMessage, parentId);
+    };
+
+    private _scrollToBottom = () => {
+        if (this._messagesEnd) {
+            this._messagesEnd.scrollIntoView({ behavior: "smooth" });
+        }
+    };
+
+    private _trackScrolling = () => {
+        clearTimeout(this._scrollingTimeoutId);
+        this._scrollingTimeoutId = setTimeout(() => {
+            this.setState({ autoScroll: this._isBottom() });
+        });
+    };
+
+    private _isBottom(): boolean {
+        const el = document.getElementsByClassName(styles.flexibleMain)[0];
+        return el && el.scrollHeight - el.scrollTop === el.clientHeight;
+    }
 
     private _generateContent(props: KitchenSinkProps) {
         if (props.loading) {
@@ -76,7 +116,9 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             thread={qnaMessage}
                             dateFormat={props.dateFormat}
                             key={qnaMessage.id}
-                            onReply={this.handleOnSubmit}
+                            onReply={this._handleOnSubmit}
+                            onResend={this.handleOnResend}
+                            onMassageRead={props.onMassageRead}
                         />
                     );
                 }
@@ -104,15 +146,31 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                                 ${(props.loading || props.hasError || props.threads.length === 0) &&
                                     styles.noContent} 
                             `}
+                    onScroll={this._trackScrolling}
                 >
                     {renderedContent}
+
+                    <div
+                        className={styles.messagesEndAnchor}
+                        ref={el => {
+                            this._messagesEnd = el;
+                        }}
+                    />
                 </div>
 
                 {/* footer */}
                 <div className={styles.footer}>
+                    <div
+                        className={classNames(styles.scrollDownButton, {
+                            [styles.scrollDownButtonHidden]: state.autoScroll
+                        })}
+                    >
+                        <ScrollDownButton onClick={this._scrollToBottom} />
+                    </div>
                     <AutoExpandTextArea
-                        onSubmit={this.handleOnSubmit}
+                        onSubmit={this._handleOnSubmit}
                         placeholder={"Type a private question"}
+                        enableAnimation={true}
                     />
                 </div>
             </div>
