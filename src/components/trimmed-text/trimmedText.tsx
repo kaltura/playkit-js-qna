@@ -30,7 +30,7 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
             <span>
                 <span className={styles.text}>
                     <LinkifyString
-                        htmlString={isTrimmed ? `${text.substring(0, maxLength).trim()}...` : text}
+                        text={isTrimmed ? `${text.substring(0, maxLength).trim()}...` : text}
                     />
                 </span>
                 <button
@@ -43,7 +43,7 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
             </span>
         ) : (
             <span className={styles.text}>
-                <LinkifyString htmlString={text || ""} />
+                <LinkifyString text={text || ""} />
             </span>
         );
     }
