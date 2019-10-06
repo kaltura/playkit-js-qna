@@ -20,9 +20,9 @@
     "serve": "webpack-dev-server -d",
     "serve:external": "npm run serve -- --host 0.0.0.0",
     "analyze": "npm run build && npx source-map-explorer dist/playkit-js-qna.js",
-    "contrib:latest": "npm i @playkit-js-contrib/{push-notifications,common,ui,plugin}@latest",
-    "contrib:next": "npm i @playkit-js-contrib/{push-notifications,common,ui,plugin}@next",
-    "contrib:local": "npm link @playkit-js-contrib/{push-notifications,common,ui,plugin} --production"
+    "contrib:latest": "npm i @playkit-js-contrib/{push-notifications,common,ui,plugin,linkify}@latest",
+    "contrib:next": "npm i @playkit-js-contrib/{push-notifications,common,ui,plugin,linkify}@next",
+    "contrib:local": "npm link @playkit-js-contrib/{push-notifications,common,ui,plugin,linkify} --production"
   },
   "keywords": [],
   "author": "",
