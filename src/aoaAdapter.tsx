@@ -28,6 +28,7 @@ export interface AoaAdapterOptions {
     bannerManager: BannerManager;
     activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
+    updateMenuIcon: (indicatorState: boolean) => void;
     toastsManager: ToastsManager;
     toastDuration: number;
     playerApi: PlayerAPI;
@@ -55,6 +56,7 @@ export class AoaAdapter {
     private _bannerManager: BannerManager;
     private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
+    private _updateMenuIcon: (indicatorState: boolean) => void;
     private _toastsManager: ToastsManager;
     private _toastDuration: number;
     private _playerApi: PlayerAPI;
@@ -74,6 +76,7 @@ export class AoaAdapter {
         this._bannerManager = options.bannerManager;
         this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
+        this._updateMenuIcon = options.updateMenuIcon;
         this._toastsManager = options.toastsManager;
         this._toastDuration = options.toastDuration;
         this._playerApi = options.playerApi;
@@ -235,12 +238,15 @@ export class AoaAdapter {
                         : ""
                 }
             });
-            this._showAOAToast(currentBannerState);
+            this._showAOANotifications(currentBannerState);
         }
     }
 
-    private _showAOAToast(bannerState: BannerState) {
+    private _showAOANotifications(bannerState: BannerState) {
         if (bannerState.visibilityMode === VisibilityMode.HIDDEN && !this._isKitchenSinkActive()) {
+            //menu icon indication
+            this._updateMenuIcon(true);
+            //toast indication
             this._toastsManager.add({
                 title: "Notifications",
                 text: "New Audience asks",

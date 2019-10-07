@@ -58,6 +58,7 @@ export class QnaPlugin extends PlayerContribPlugin
     private _announcementAdapter: AnnouncementsAdapter;
     private _chatMessagesAdapter: ChatMessagesAdapter;
     private _kitchenSinkMessages: KitchenSinkMessages;
+    private _menuIconRef: MenuIcon | null = null;
 
     public static readonly LOADING_TIME_END = 3000;
 
@@ -89,6 +90,7 @@ export class QnaPlugin extends PlayerContribPlugin
             delayedEndTime: bannerDuration,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
+            updateMenuIcon: this._updateMenuIcon,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
@@ -97,6 +99,7 @@ export class QnaPlugin extends PlayerContribPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
+            updateMenuIcon: this._updateMenuIcon,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
@@ -105,6 +108,7 @@ export class QnaPlugin extends PlayerContribPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
+            updateMenuIcon: this._updateMenuIcon,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
@@ -223,6 +227,14 @@ export class QnaPlugin extends PlayerContribPlugin
     private _activateKitchenSink = (): void => {
         if (this._kitchenSinkItem) {
             this._kitchenSinkItem.activate();
+            //clear menu icon indication if kitchenSink is active
+            this._updateMenuIcon(false);
+        }
+    };
+
+    private _updateMenuIcon = (indicatorState: boolean): void => {
+        if (this._menuIconRef) {
+            this._menuIconRef.update(indicatorState);
         }
     };
 
@@ -230,7 +242,7 @@ export class QnaPlugin extends PlayerContribPlugin
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
             expandMode: KitchenSinkExpandModes.OverTheVideo,
-            renderIcon: () => <MenuIcon />,
+            renderIcon: () => <MenuIcon ref={ref => (this._menuIconRef = ref)} />,
             position: KitchenSinkPositions.Right,
             renderContent: this._renderKitchenSinkContent
         });
