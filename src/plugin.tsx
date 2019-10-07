@@ -253,9 +253,11 @@ export class QnaPlugin extends PlayerContribPlugin
             return <div />;
         }
 
+        const { onClose, ...rest } = props;
+
         return (
             <KitchenSink
-                {...props}
+                {...rest}
                 dateFormat={this.config.dateFormat}
                 threads={this._threads}
                 hasError={this._hasError}
@@ -263,6 +265,11 @@ export class QnaPlugin extends PlayerContribPlugin
                 onSubmit={this._chatMessagesAdapter.submitQuestion}
                 onResend={this._chatMessagesAdapter.resendQuestion}
                 onMassageRead={this._chatMessagesAdapter.onMessageRead}
+                //enriching default on close to handle menu icon indicator update
+                onClose={() => {
+                    this._updateMenuIcon(false);
+                    onClose();
+                }}
             />
         );
     };
