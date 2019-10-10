@@ -120,52 +120,6 @@ export class Utils {
         return -1;
     }
 
-    /**
-     * Take the time of the newest QnaMessage
-     */
-    //todo [am] refactor this method
-    public static threadTimeCompare(qnaMessage: QnaMessage): number {
-        if (
-            qnaMessage.type === QnaMessageType.Announcement ||
-            qnaMessage.type === QnaMessageType.AnswerOnAir
-        ) {
-            return qnaMessage.createdAt.valueOf();
-        }
-
-        let q_time, a_time;
-
-        if (qnaMessage.type === QnaMessageType.Answer) {
-            a_time = qnaMessage.createdAt.valueOf();
-        }
-
-        if (qnaMessage.type === QnaMessageType.Question) {
-            q_time = qnaMessage.createdAt.valueOf();
-        }
-
-        for (let i = 0; i < qnaMessage.replies.length; ++i) {
-            let reply: QnaMessage = qnaMessage.replies[i];
-            if (reply.type === QnaMessageType.Announcement) {
-                if (!a_time) a_time = reply.createdAt.valueOf();
-                else if (reply.createdAt.valueOf() > a_time) a_time = reply.createdAt.valueOf();
-            }
-        }
-
-        if (!a_time && !q_time) {
-            // todo log("both a_time and q_time are undefined - data error");
-            return 0;
-        }
-
-        if (!a_time) {
-            return q_time || 0;
-        }
-
-        if (!q_time) {
-            return a_time || 0;
-        }
-
-        return Math.max(a_time, q_time);
-    }
-
     public static isMessageInTimeFrame(qnaMessage: QnaMessage) {
         return qnaMessage.createdAt.getTime() >= new Date().getTime() - NewMessageTimeDelay;
     }

@@ -9,10 +9,10 @@
         <script src="playkit-js-qna.js"></script>
 
         <style>
-            #player-div {
-                width: 800px;
-                height: 480px;
-            }
+            /*#player-div {*/
+            /*    width: 800px;*/
+            /*    height: 480px;*/
+            /*}*/
 
             .test-form {
                 font-family: Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -108,6 +108,35 @@
                 <input type="text" id="uiConfId" name="uiConfId" placeholder="uiConfId" /><br />
             </div>
 
+            <div>
+                <span class="field-name">width:</span>
+                <input type="text" id="width" name="width" placeholder="width" value="800" /><br />
+            </div>
+
+            <div>
+                <span class="field-name">height:</span>
+                <input
+                    type="text"
+                    id="height"
+                    name="height"
+                    placeholder="height"
+                    value="480"
+                /><br />
+            </div>
+
+            <div>
+                <input
+                    type="radio"
+                    name="expandMode"
+                    id="AlongSideTheVideo"
+                    value="AlongSideTheVideo"
+                    checked="checked"
+                />
+                Application Mode
+                <input type="radio" name="expandMode" id="OverTheVideo" value="OverTheVideo" />
+                Embedded Mode<br />
+            </div>
+
             <div class="action-buttons">
                 <button type="submit" class="submit">Submit</button>
             </div>
@@ -135,16 +164,38 @@
             var serviceUrl = urlParams.get('serviceUrl');
             var partnerId = urlParams.get('partnerId');
             var uiConfId = urlParams.get('uiConfId');
+            var width = urlParams.get('width') >>> 0;
+            var height = urlParams.get('height') >>> 0;
+            var expandMode = urlParams.get('expandMode');
 
-            // load params to the form
-            entryId   ? document.getElementById("entryId").value      = entryId : null;
-            userId    ? document.getElementById("userId").value       = userId : null;
-            ks        ? document.getElementById("ks").value           = ks : null;
-            serviceUrl? document.getElementById("serviceUrl").value   = serviceUrl : null;
-            partnerId ? document.getElementById("partnerId").value    = partnerId : null;
-            uiConfId  ? document.getElementById("uiConfId").value     = uiConfId : null;
+            // Insert params to form and put default values when needed
+            if (entryId)    document.getElementById("entryId").value      = entryId;
+            if (userId)     document.getElementById("userId").value       = userId;
+            if (ks)         document.getElementById("ks").value           = ks;
+            if (serviceUrl) document.getElementById("serviceUrl").value   = serviceUrl;
+            if (partnerId)  document.getElementById("partnerId").value    = partnerId;
+            if (uiConfId)   document.getElementById("uiConfId").value     = uiConfId;
 
+            if (!width) {
+                width = 800;
+            }
+            document.getElementById("width").value = width;
 
+            if (!height) {
+                height = 480;
+            }
+            document.getElementById("height").value = height;
+
+            if (expandMode && expandMode === 'OverTheVideo') {
+                document.getElementById("OverTheVideo").checked = true;
+            }
+            else {
+                // default
+                expandMode = "AlongSideTheVideo";
+                document.getElementById("AlongSideTheVideo").checked = true;
+            }
+
+            // Validation check
             if (entryId && userId && ks && serviceUrl && partnerId && uiConfId) {
                 errorMsg.style.display = "none";
                 isValid = true;
@@ -153,10 +204,16 @@
                 errorMsg.style.display = "block";
             }
 
+            // init player size:
+            var playerDiv = document.getElementById("player-div");
+            playerDiv.style.width = width + 'px';
+            playerDiv.style.height = height + 'px';
+
             if (isValid) {
                 var config = {
                     logLevel: "DEBUG",
                     targetId: "player-div",
+                    expandMode: expandMode,
                     provider: {
                         partnerId: partnerId,
                         uiConfId: uiConfId,
@@ -201,7 +258,17 @@
                         return unescape(decodeURI(results[1]) || 0);
                     }
                 };
-            };
+            }
+
+            function getValueFromExpandModeRadioButton() {
+                var radios = document.getElementsByName('expandMode');
+
+                for (var i = 0; i < radios.length; i++) {
+                    if (radios[i].checked) {
+                        return radios[i].value;
+                    }
+                }
+            }
         </script>
     </body>
 </html>

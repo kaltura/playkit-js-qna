@@ -223,7 +223,7 @@ export class KitchenSinkMessages {
 
     private _sortMessages(): void {
         this._qnaMessages.sort((a: QnaMessage, b: QnaMessage) => {
-            return Utils.threadTimeCompare(a) - Utils.threadTimeCompare(b);
+            return a.createdAt.valueOf() - b.createdAt.valueOf();
         });
     }
 
