@@ -80,7 +80,7 @@ export class QnaPushNotification {
      * @param entryId
      * @param userId
      */
-    public registerToPushServer(entryId: string, userId: string) {
+    public registerToPushServer(entryId: string, entryType: string, userId: string) {
         if (this._registeredToQnaMessages) {
             logger.error("Multiple registration error", { method: "registerToPushServer" });
             throw new Error("Already register to push server");
@@ -95,14 +95,17 @@ export class QnaPushNotification {
         if (!this._pushServerInstance) {
             return; // TODO [am] change state to error
         }
-        // Announcement objects
-        const publicQnaRequestConfig = this._createPublicQnaRegistration(entryId);
+        let registrationConfigs = [];
+        // notifications objects
+        registrationConfigs.push(this._createPublicQnaRegistration(entryId));
         // user related QnA objects
-        const privateQnaRequestConfig = this._createUserQnaRegistration(entryId, userId);
+        if (entryType !== "Vod") {
+            registrationConfigs.push(this._createUserQnaRegistration(entryId, userId));
+        }
 
         this._pushServerInstance
             .registerNotifications({
-                prepareRegisterRequestConfigs: [publicQnaRequestConfig, privateQnaRequestConfig],
+                prepareRegisterRequestConfigs: registrationConfigs,
                 onSocketReconnect: () => {}
             })
             .then(

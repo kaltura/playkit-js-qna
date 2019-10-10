@@ -8,8 +8,8 @@ import {
     BannerManager,
     VisibilityMode,
     BannerState,
-    ToastsManager,
-    ToastSeverity
+    ToastSeverity,
+    ToastItemData
 } from "@playkit-js-contrib/ui";
 import {
     CuepointEngine,
@@ -28,7 +28,7 @@ export interface AoaAdapterOptions {
     bannerManager: BannerManager;
     activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    toastsManager: ToastsManager;
+    displayToast: (data: ToastItemData) => void;
     toastDuration: number;
     playerApi: PlayerAPI;
     delayedEndTime: number;
@@ -55,7 +55,7 @@ export class AoaAdapter {
     private _bannerManager: BannerManager;
     private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
-    private _toastsManager: ToastsManager;
+    private _displayToast: (data: ToastItemData) => void;
     private _toastDuration: number;
     private _playerApi: PlayerAPI;
     private _delayedEndTime: number;
@@ -74,7 +74,7 @@ export class AoaAdapter {
         this._bannerManager = options.bannerManager;
         this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
-        this._toastsManager = options.toastsManager;
+        this._displayToast = options.displayToast;
         this._toastDuration = options.toastDuration;
         this._playerApi = options.playerApi;
         this._delayedEndTime = options.delayedEndTime;
@@ -241,7 +241,7 @@ export class AoaAdapter {
 
     private _showAOAToast(bannerState: BannerState) {
         if (bannerState.visibilityMode === VisibilityMode.HIDDEN && !this._isKitchenSinkActive()) {
-            this._toastsManager.add({
+            this._displayToast({
                 title: "Notifications",
                 text: "New Audience asks",
                 icon: <ToastIcon type={ToastsType.AOA} />,

@@ -4,6 +4,8 @@ import {
     KitchenSinkExpandModes,
     KitchenSinkItem,
     KitchenSinkPositions,
+    ToastItemData,
+    ToastSeverity,
     UIManager
 } from "@playkit-js-contrib/ui";
 import {
@@ -28,6 +30,7 @@ import {
     KitchenSinkMessages,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
+import { ToastIcon, ToastsType } from "./components/toast-icon";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -89,7 +92,7 @@ export class QnaPlugin extends PlayerContribPlugin
             delayedEndTime: bannerDuration,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastsManager: this.uiManager.toast,
+            displayToast: this._displayToast,
             toastDuration: toastDuration
         });
         this._announcementAdapter = new AnnouncementsAdapter({
@@ -97,7 +100,7 @@ export class QnaPlugin extends PlayerContribPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastsManager: this.uiManager.toast,
+            displayToast: this._displayToast,
             toastDuration: toastDuration
         });
         this._chatMessagesAdapter = new ChatMessagesAdapter({
@@ -105,7 +108,7 @@ export class QnaPlugin extends PlayerContribPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastsManager: this.uiManager.toast,
+            displayToast: this._displayToast,
             toastDuration: toastDuration
         });
         //listeners
@@ -122,7 +125,11 @@ export class QnaPlugin extends PlayerContribPlugin
         this._hasError = false;
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
-        this._qnaPushNotification.registerToPushServer(config.entryId, server.userId || "");
+        this._qnaPushNotification.registerToPushServer(
+            config.entryId,
+            config.entryType,
+            server.userId || ""
+        );
         this._chatMessagesAdapter.onMediaLoad(server.userId || "", this.entryId);
     }
 
@@ -224,6 +231,19 @@ export class QnaPlugin extends PlayerContribPlugin
         if (this._kitchenSinkItem) {
             this._kitchenSinkItem.activate();
         }
+    };
+
+    private _displayToast = (data: ToastItemData): void => {
+        if (!this.config || this.config.entryType === "VoD") return;
+        //display toast
+        this.uiManager.toast.add({
+            title: data.title,
+            text: data.text,
+            icon: data.icon,
+            duration: data.duration,
+            severity: data.severity,
+            onClick: data.onClick
+        });
     };
 
     onRegisterUI(uiManager: UIManager): void {

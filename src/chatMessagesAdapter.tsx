@@ -12,7 +12,7 @@ import {
     QnaMessageFactory,
     QnaMessageType
 } from "./qnaMessageFactory";
-import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
+import { ToastItemData, ToastSeverity } from "@playkit-js-contrib/ui";
 import {
     KalturaClient,
     KalturaMultiRequest,
@@ -38,7 +38,7 @@ export interface ChatMessagesAdapterOptions {
     qnaPushNotification: QnaPushNotification;
     activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    toastsManager: ToastsManager;
+    displayToast: (data: ToastItemData) => void;
     toastDuration: number;
 }
 
@@ -61,7 +61,7 @@ export class ChatMessagesAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
-    private _toastsManager: ToastsManager;
+    private _displayToast: (data: ToastItemData) => void;
     private _toastDuration: number;
 
     private _config: ContribConfig | null = null;
@@ -76,7 +76,7 @@ export class ChatMessagesAdapter {
         this._qnaPushNotification = options.qnaPushNotification;
         this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
-        this._toastsManager = options.toastsManager;
+        this._displayToast = options.displayToast;
         this._toastDuration = options.toastDuration;
     }
 
@@ -222,7 +222,7 @@ export class ChatMessagesAdapter {
             }
         );
 
-        this._toastsManager.add({
+        this._displayToast({
             title: "Notifications",
             text: "Couldn't sent message",
             icon: <ToastIcon type={ToastsType.Error} />,
@@ -407,24 +407,20 @@ export class ChatMessagesAdapter {
                     Utils.isMessageInTimeFrame(qnaMessage) &&
                     qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED
                 ) {
-                    this._showReplyToast();
+                    this._displayToast({
+                        title: "Notifications",
+                        text: "New Reply",
+                        icon: <ToastIcon type={ToastsType.Reply} />,
+                        duration: this._toastDuration,
+                        severity: ToastSeverity.Info,
+                        onClick: () => {
+                            this._activateKitchenSink();
+                        }
+                    });
                 }
             }
         });
     };
-
-    private _showReplyToast() {
-        this._toastsManager.add({
-            title: "Notifications",
-            text: "New Reply",
-            icon: <ToastIcon type={ToastsType.Reply} />,
-            duration: this._toastDuration,
-            severity: ToastSeverity.Info,
-            onClick: () => {
-                this._activateKitchenSink();
-            }
-        });
-    }
 
     private _setWillBeAnsweredOnAir(messageId: string): void {
         this._kitchenSinkMessages.updateMessageById(messageId, null, (message: QnaMessage) => {

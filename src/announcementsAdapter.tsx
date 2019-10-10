@@ -6,7 +6,7 @@ import {
 } from "./qnaPushNotification";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
+import { ToastItemData, ToastSeverity } from "@playkit-js-contrib/ui";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
 import { Utils } from "./utils";
@@ -16,7 +16,7 @@ export interface AnnouncementsAdapterOptions {
     qnaPushNotification: QnaPushNotification;
     activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    toastsManager: ToastsManager;
+    displayToast: (data: ToastItemData) => void;
     toastDuration: number;
 }
 
@@ -30,7 +30,7 @@ export class AnnouncementsAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
-    private _toastsManager: ToastsManager;
+    private _displayToast: (data: ToastItemData) => void;
     private _toastDuration: number;
 
     private _initialize = false;
@@ -40,7 +40,7 @@ export class AnnouncementsAdapter {
         this._qnaPushNotification = options.qnaPushNotification;
         this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
-        this._toastsManager = options.toastsManager;
+        this._displayToast = options.displayToast;
         this._toastDuration = options.toastDuration;
     }
 
@@ -81,7 +81,7 @@ export class AnnouncementsAdapter {
 
     private _showAnnouncementToast() {
         if (!this._isKitchenSinkActive()) {
-            this._toastsManager.add({
+            this._displayToast({
                 title: "Notifications",
                 text: "New Announcement",
                 icon: <ToastIcon type={ToastsType.Announcement} />,
