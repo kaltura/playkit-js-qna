@@ -1,5 +1,5 @@
 import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
-
+import { EntryType } from "@playkit-js-contrib/plugin";
 import {
     PrepareRegisterRequestConfig,
     PushNotifications,
@@ -99,7 +99,7 @@ export class QnaPushNotification {
         // notifications objects
         registrationConfigs.push(this._createPublicQnaRegistration(entryId));
         // user related QnA objects
-        if (entryType !== "Vod") {
+        if (entryType !== EntryType.Vod) {
             registrationConfigs.push(this._createUserQnaRegistration(entryId, userId));
         }
 

@@ -10,6 +10,7 @@ import {
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
+    EntryType,
     OnMediaLoad,
     OnMediaLoadConfig,
     OnMediaUnload,
@@ -30,7 +31,6 @@ import {
     KitchenSinkMessages,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
-import { ToastIcon, ToastsType } from "./components/toast-icon";
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -61,6 +61,7 @@ export class QnaPlugin extends PlayerContribPlugin
     private _announcementAdapter: AnnouncementsAdapter;
     private _chatMessagesAdapter: ChatMessagesAdapter;
     private _kitchenSinkMessages: KitchenSinkMessages;
+    private _toastsDuration: number;
 
     public static readonly LOADING_TIME_END = 3000;
 
@@ -72,7 +73,7 @@ export class QnaPlugin extends PlayerContribPlugin
             this.config.bannerDuration && this.config.bannerDuration >= MinBannerDuration
                 ? this.config.bannerDuration
                 : DefaultBannerDuration;
-        let toastDuration =
+        this._toastsDuration =
             this.config.toastDuration && this.config.toastDuration >= MinToastDuration
                 ? this.config.toastDuration
                 : DefaultToastDuration;
@@ -90,26 +91,20 @@ export class QnaPlugin extends PlayerContribPlugin
                 eventManager: this.eventManager
             },
             delayedEndTime: bannerDuration,
-            activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            displayToast: this._displayToast,
-            toastDuration: toastDuration
+            displayToast: this._displayToast
         });
         this._announcementAdapter = new AnnouncementsAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
-            activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            displayToast: this._displayToast,
-            toastDuration: toastDuration
+            displayToast: this._displayToast
         });
         this._chatMessagesAdapter = new ChatMessagesAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
-            activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            displayToast: this._displayToast,
-            toastDuration: toastDuration
+            displayToast: this._displayToast
         });
         //listeners
         this._constructPluginListener();
@@ -233,16 +228,16 @@ export class QnaPlugin extends PlayerContribPlugin
         }
     };
 
-    private _displayToast = (data: ToastItemData): void => {
-        if (!this.config || this.config.entryType === "VoD") return;
+    private _displayToast = ({ text, icon, severity }: Partial<ToastItemData>): void => {
+        if (!this.config || this.config.entryType === EntryType.Vod) return;
         //display toast
         this.uiManager.toast.add({
-            title: data.title,
-            text: data.text,
-            icon: data.icon,
-            duration: data.duration,
-            severity: data.severity,
-            onClick: data.onClick
+            title: "Notifications",
+            text: text || "",
+            icon: icon,
+            duration: this._toastsDuration,
+            severity: severity || ToastSeverity.Info,
+            onClick: this._activateKitchenSink
         });
     };
 

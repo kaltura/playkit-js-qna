@@ -14,10 +14,8 @@ import { Utils } from "./utils";
 export interface AnnouncementsAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    displayToast: (data: ToastItemData) => void;
-    toastDuration: number;
+    displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
 }
 
 const logger = getContribLogger({
@@ -28,20 +26,16 @@ const logger = getContribLogger({
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
-    private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
-    private _displayToast: (data: ToastItemData) => void;
-    private _toastDuration: number;
+    private _displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
 
     private _initialize = false;
 
     constructor(options: AnnouncementsAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
-        this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._displayToast = options.displayToast;
-        this._toastDuration = options.toastDuration;
     }
 
     public init(): void {
@@ -82,14 +76,9 @@ export class AnnouncementsAdapter {
     private _showAnnouncementToast() {
         if (!this._isKitchenSinkActive()) {
             this._displayToast({
-                title: "Notifications",
                 text: "New Announcement",
                 icon: <ToastIcon type={ToastsType.Announcement} />,
-                duration: this._toastDuration,
-                severity: ToastSeverity.Info,
-                onClick: () => {
-                    this._activateKitchenSink();
-                }
+                severity: ToastSeverity.Info
             });
         }
     }

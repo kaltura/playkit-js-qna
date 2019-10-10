@@ -36,10 +36,8 @@ import { ToastIcon, ToastsType } from "./components/toast-icon";
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    displayToast: (data: ToastItemData) => void;
-    toastDuration: number;
+    displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
 }
 
 interface SubmitRequestParams {
@@ -59,10 +57,8 @@ export class ChatMessagesAdapter {
     private _kalturaClient = new KalturaClient();
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
-    private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
-    private _displayToast: (data: ToastItemData) => void;
-    private _toastDuration: number;
+    private _displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
 
     private _config: ContribConfig | null = null;
     private _userId: string | undefined;
@@ -74,10 +70,8 @@ export class ChatMessagesAdapter {
     constructor(options: ChatMessagesAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
-        this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._displayToast = options.displayToast;
-        this._toastDuration = options.toastDuration;
     }
 
     public init(config: ContribConfig): void {
@@ -223,14 +217,9 @@ export class ChatMessagesAdapter {
         );
 
         this._displayToast({
-            title: "Notifications",
             text: "Couldn't sent message",
             icon: <ToastIcon type={ToastsType.Error} />,
-            duration: this._toastDuration,
-            severity: ToastSeverity.Error,
-            onClick: () => {
-                this._activateKitchenSink();
-            }
+            severity: ToastSeverity.Error
         });
     }
 
@@ -408,14 +397,9 @@ export class ChatMessagesAdapter {
                     qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED
                 ) {
                     this._displayToast({
-                        title: "Notifications",
                         text: "New Reply",
                         icon: <ToastIcon type={ToastsType.Reply} />,
-                        duration: this._toastDuration,
-                        severity: ToastSeverity.Info,
-                        onClick: () => {
-                            this._activateKitchenSink();
-                        }
+                        severity: ToastSeverity.Info
                     });
                 }
             }

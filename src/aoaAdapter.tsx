@@ -26,10 +26,8 @@ export interface AoaAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
-    activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    displayToast: (data: ToastItemData) => void;
-    toastDuration: number;
+    displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
     playerApi: PlayerAPI;
     delayedEndTime: number;
 }
@@ -53,10 +51,8 @@ export class AoaAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
-    private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
-    private _displayToast: (data: ToastItemData) => void;
-    private _toastDuration: number;
+    private _displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
     private _playerApi: PlayerAPI;
     private _delayedEndTime: number;
 
@@ -72,10 +68,8 @@ export class AoaAdapter {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
         this._bannerManager = options.bannerManager;
-        this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._displayToast = options.displayToast;
-        this._toastDuration = options.toastDuration;
         this._playerApi = options.playerApi;
         this._delayedEndTime = options.delayedEndTime;
     }
@@ -242,14 +236,9 @@ export class AoaAdapter {
     private _showAOAToast(bannerState: BannerState) {
         if (bannerState.visibilityMode === VisibilityMode.HIDDEN && !this._isKitchenSinkActive()) {
             this._displayToast({
-                title: "Notifications",
                 text: "New Audience asks",
                 icon: <ToastIcon type={ToastsType.AOA} />,
-                duration: this._toastDuration,
-                severity: ToastSeverity.Info,
-                onClick: () => {
-                    this._activateKitchenSink();
-                }
+                severity: ToastSeverity.Info
             });
         }
     }
