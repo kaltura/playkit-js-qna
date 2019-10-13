@@ -32,12 +32,13 @@ import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataA
 import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { Utils } from "./utils";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
+import { DisplayToast } from "./plugin";
 
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
     isKitchenSinkActive: () => boolean;
-    displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
+    displayToast: ({ text, icon, severity }: DisplayToast) => void;
 }
 
 interface SubmitRequestParams {
@@ -58,7 +59,7 @@ export class ChatMessagesAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
     private _isKitchenSinkActive: () => boolean;
-    private _displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
+    private _displayToast: ({ text, icon, severity }: DisplayToast) => void;
 
     private _config: ContribConfig | null = null;
     private _userId: string | undefined;

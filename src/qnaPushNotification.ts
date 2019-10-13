@@ -1,5 +1,5 @@
 import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
-import { EntryType } from "@playkit-js-contrib/plugin";
+import { EntryTypes } from "@playkit-js-contrib/plugin";
 import {
     PrepareRegisterRequestConfig,
     PushNotifications,
@@ -80,7 +80,7 @@ export class QnaPushNotification {
      * @param entryId
      * @param userId
      */
-    public registerToPushServer(entryId: string, entryType: string, userId: string) {
+    public registerToPushServer(entryId: string, entryType: EntryTypes, userId: string) {
         if (this._registeredToQnaMessages) {
             logger.error("Multiple registration error", { method: "registerToPushServer" });
             throw new Error("Already register to push server");
@@ -99,7 +99,7 @@ export class QnaPushNotification {
         // notifications objects
         registrationConfigs.push(this._createPublicQnaRegistration(entryId));
         // user related QnA objects
-        if (entryType !== EntryType.Vod) {
+        if (entryType !== EntryTypes.Vod) {
             registrationConfigs.push(this._createUserQnaRegistration(entryId, userId));
         }
 

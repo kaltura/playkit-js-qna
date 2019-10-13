@@ -21,13 +21,14 @@ import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
 import { Utils } from "./utils";
+import { DisplayToast } from "./plugin";
 
 export interface AoaAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
     isKitchenSinkActive: () => boolean;
-    displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
+    displayToast: ({ text, icon, severity }: DisplayToast) => void;
     playerApi: PlayerAPI;
     delayedEndTime: number;
 }
@@ -52,7 +53,7 @@ export class AoaAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
     private _isKitchenSinkActive: () => boolean;
-    private _displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
+    private _displayToast: ({ text, icon, severity }: DisplayToast) => void;
     private _playerApi: PlayerAPI;
     private _delayedEndTime: number;
 

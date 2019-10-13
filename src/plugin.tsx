@@ -10,7 +10,7 @@ import {
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
-    EntryType,
+    EntryTypes,
     OnMediaLoad,
     OnMediaLoadConfig,
     OnMediaUnload,
@@ -31,6 +31,8 @@ import {
     KitchenSinkMessages,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
+
+export type DisplayToast = Partial<ToastItemData>;
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -228,8 +230,8 @@ export class QnaPlugin extends PlayerContribPlugin
         }
     };
 
-    private _displayToast = ({ text, icon, severity }: Partial<ToastItemData>): void => {
-        if (!this.config || this.config.entryType === EntryType.Vod) return;
+    private _displayToast = ({ text, icon, severity }: DisplayToast): void => {
+        if (!this.config || this.config.entryType === EntryTypes.Vod) return;
         //display toast
         this.uiManager.toast.add({
             title: "Notifications",

@@ -6,16 +6,17 @@ import {
 } from "./qnaPushNotification";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { ToastItemData, ToastSeverity } from "@playkit-js-contrib/ui";
+import { ToastSeverity } from "@playkit-js-contrib/ui";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
 import { Utils } from "./utils";
+import { DisplayToast } from "./plugin";
 
 export interface AnnouncementsAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
     isKitchenSinkActive: () => boolean;
-    displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
+    displayToast: ({ text, icon, severity }: DisplayToast) => void;
 }
 
 const logger = getContribLogger({
@@ -27,7 +28,7 @@ export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
     private _isKitchenSinkActive: () => boolean;
-    private _displayToast: ({ text, icon, severity }: Partial<ToastItemData>) => void;
+    private _displayToast: ({ text, icon, severity }: DisplayToast) => void;
 
     private _initialize = false;
 
