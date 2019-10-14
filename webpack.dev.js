@@ -15,7 +15,7 @@ const testFolder = path.join(__dirname, "/test");
      hot: false,
      inline: true,
      index: "index.html",
-     port: 8007
+     port: 8017
    },
    plugins: [
      new HtmlWebpackPlugin({

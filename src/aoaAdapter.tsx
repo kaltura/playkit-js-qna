@@ -11,12 +11,7 @@ import {
     ToastsManager,
     ToastSeverity
 } from "@playkit-js-contrib/ui";
-import {
-    CuepointEngine,
-    getContribLogger,
-    PlayerAPI,
-    UpdateTimeResponse
-} from "@playkit-js-contrib/common";
+import { CuepointEngine, getContribLogger, UpdateTimeResponse } from "@playkit-js-contrib/common";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
@@ -30,7 +25,7 @@ export interface AoaAdapterOptions {
     isKitchenSinkActive: () => boolean;
     toastsManager: ToastsManager;
     toastDuration: number;
-    playerApi: PlayerAPI;
+    kalturaPlayer: KalturaPlayerInstance;
     delayedEndTime: number;
 }
 
@@ -57,7 +52,7 @@ export class AoaAdapter {
     private _isKitchenSinkActive: () => boolean;
     private _toastsManager: ToastsManager;
     private _toastDuration: number;
-    private _playerApi: PlayerAPI;
+    private _kalturaPlayer: KalturaPlayerInstance;
     private _delayedEndTime: number;
 
     private _cuePointEngine: CuepointEngine<AoAMessage> | null = null;
@@ -76,7 +71,7 @@ export class AoaAdapter {
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._toastsManager = options.toastsManager;
         this._toastDuration = options.toastDuration;
-        this._playerApi = options.playerApi;
+        this._kalturaPlayer = options.kalturaPlayer;
         this._delayedEndTime = options.delayedEndTime;
     }
 
@@ -264,22 +259,18 @@ export class AoaAdapter {
     }
 
     private _addPlayerListeners() {
-        if (!this._playerApi) return;
+        if (!this._kalturaPlayer) return;
         this._removePlayerListeners();
-        const { kalturaPlayer, eventManager } = this._playerApi;
-        eventManager.listen(
-            kalturaPlayer,
-            kalturaPlayer.Event.TIMED_METADATA,
+        this._kalturaPlayer.addEventListener(
+            this._kalturaPlayer.Event.TIMED_METADATA,
             this._onTimedMetadataLoaded
         );
     }
 
     private _removePlayerListeners() {
-        if (!this._playerApi) return;
-        const { kalturaPlayer, eventManager } = this._playerApi;
-        eventManager.unlisten(
-            kalturaPlayer,
-            kalturaPlayer.Event.TIMED_METADATA,
+        if (!this._kalturaPlayer) return;
+        this._kalturaPlayer.removeEventListener(
+            this._kalturaPlayer.Event.TIMED_METADATA,
             this._onTimedMetadataLoaded
         );
     }

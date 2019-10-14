@@ -82,10 +82,7 @@ export class QnaPlugin extends PlayerContribPlugin
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
             bannerManager: this.uiManager.banner,
-            playerApi: {
-                kalturaPlayer: this.player,
-                eventManager: this.eventManager
-            },
+            kalturaPlayer: this.player as any,
             delayedEndTime: bannerDuration,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
@@ -178,10 +175,7 @@ export class QnaPlugin extends PlayerContribPlugin
             ks: server.ks,
             serviceUrl: server.serviceUrl,
             clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
-            playerAPI: {
-                kalturaPlayer: this.player,
-                eventManager: this.eventManager
-            }
+            kalturaPlayer: this.player as any
         });
         this._aoaAdapter.init();
         this._announcementAdapter.init();
