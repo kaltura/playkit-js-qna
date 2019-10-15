@@ -113,14 +113,14 @@ export class QnaPlugin extends PlayerContribPlugin
         this._initPluginManagers();
     }
 
-    onMediaLoad(config: OnMediaLoadConfig): void {
+    onMediaLoad({ sources }: OnMediaLoadConfig): void {
         const { server }: ContribConfig = this.getContribConfig();
         this._loading = true;
         this._hasError = false;
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
-        this._qnaPushNotification.registerToPushServer(config.entryId, server.userId || "");
-        this._chatMessagesAdapter.onMediaLoad(server.userId || "", this.entryId);
+        this._qnaPushNotification.registerToPushServer(sources.entryId, server.userId || "");
+        this._chatMessagesAdapter.onMediaLoad(server.userId || "", sources.entryId);
     }
 
     onMediaUnload(): void {
