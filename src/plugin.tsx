@@ -1,10 +1,11 @@
-import { h } from "preact";
+import { ComponentChild, h } from "preact";
 import {
     KitchenSinkContentRendererProps,
     KitchenSinkExpandModes,
     KitchenSinkItem,
     KitchenSinkPositions,
-    UIManager
+    UIManager,
+    ManagedComponent
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
@@ -58,7 +59,8 @@ export class QnaPlugin extends PlayerContribPlugin
     private _announcementAdapter: AnnouncementsAdapter;
     private _chatMessagesAdapter: ChatMessagesAdapter;
     private _kitchenSinkMessages: KitchenSinkMessages;
-    private _menuIconRef: MenuIcon | null = null;
+    private _showMenuIconIndication: boolean = false;
+    private _menuIconRef: ManagedComponent | null = null;
 
     public static readonly LOADING_TIME_END = 3000;
 
@@ -232,9 +234,10 @@ export class QnaPlugin extends PlayerContribPlugin
         }
     };
 
-    private _updateMenuIcon = (indicatorState: boolean): void => {
+    private _updateMenuIcon = (showIndication: boolean): void => {
+        this._showMenuIconIndication = showIndication;
         if (this._menuIconRef) {
-            this._menuIconRef.update(indicatorState);
+            this._menuIconRef.update();
         }
     };
 
@@ -242,11 +245,29 @@ export class QnaPlugin extends PlayerContribPlugin
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
             expandMode: KitchenSinkExpandModes.OverTheVideo,
-            renderIcon: () => <MenuIcon ref={ref => (this._menuIconRef = ref)} />,
+            renderIcon: this._renderMenuIcon,
             position: KitchenSinkPositions.Right,
             renderContent: this._renderKitchenSinkContent
         });
     }
+
+    private _renderMenuIcon = (): ComponentChild => {
+        return (
+            <ManagedComponent
+                label={"qna-menu-icon"}
+                renderChildren={() => (
+                    <MenuIcon
+                        showIndication={this._showMenuIconIndication}
+                        onClick={() => {
+                            this._updateMenuIcon(false);
+                        }}
+                    />
+                )}
+                isShown={() => true}
+                ref={ref => (this._menuIconRef = ref)}
+            />
+        );
+    };
 
     _renderKitchenSinkContent = (props: KitchenSinkContentRendererProps) => {
         if (!this._kitchenSinkMessages) {
