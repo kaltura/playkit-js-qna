@@ -213,7 +213,6 @@
                 var config = {
                     logLevel: "DEBUG",
                     targetId: "player-div",
-                    expandMode: expandMode,
                     provider: {
                         partnerId: partnerId,
                         uiConfId: uiConfId,
@@ -228,7 +227,8 @@
                     },
                     plugins: {
                         'qna-local': {
-                            dateFormat: 'mmmm do, yyyy'
+                            dateFormat: 'mmmm do, yyyy',
+                            expandMode: expandMode,
                         },
                         'kalturaLive': {}
                     }
