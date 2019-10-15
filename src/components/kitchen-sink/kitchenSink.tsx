@@ -55,7 +55,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
     private _scrollToBottom = () => {
         if (this._messagesEnd) {
-            this._messagesEnd.scrollIntoView({ behavior: "smooth" });
+            this._messagesEnd.scrollTop = this._messagesEnd.scrollHeight;
         }
     };
 
@@ -146,16 +146,14 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                                 ${(props.loading || props.hasError || props.threads.length === 0) &&
                                     styles.noContent} 
                             `}
+                    ref={el => {
+                        this._messagesEnd = el;
+                    }}
                     onScroll={this._trackScrolling}
                 >
                     {renderedContent}
 
-                    <div
-                        className={styles.messagesEndAnchor}
-                        ref={el => {
-                            this._messagesEnd = el;
-                        }}
-                    />
+                    <div className={styles.messagesEndAnchor} />
                 </div>
 
                 {/* footer */}
