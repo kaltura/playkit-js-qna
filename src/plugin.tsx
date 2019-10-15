@@ -29,8 +29,7 @@ import {
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
 
-const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
-const pluginName = `qna${isDev ? "-local" : ""}`;
+const pluginName = `qna`;
 const DefaultBannerDuration: number = 60 * 1000;
 const DefaultToastDuration: number = 5 * 1000;
 const MinBannerDuration: number = 5 * 1000;
