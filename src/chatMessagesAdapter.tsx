@@ -38,7 +38,7 @@ export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
     isKitchenSinkActive: () => boolean;
-    displayToast: ({ text, icon, severity }: DisplayToast) => void;
+    displayToast: DisplayToast;
 }
 
 interface SubmitRequestParams {
@@ -59,7 +59,7 @@ export class ChatMessagesAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
     private _isKitchenSinkActive: () => boolean;
-    private _displayToast: ({ text, icon, severity }: DisplayToast) => void;
+    private _displayToast: DisplayToast;
 
     private _config: ContribConfig | null = null;
     private _userId: string | undefined;

@@ -28,7 +28,7 @@ export interface AoaAdapterOptions {
     qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
     isKitchenSinkActive: () => boolean;
-    displayToast: ({ text, icon, severity }: DisplayToast) => void;
+    displayToast: DisplayToast;
     playerApi: PlayerAPI;
     delayedEndTime: number;
 }
@@ -53,7 +53,7 @@ export class AoaAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
     private _isKitchenSinkActive: () => boolean;
-    private _displayToast: ({ text, icon, severity }: DisplayToast) => void;
+    private _displayToast: DisplayToast;
     private _playerApi: PlayerAPI;
     private _delayedEndTime: number;
 

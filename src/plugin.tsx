@@ -1,4 +1,4 @@
-import { h } from "preact";
+import { ComponentChild, h } from "preact";
 import {
     KitchenSinkContentRendererProps,
     KitchenSinkExpandModes,
@@ -32,7 +32,11 @@ import {
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
 
-export type DisplayToast = Partial<ToastItemData>;
+export type DisplayToast = (options: {
+    text: string;
+    icon: ComponentChild;
+    severity: ToastSeverity;
+}) => void;
 
 const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
 const pluginName = `qna${isDev ? "-local" : ""}`;
@@ -230,15 +234,19 @@ export class QnaPlugin extends PlayerContribPlugin
         }
     };
 
-    private _displayToast = ({ text, icon, severity }: DisplayToast): void => {
+    private _displayToast = (options: {
+        text: string;
+        icon: ComponentChild;
+        severity: ToastSeverity;
+    }): void => {
         if (!this.config || this.config.entryType === EntryTypes.Vod) return;
         //display toast
         this.uiManager.toast.add({
             title: "Notifications",
-            text: text || "",
-            icon: icon,
+            text: options.text,
+            icon: options.icon,
             duration: this._toastsDuration,
-            severity: severity || ToastSeverity.Info,
+            severity: options.severity || ToastSeverity.Info,
             onClick: this._activateKitchenSink
         });
     };

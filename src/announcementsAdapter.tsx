@@ -16,7 +16,7 @@ export interface AnnouncementsAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
     isKitchenSinkActive: () => boolean;
-    displayToast: ({ text, icon, severity }: DisplayToast) => void;
+    displayToast: DisplayToast;
 }
 
 const logger = getContribLogger({
@@ -28,7 +28,7 @@ export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
     private _isKitchenSinkActive: () => boolean;
-    private _displayToast: ({ text, icon, severity }: DisplayToast) => void;
+    private _displayToast: DisplayToast;
 
     private _initialize = false;
 
