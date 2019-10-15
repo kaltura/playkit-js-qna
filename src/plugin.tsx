@@ -46,7 +46,8 @@ export class QnaPlugin extends PlayerContribPlugin
     static defaultConfig = {
         bannerDuration: DefaultBannerDuration,
         toastDuration: DefaultToastDuration,
-        dateFormat: "dd/mm/yyyy"
+        dateFormat: "dd/mm/yyyy",
+        expandMode: "OverTheVideo"
     };
 
     private _kitchenSinkItem: KitchenSinkItem | null = null;
@@ -236,8 +237,7 @@ export class QnaPlugin extends PlayerContribPlugin
     }
 
     onRegisterUI(uiManager: UIManager): void {
-        const config = this.getContribConfig();
-        const expandMode = this._parseExpandMode(config.kitchenSink.expandMode);
+        const expandMode = this._parseExpandMode(this.config.expandMode);
 
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
