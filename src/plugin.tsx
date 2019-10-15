@@ -1,10 +1,11 @@
-import { h } from "preact";
+import { ComponentChild, h } from "preact";
 import {
     KitchenSinkContentRendererProps,
     KitchenSinkExpandModes,
     KitchenSinkItem,
     KitchenSinkPositions,
-    UIManager
+    UIManager,
+    ManagedComponent
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
@@ -58,6 +59,8 @@ export class QnaPlugin extends PlayerContribPlugin
     private _announcementAdapter: AnnouncementsAdapter;
     private _chatMessagesAdapter: ChatMessagesAdapter;
     private _kitchenSinkMessages: KitchenSinkMessages;
+    private _showMenuIconIndication: boolean = false;
+    private _menuIconRef: ManagedComponent | null = null;
 
     public static readonly LOADING_TIME_END = 3000;
 
@@ -89,6 +92,7 @@ export class QnaPlugin extends PlayerContribPlugin
             delayedEndTime: bannerDuration,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
+            updateMenuIcon: this._updateMenuIcon,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
@@ -97,6 +101,7 @@ export class QnaPlugin extends PlayerContribPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
+            updateMenuIcon: this._updateMenuIcon,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
@@ -105,6 +110,7 @@ export class QnaPlugin extends PlayerContribPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
+            updateMenuIcon: this._updateMenuIcon,
             toastsManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
@@ -223,6 +229,15 @@ export class QnaPlugin extends PlayerContribPlugin
     private _activateKitchenSink = (): void => {
         if (this._kitchenSinkItem) {
             this._kitchenSinkItem.activate();
+            //clear menu icon indication if kitchenSink is active
+            this._updateMenuIcon(false);
+        }
+    };
+
+    private _updateMenuIcon = (showIndication: boolean): void => {
+        this._showMenuIconIndication = showIndication;
+        if (this._menuIconRef) {
+            this._menuIconRef.update();
         }
     };
 
@@ -241,20 +256,40 @@ export class QnaPlugin extends PlayerContribPlugin
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
             expandMode: expandMode,
-            renderIcon: () => <MenuIcon />,
+            renderIcon: this._renderMenuIcon,
             position: KitchenSinkPositions.Right,
             renderContent: this._renderKitchenSinkContent
         });
     }
+
+    private _renderMenuIcon = (): ComponentChild => {
+        return (
+            <ManagedComponent
+                label={"qna-menu-icon"}
+                renderChildren={() => (
+                    <MenuIcon
+                        showIndication={this._showMenuIconIndication}
+                        onClick={() => {
+                            this._updateMenuIcon(false);
+                        }}
+                    />
+                )}
+                isShown={() => true}
+                ref={ref => (this._menuIconRef = ref)}
+            />
+        );
+    };
 
     _renderKitchenSinkContent = (props: KitchenSinkContentRendererProps) => {
         if (!this._kitchenSinkMessages) {
             return <div />;
         }
 
+        const { onClose, ...rest } = props;
+
         return (
             <KitchenSink
-                {...props}
+                {...rest}
                 dateFormat={this.config.dateFormat}
                 threads={this._threads}
                 hasError={this._hasError}
@@ -262,6 +297,11 @@ export class QnaPlugin extends PlayerContribPlugin
                 onSubmit={this._chatMessagesAdapter.submitQuestion}
                 onResend={this._chatMessagesAdapter.resendQuestion}
                 onMassageRead={this._chatMessagesAdapter.onMessageRead}
+                //enriching default on close to handle menu icon indicator update
+                onClose={() => {
+                    this._updateMenuIcon(false);
+                    onClose();
+                }}
             />
         );
     };
