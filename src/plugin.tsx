@@ -29,8 +29,7 @@ import {
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
 
-const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
-const pluginName = `qna${isDev ? "-local" : ""}`;
+const pluginName = `qna`;
 const DefaultBannerDuration: number = 60 * 1000;
 const DefaultToastDuration: number = 5 * 1000;
 const MinBannerDuration: number = 5 * 1000;
@@ -46,7 +45,8 @@ export class QnaPlugin extends PlayerContribPlugin
     static defaultConfig = {
         bannerDuration: DefaultBannerDuration,
         toastDuration: DefaultToastDuration,
-        dateFormat: "dd/mm/yyyy"
+        dateFormat: "dd/mm/yyyy",
+        expandMode: "OverTheVideo"
     };
 
     private _kitchenSinkItem: KitchenSinkItem | null = null;
@@ -177,7 +177,7 @@ export class QnaPlugin extends PlayerContribPlugin
         this._qnaPushNotification.init({
             ks: server.ks,
             serviceUrl: server.serviceUrl,
-            clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
+            clientTag: "QnaPlugin_V7",
             playerAPI: {
                 kalturaPlayer: this.player,
                 eventManager: this.eventManager
@@ -226,10 +226,21 @@ export class QnaPlugin extends PlayerContribPlugin
         }
     };
 
+    private _parseExpandMode(value: string): KitchenSinkExpandModes {
+        switch (value) {
+            case "AlongSideTheVideo":
+                return KitchenSinkExpandModes.AlongSideTheVideo;
+            default:
+                return KitchenSinkExpandModes.OverTheVideo;
+        }
+    }
+
     onRegisterUI(uiManager: UIManager): void {
+        const expandMode = this._parseExpandMode(this.config.expandMode);
+
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
-            expandMode: KitchenSinkExpandModes.OverTheVideo,
+            expandMode: expandMode,
             renderIcon: () => <MenuIcon />,
             position: KitchenSinkPositions.Right,
             renderContent: this._renderKitchenSinkContent
