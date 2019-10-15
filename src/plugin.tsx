@@ -228,10 +228,10 @@ export class QnaPlugin extends PlayerContribPlugin
 
     private _parseExpandMode(value: string): KitchenSinkExpandModes {
         switch (value) {
-            case "OverTheVideo":
-                return KitchenSinkExpandModes.OverTheVideo;
-            default:
+            case "AlongSideTheVideo":
                 return KitchenSinkExpandModes.AlongSideTheVideo;
+            default:
+                return KitchenSinkExpandModes.OverTheVideo;
         }
     }
 
