@@ -28,6 +28,7 @@ export interface AoaAdapterOptions {
     qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
     isKitchenSinkActive: () => boolean;
+    updateMenuIcon: (indicatorState: boolean) => void;
     displayToast: DisplayToast;
     playerApi: PlayerAPI;
     delayedEndTime: number;
@@ -53,6 +54,7 @@ export class AoaAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
     private _isKitchenSinkActive: () => boolean;
+    private _updateMenuIcon: (indicatorState: boolean) => void;
     private _displayToast: DisplayToast;
     private _playerApi: PlayerAPI;
     private _delayedEndTime: number;
@@ -70,6 +72,7 @@ export class AoaAdapter {
         this._qnaPushNotification = options.qnaPushNotification;
         this._bannerManager = options.bannerManager;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
+        this._updateMenuIcon = options.updateMenuIcon;
         this._displayToast = options.displayToast;
         this._playerApi = options.playerApi;
         this._delayedEndTime = options.delayedEndTime;
@@ -230,12 +233,15 @@ export class AoaAdapter {
                         : ""
                 }
             });
-            this._showAOAToast(currentBannerState);
+            this._showAOANotifications(currentBannerState);
         }
     }
 
-    private _showAOAToast(bannerState: BannerState) {
+    private _showAOANotifications(bannerState: BannerState) {
         if (bannerState.visibilityMode === VisibilityMode.HIDDEN && !this._isKitchenSinkActive()) {
+            //menu icon indication
+            this._updateMenuIcon(true);
+            //toast indication
             this._displayToast({
                 text: "New Audience asks",
                 icon: <ToastIcon type={ToastsType.AOA} />,

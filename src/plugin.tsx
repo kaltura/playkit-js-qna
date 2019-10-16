@@ -6,7 +6,8 @@ import {
     KitchenSinkPositions,
     ToastItemData,
     ToastSeverity,
-    UIManager
+    UIManager,
+    ManagedComponent
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
@@ -38,8 +39,7 @@ export type DisplayToast = (options: {
     severity: ToastSeverity;
 }) => void;
 
-const isDev = true; // TODO - should be provided by Omri Katz as part of the cli implementation
-const pluginName = `qna${isDev ? "-local" : ""}`;
+const pluginName = `qna`;
 const DefaultBannerDuration: number = 60 * 1000;
 const DefaultToastDuration: number = 5 * 1000;
 const MinBannerDuration: number = 5 * 1000;
@@ -55,7 +55,8 @@ export class QnaPlugin extends PlayerContribPlugin
     static defaultConfig = {
         bannerDuration: DefaultBannerDuration,
         toastDuration: DefaultToastDuration,
-        dateFormat: "dd/mm/yyyy"
+        dateFormat: "dd/mm/yyyy",
+        expandMode: "OverTheVideo"
     };
 
     private _kitchenSinkItem: KitchenSinkItem | null = null;
@@ -67,6 +68,8 @@ export class QnaPlugin extends PlayerContribPlugin
     private _announcementAdapter: AnnouncementsAdapter;
     private _chatMessagesAdapter: ChatMessagesAdapter;
     private _kitchenSinkMessages: KitchenSinkMessages;
+    private _showMenuIconIndication: boolean = false;
+    private _menuIconRef: ManagedComponent | null = null;
     private _toastsDuration: number;
 
     public static readonly LOADING_TIME_END = 3000;
@@ -98,18 +101,21 @@ export class QnaPlugin extends PlayerContribPlugin
             },
             delayedEndTime: bannerDuration,
             isKitchenSinkActive: this._isKitchenSinkActive,
+            updateMenuIcon: this._updateMenuIcon,
             displayToast: this._displayToast
         });
         this._announcementAdapter = new AnnouncementsAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
             isKitchenSinkActive: this._isKitchenSinkActive,
+            updateMenuIcon: this._updateMenuIcon,
             displayToast: this._displayToast
         });
         this._chatMessagesAdapter = new ChatMessagesAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
             isKitchenSinkActive: this._isKitchenSinkActive,
+            updateMenuIcon: this._updateMenuIcon,
             displayToast: this._displayToast
         });
         //listeners
@@ -185,7 +191,7 @@ export class QnaPlugin extends PlayerContribPlugin
         this._qnaPushNotification.init({
             ks: server.ks,
             serviceUrl: server.serviceUrl,
-            clientTag: "QnaPlugin_V7", // todo: [am] Is this the clientTag we want
+            clientTag: "QnaPlugin_V7",
             playerAPI: {
                 kalturaPlayer: this.player,
                 eventManager: this.eventManager
@@ -231,8 +237,26 @@ export class QnaPlugin extends PlayerContribPlugin
     private _activateKitchenSink = (): void => {
         if (this._kitchenSinkItem) {
             this._kitchenSinkItem.activate();
+            //clear menu icon indication if kitchenSink is active
+            this._updateMenuIcon(false);
         }
     };
+
+    private _updateMenuIcon = (showIndication: boolean): void => {
+        this._showMenuIconIndication = showIndication;
+        if (this._menuIconRef) {
+            this._menuIconRef.update();
+        }
+    };
+
+    private _parseExpandMode(value: string): KitchenSinkExpandModes {
+        switch (value) {
+            case "AlongSideTheVideo":
+                return KitchenSinkExpandModes.AlongSideTheVideo;
+            default:
+                return KitchenSinkExpandModes.OverTheVideo;
+        }
+    }
 
     private _displayToast = (options: {
         text: string;
@@ -252,23 +276,45 @@ export class QnaPlugin extends PlayerContribPlugin
     };
 
     onRegisterUI(uiManager: UIManager): void {
+        const expandMode = this._parseExpandMode(this.config.expandMode);
+
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
-            expandMode: KitchenSinkExpandModes.OverTheVideo,
-            renderIcon: () => <MenuIcon />,
+            expandMode: expandMode,
+            renderIcon: this._renderMenuIcon,
             position: KitchenSinkPositions.Right,
             renderContent: this._renderKitchenSinkContent
         });
     }
+
+    private _renderMenuIcon = (): ComponentChild => {
+        return (
+            <ManagedComponent
+                label={"qna-menu-icon"}
+                renderChildren={() => (
+                    <MenuIcon
+                        showIndication={this._showMenuIconIndication}
+                        onClick={() => {
+                            this._updateMenuIcon(false);
+                        }}
+                    />
+                )}
+                isShown={() => true}
+                ref={ref => (this._menuIconRef = ref)}
+            />
+        );
+    };
 
     _renderKitchenSinkContent = (props: KitchenSinkContentRendererProps) => {
         if (!this._kitchenSinkMessages) {
             return <div />;
         }
 
+        const { onClose, ...rest } = props;
+
         return (
             <KitchenSink
-                {...props}
+                {...rest}
                 dateFormat={this.config.dateFormat}
                 threads={this._threads}
                 hasError={this._hasError}
@@ -276,6 +322,11 @@ export class QnaPlugin extends PlayerContribPlugin
                 onSubmit={this._chatMessagesAdapter.submitQuestion}
                 onResend={this._chatMessagesAdapter.resendQuestion}
                 onMassageRead={this._chatMessagesAdapter.onMessageRead}
+                //enriching default on close to handle menu icon indicator update
+                onClose={() => {
+                    this._updateMenuIcon(false);
+                    onClose();
+                }}
             />
         );
     };
