@@ -16,8 +16,8 @@ import {
     OnMediaUnload,
     OnPluginSetup,
     OnRegisterUI,
-    PlayerContribPlugin,
-    SetCorePlugin
+    ContribServices,
+    ContribPluginData
 } from "@playkit-js-contrib/plugin";
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
@@ -44,20 +44,13 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
-export class QnaPlugin
-    implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload, SetCorePlugin {
+export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     static defaultConfig = {
         bannerDuration: DefaultBannerDuration,
         toastDuration: DefaultToastDuration,
         dateFormat: "dd/mm/yyyy",
         expandMode: "OverTheVideo"
     };
-
-    private _corePlugin!: CorePlugin;
-
-    setCorePlugin(corePlugin: CorePlugin) {
-        this._corePlugin = corePlugin;
-    }
 
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
@@ -73,10 +66,7 @@ export class QnaPlugin
 
     public static readonly LOADING_TIME_END = 3000;
 
-    constructor(...args: any) {
-        //padding args to player core via PlayerContribPlugin
-        // @ts-ignore
-        super(...args);
+    constructor(private _corePlugin: CorePlugin, private _contribServices: ContribServices) {
         let bannerDuration =
             this._corePlugin.config.bannerDuration &&
             this._corePlugin.config.bannerDuration >= MinBannerDuration
@@ -90,17 +80,17 @@ export class QnaPlugin
         //adapters
         this._qnaPushNotification = new QnaPushNotification();
         this._kitchenSinkMessages = new KitchenSinkMessages({
-            kitchenSinkManager: this.uiManager.kitchenSink
+            kitchenSinkManager: this._contribServices.uiManager.kitchenSink
         });
         this._aoaAdapter = new AoaAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
-            bannerManager: this.uiManager.banner,
-            kalturaPlayer: this.player as any,
+            bannerManager: this._contribServices.uiManager.banner,
+            corePlayer: this._corePlugin.player as any,
             delayedEndTime: bannerDuration,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastManager: this.uiManager.toast,
+            toastManager: this._contribServices.uiManager.toast,
             updateMenuIcon: this._updateMenuIcon,
             toastDuration: toastDuration
         });
@@ -109,7 +99,7 @@ export class QnaPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastManager: this.uiManager.toast,
+            toastManager: this._contribServices.uiManager.toast,
             updateMenuIcon: this._updateMenuIcon,
             toastDuration: toastDuration
         });
@@ -118,7 +108,7 @@ export class QnaPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastManager: this.uiManager.toast,
+            toastManager: this._contribServices.uiManager.toast,
             updateMenuIcon: this._updateMenuIcon,
             toastDuration: toastDuration
         });
@@ -131,7 +121,7 @@ export class QnaPlugin
     }
 
     onMediaLoad({ sources }: OnMediaLoadConfig): void {
-        const { server }: ContribConfig = this.getContribConfig();
+        const { server }: ContribConfig = this._contribServices.getContribConfig();
         this._loading = true;
         this._hasError = false;
         //push notification event handlers were set during pluginSetup,
@@ -186,17 +176,17 @@ export class QnaPlugin
     }
 
     private _initPluginManagers(): void {
-        const { server }: ContribConfig = this.getContribConfig();
+        const { server }: ContribConfig = this._contribServices.getContribConfig();
         // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
         this._qnaPushNotification.init({
             ks: server.ks,
             serviceUrl: server.serviceUrl,
             clientTag: "QnaPlugin_V7",
-            kalturaPlayer: this.player as any
+            corePlayer: this._corePlugin.player
         });
         this._aoaAdapter.init();
         this._announcementAdapter.init();
-        this._chatMessagesAdapter.init(this.getContribConfig());
+        this._chatMessagesAdapter.init(this._contribServices.getContribConfig());
         this._delayedGiveUpLoading();
     }
 
@@ -312,9 +302,6 @@ export class QnaPlugin
     };
 }
 
-ContribPluginManager.registerPlugin(
-    "qna",
-    ({ corePlayer }: { corePlayer: KalturaPlayerInstance }) => {
-        return new QnaPlugin(corePlayer);
-    }
-);
+ContribPluginManager.registerPlugin("qna", (data: ContribPluginData) => {
+    return new QnaPlugin(data.corePlugin, data.contribServices);
+});
