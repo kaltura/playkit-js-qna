@@ -9,12 +9,15 @@ import {
 } from "@playkit-js-contrib/ui";
 import {
     ContribConfig,
+    ContribPluginManager,
+    CorePlugin,
     OnMediaLoad,
     OnMediaLoadConfig,
     OnMediaUnload,
     OnPluginSetup,
     OnRegisterUI,
-    PlayerContribPlugin
+    PlayerContribPlugin,
+    SetCorePlugin
 } from "@playkit-js-contrib/plugin";
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
@@ -41,14 +44,20 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
-export class QnaPlugin extends PlayerContribPlugin
-    implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
+export class QnaPlugin
+    implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload, SetCorePlugin {
     static defaultConfig = {
         bannerDuration: DefaultBannerDuration,
         toastDuration: DefaultToastDuration,
         dateFormat: "dd/mm/yyyy",
         expandMode: "OverTheVideo"
     };
+
+    private _corePlugin!: CorePlugin;
+
+    setCorePlugin(corePlugin: CorePlugin) {
+        this._corePlugin = corePlugin;
+    }
 
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
@@ -69,12 +78,14 @@ export class QnaPlugin extends PlayerContribPlugin
         // @ts-ignore
         super(...args);
         let bannerDuration =
-            this.config.bannerDuration && this.config.bannerDuration >= MinBannerDuration
-                ? this.config.bannerDuration
+            this._corePlugin.config.bannerDuration &&
+            this._corePlugin.config.bannerDuration >= MinBannerDuration
+                ? this._corePlugin.config.bannerDuration
                 : DefaultBannerDuration;
         let toastDuration =
-            this.config.toastDuration && this.config.toastDuration >= MinToastDuration
-                ? this.config.toastDuration
+            this._corePlugin.config.toastDuration &&
+            this._corePlugin.config.toastDuration >= MinToastDuration
+                ? this._corePlugin.config.toastDuration
                 : DefaultToastDuration;
         //adapters
         this._qnaPushNotification = new QnaPushNotification();
@@ -245,7 +256,7 @@ export class QnaPlugin extends PlayerContribPlugin
     }
 
     onRegisterUI(uiManager: UIManager): void {
-        const expandMode = this._parseExpandMode(this.config.expandMode);
+        const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
 
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
@@ -284,7 +295,7 @@ export class QnaPlugin extends PlayerContribPlugin
         return (
             <KitchenSink
                 {...rest}
-                dateFormat={this.config.dateFormat}
+                dateFormat={this._corePlugin.config.dateFormat}
                 threads={this._threads}
                 hasError={this._hasError}
                 loading={this._loading}
@@ -301,10 +312,9 @@ export class QnaPlugin extends PlayerContribPlugin
     };
 }
 
-class ContribPlugin {}
-// TODO sakal expose in declaration file
-(window as any).playkit.contrib.player.ContribPluginManager.registerPlugin(
-    pluginName,
-    ContribPlugin
+ContribPluginManager.registerPlugin(
+    "qna",
+    ({ corePlayer }: { corePlayer: KalturaPlayerInstance }) => {
+        return new QnaPlugin(corePlayer);
+    }
 );
-KalturaPlayer.core.registerPlugin(pluginName, QnaPlugin);
