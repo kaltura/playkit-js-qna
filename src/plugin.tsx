@@ -19,7 +19,7 @@ import {
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 import { QnaMessage } from "./qnaMessageFactory";
-import { getContribLogger } from "@playkit-js-contrib/common";
+import { getContribLogger, KalturaLiveServices } from "@playkit-js-contrib/common";
 import { PushNotificationEventTypes, QnaPushNotification } from "./qnaPushNotification";
 import { AoaAdapter } from "./aoaAdapter";
 import { AnnouncementsAdapter } from "./announcementsAdapter";
@@ -123,13 +123,13 @@ export class QnaPlugin extends PlayerContribPlugin
     }
 
     onMediaLoad(config: OnMediaLoadConfig): void {
-        const { server }: ContribConfig = this.getContribConfig();
         this._loading = true;
         this._hasError = false;
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
-        this._qnaPushNotification.registerToPushServer(config.entryId, server.userId || "");
-        this._chatMessagesAdapter.onMediaLoad(server.userId || "", this.entryId);
+        const userId = this.getUserId();
+        this._qnaPushNotification.registerToPushServer(config.entryId, userId);
+        this._chatMessagesAdapter.onMediaLoad(userId, this.entryId);
     }
 
     onMediaUnload(): void {
@@ -193,6 +193,17 @@ export class QnaPlugin extends PlayerContribPlugin
         this._announcementAdapter.init();
         this._chatMessagesAdapter.init(this.getContribConfig());
         this._delayedGiveUpLoading();
+    }
+
+    private getUserId(): string {
+        debugger;
+        const { server }: ContribConfig = this.getContribConfig();
+
+        if (!this.config.userRole || this.config.userRole === "anonymousRole" || !server.userId) {
+            return KalturaLiveServices.getAnonymousUserId();
+        }
+
+        return server.userId;
     }
 
     private _delayedGiveUpLoading() {

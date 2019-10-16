@@ -355,7 +355,7 @@ export class ChatMessagesAdapter {
         }
 
         metadata.Type = QnaMessageType.Question;
-        metadata.ThreadCreatorId = this._userId!; // TODO temp solutions for userId need to handle anonymous user id
+        metadata.ThreadCreatorId = this._userId!;
 
         const xmlData = Utils.createXmlFromObject(metadata);
 
