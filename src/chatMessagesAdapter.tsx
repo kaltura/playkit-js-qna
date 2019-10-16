@@ -12,7 +12,7 @@ import {
     QnaMessageFactory,
     QnaMessageType
 } from "./qnaMessageFactory";
-import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
+import { ToastSeverity, ToastManager } from "@playkit-js-contrib/ui";
 import {
     KalturaClient,
     KalturaMultiRequest,
@@ -38,7 +38,7 @@ export interface ChatMessagesAdapterOptions {
     qnaPushNotification: QnaPushNotification;
     activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    toastsManager: ToastsManager;
+    toastManager: ToastManager;
     toastDuration: number;
 }
 
@@ -61,7 +61,7 @@ export class ChatMessagesAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
-    private _toastsManager: ToastsManager;
+    private _toastManager: ToastManager;
     private _toastDuration: number;
 
     private _config: ContribConfig | null = null;
@@ -76,7 +76,7 @@ export class ChatMessagesAdapter {
         this._qnaPushNotification = options.qnaPushNotification;
         this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
-        this._toastsManager = options.toastsManager;
+        this._toastManager = options.toastManager;
         this._toastDuration = options.toastDuration;
     }
 
@@ -222,7 +222,7 @@ export class ChatMessagesAdapter {
             }
         );
 
-        this._toastsManager.add({
+        this._toastManager.add({
             title: "Notifications",
             text: "Couldn't sent message",
             icon: <ToastIcon type={ToastsType.Error} />,
@@ -414,7 +414,7 @@ export class ChatMessagesAdapter {
     };
 
     private _showReplyToast() {
-        this._toastsManager.add({
+        this._toastManager.add({
             title: "Notifications",
             text: "New Reply",
             icon: <ToastIcon type={ToastsType.Reply} />,

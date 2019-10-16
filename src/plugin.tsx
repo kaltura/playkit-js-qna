@@ -86,7 +86,7 @@ export class QnaPlugin extends PlayerContribPlugin
             delayedEndTime: bannerDuration,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastsManager: this.uiManager.toast,
+            toastManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
         this._announcementAdapter = new AnnouncementsAdapter({
@@ -94,7 +94,7 @@ export class QnaPlugin extends PlayerContribPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastsManager: this.uiManager.toast,
+            toastManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
         this._chatMessagesAdapter = new ChatMessagesAdapter({
@@ -102,7 +102,7 @@ export class QnaPlugin extends PlayerContribPlugin
             qnaPushNotification: this._qnaPushNotification,
             activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastsManager: this.uiManager.toast,
+            toastManager: this.uiManager.toast,
             toastDuration: toastDuration
         });
         //listeners
@@ -250,4 +250,10 @@ export class QnaPlugin extends PlayerContribPlugin
     };
 }
 
+class ContribPlugin {}
+// TODO sakal expose in declaration file
+(window as any).playkit.contrib.player.ContribPluginManager.registerPlugin(
+    pluginName,
+    ContribPlugin
+);
 KalturaPlayer.core.registerPlugin(pluginName, QnaPlugin);
