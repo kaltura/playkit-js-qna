@@ -17,6 +17,7 @@ export interface AnnouncementsAdapterOptions {
     activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
     toastManager: ToastManager;
+    updateMenuIcon: (indicatorState: boolean) => void;
     toastDuration: number;
 }
 
@@ -30,6 +31,7 @@ export class AnnouncementsAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
+    private _updateMenuIcon: (indicatorState: boolean) => void;
     private _toastManager: ToastManager;
     private _toastDuration: number;
 
@@ -42,6 +44,7 @@ export class AnnouncementsAdapter {
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._toastManager = options.toastManager;
         this._toastDuration = options.toastDuration;
+        this._updateMenuIcon = options.updateMenuIcon;
     }
 
     public init(): void {
@@ -73,14 +76,17 @@ export class AnnouncementsAdapter {
                 this._kitchenSinkMessages.add(qnaMessage);
                 //display toasts only for newly created messages
                 if (Utils.isMessageInTimeFrame(qnaMessage)) {
-                    this._showAnnouncementToast();
+                    this._showAnnouncementNotifications();
                 }
             }
         });
     };
 
-    private _showAnnouncementToast() {
+    private _showAnnouncementNotifications() {
         if (!this._isKitchenSinkActive()) {
+            //menu icon indication
+            this._updateMenuIcon(true);
+            //toast indication
             this._toastManager.add({
                 title: "Notifications",
                 text: "New Announcement",

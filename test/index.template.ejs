@@ -72,7 +72,11 @@
             userId: "" <!-- TODO Optional in general but mandatory at QnA plugin (hint use Shimi) -->
     },
     plugins: {
-        'qna-local': {},
+        'qna': {
+            dateFormat: 'mmmm do, yyyy',
+            expandMode: 'AlongSideTheVideo',
+            expandOnFirstPlay: true
+        },
         'kalturaLive': {}
     }
   };

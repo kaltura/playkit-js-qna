@@ -39,6 +39,7 @@ export interface ChatMessagesAdapterOptions {
     activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
     toastManager: ToastManager;
+    updateMenuIcon: (indicatorState: boolean) => void;
     toastDuration: number;
 }
 
@@ -61,6 +62,7 @@ export class ChatMessagesAdapter {
     private _qnaPushNotification: QnaPushNotification;
     private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
+    private _updateMenuIcon: (indicatorState: boolean) => void;
     private _toastManager: ToastManager;
     private _toastDuration: number;
 
@@ -76,6 +78,7 @@ export class ChatMessagesAdapter {
         this._qnaPushNotification = options.qnaPushNotification;
         this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
+        this._updateMenuIcon = options.updateMenuIcon;
         this._toastManager = options.toastManager;
         this._toastDuration = options.toastDuration;
     }
@@ -407,13 +410,16 @@ export class ChatMessagesAdapter {
                     Utils.isMessageInTimeFrame(qnaMessage) &&
                     qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED
                 ) {
-                    this._showReplyToast();
+                    this._showReplyNotifications();
                 }
             }
         });
     };
 
-    private _showReplyToast() {
+    private _showReplyNotifications() {
+        //menu icon indication
+        this._updateMenuIcon(true);
+        //toast indication
         this._toastManager.add({
             title: "Notifications",
             text: "New Reply",

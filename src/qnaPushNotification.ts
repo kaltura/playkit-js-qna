@@ -93,7 +93,15 @@ export class QnaPushNotification {
 
         // TODO [am] temp solutions for userId need to handle anonymous user id
         if (!this._pushServerInstance) {
-            return; // TODO [am] change state to error
+            logger.error("Can't register to notifications as _pushServerInstance doesn't exists", {
+                method: "registerToPushServer"
+            });
+            this._events.emit({
+                type: PushNotificationEventTypes.PushNotificationsError,
+                error: "Can't register to notifications as _pushServerInstance doesn't exists"
+            });
+
+            return;
         }
         // Announcement objects
         const publicQnaRequestConfig = this._createPublicQnaRegistration(entryId);
