@@ -196,7 +196,6 @@ export class QnaPlugin extends PlayerContribPlugin
     }
 
     private getUserId(): string {
-        debugger;
         const { server }: ContribConfig = this.getContribConfig();
 
         if (!this.config.userRole || this.config.userRole === "anonymousRole" || !server.userId) {
