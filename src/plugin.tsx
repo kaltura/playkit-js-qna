@@ -45,13 +45,6 @@ const logger = getContribLogger({
 });
 
 export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
-    static defaultConfig = {
-        bannerDuration: DefaultBannerDuration,
-        toastDuration: DefaultToastDuration,
-        dateFormat: "dd/mm/yyyy",
-        expandMode: "OverTheVideo"
-    };
-
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
@@ -302,6 +295,17 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     };
 }
 
-ContribPluginManager.registerPlugin("qna", (data: ContribPluginData) => {
-    return new QnaPlugin(data.corePlugin, data.contribServices);
-});
+ContribPluginManager.registerPlugin(
+    "qna",
+    (data: ContribPluginData) => {
+        return new QnaPlugin(data.corePlugin, data.contribServices);
+    },
+    {
+        defaultConfig: {
+            bannerDuration: DefaultBannerDuration,
+            toastDuration: DefaultToastDuration,
+            dateFormat: "dd/mm/yyyy",
+            expandMode: KitchenSinkExpandModes.OverTheVideo
+        }
+    }
+);
