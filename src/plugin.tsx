@@ -71,7 +71,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
                 ? this._corePlugin.config.toastDuration
                 : DefaultToastDuration;
         //adapters
-        this._qnaPushNotification = new QnaPushNotification();
+        this._qnaPushNotification = new QnaPushNotification(this._contribServices);
         this._kitchenSinkMessages = new KitchenSinkMessages({
             kitchenSinkManager: this._contribServices.uiManager.kitchenSink
         });
