@@ -4,10 +4,13 @@ const webpack = require("webpack");
 
 module.exports = merge(common, {
   mode: 'production',
+  output: {
+    sourceMapFilename: "[file].map"
+  },
   plugins: [
     new webpack.SourceMapDevToolPlugin({
       append: '\n//# sourceMappingURL=[url]',
-      filename: '[name].map.js'
+      filename: '[name].js.map'
     })
   ]
 });
