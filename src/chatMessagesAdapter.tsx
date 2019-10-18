@@ -19,7 +19,6 @@ import {
     KalturaMultiResponse,
     KalturaRequest
 } from "kaltura-typescript-client";
-import { ContribConfig } from "@playkit-js-contrib/plugin";
 import { CuePointAddAction } from "kaltura-typescript-client/api/types/CuePointAddAction";
 import { CuePointUpdateAction } from "kaltura-typescript-client/api/types/CuePointUpdateAction";
 import {
@@ -66,7 +65,6 @@ export class ChatMessagesAdapter {
     private _toastManager: ToastManager;
     private _toastDuration: number;
 
-    private _config: ContribConfig | null = null;
     private _userId: string | undefined;
     private _entryId: string | undefined;
     private _metadataProfileId: number | null = null;
@@ -83,18 +81,17 @@ export class ChatMessagesAdapter {
         this._toastDuration = options.toastDuration;
     }
 
-    public init(config: ContribConfig): void {
+    public init(ks: string, serviceUrl: string): void {
         if (this._initialize) return;
 
         this._initialize = true;
-        this._config = config;
         this._kalturaClient.setOptions({
             clientTag: "playkit-js-qna",
-            endpointUrl: this._config.server.serviceUrl
+            endpointUrl: serviceUrl
         });
 
         this._kalturaClient.setDefaultRequestOptions({
-            ks: this._config.server.ks
+            ks
         });
         this._qnaPushNotification.on(
             PushNotificationEventTypes.UserNotifications,

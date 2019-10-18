@@ -3,7 +3,8 @@ import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 import {
     PrepareRegisterRequestConfig,
     PushNotifications,
-    PushNotificationsOptions
+    PushNotificationsOptions,
+    PushNotificationsProvider
 } from "@playkit-js-contrib/push-notifications";
 import { QnaMessage, QnaMessageFactory } from "./qnaMessageFactory";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
@@ -53,13 +54,13 @@ export class QnaPushNotification {
     on: EventsManager<Events>["on"] = this._events.on.bind(this._events);
     off: EventsManager<Events>["off"] = this._events.off.bind(this._events);
 
-    constructor(private _contribServices: ContribServices) {}
+    constructor(private _player: KalturaPlayerTypes.Player) {}
 
     public init(pushServerOptions: PushNotificationsOptions) {
         if (this._initialized) return;
 
         this._initialized = true;
-        this._pushServerInstance = this._contribServices.pushNotifications(pushServerOptions);
+        this._pushServerInstance = PushNotificationsProvider.get(this._player, pushServerOptions);
     }
 
     /**

@@ -8,16 +8,15 @@ import {
     ManagedComponent
 } from "@playkit-js-contrib/ui";
 import {
-    ContribConfig,
     ContribPluginManager,
     CorePlugin,
     OnMediaLoad,
-    OnMediaLoadConfig,
     OnMediaUnload,
     OnPluginSetup,
     OnRegisterUI,
     ContribServices,
-    ContribPluginData
+    ContribPluginData,
+    ContribPluginConfigs
 } from "@playkit-js-contrib/plugin";
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
@@ -44,6 +43,13 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
+interface QnaPluginConfig {
+    bannerDuration: number;
+    toastDuration: number;
+    dateFormat: string;
+    expandMode: KitchenSinkExpandModes;
+}
+
 export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
@@ -59,7 +65,11 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
 
     public static readonly LOADING_TIME_END = 3000;
 
-    constructor(private _corePlugin: CorePlugin, private _contribServices: ContribServices) {
+    constructor(
+        private _corePlugin: CorePlugin,
+        private _contribServices: ContribServices,
+        private _configs: ContribPluginConfigs<QnaPluginConfig>
+    ) {
         let bannerDuration =
             this._corePlugin.config.bannerDuration &&
             this._corePlugin.config.bannerDuration >= MinBannerDuration
@@ -71,7 +81,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
                 ? this._corePlugin.config.toastDuration
                 : DefaultToastDuration;
         //adapters
-        this._qnaPushNotification = new QnaPushNotification(this._contribServices);
+        this._qnaPushNotification = new QnaPushNotification(this._corePlugin.player);
         this._kitchenSinkMessages = new KitchenSinkMessages({
             kitchenSinkManager: this._contribServices.uiManager.kitchenSink
         });
@@ -109,18 +119,21 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         this._constructPluginListener();
     }
 
-    onPluginSetup(config: ContribConfig): void {
+    onPluginSetup(): void {
         this._initPluginManagers();
     }
 
-    onMediaLoad({ sources }: OnMediaLoadConfig): void {
-        const { server }: ContribConfig = this._contribServices.getContribConfig();
+    onMediaLoad(): void {
+        const {
+            playerConfig: { sources, session }
+        } = this._configs;
+
         this._loading = true;
         this._hasError = false;
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
-        this._qnaPushNotification.registerToPushServer(sources.entryId, server.userId || "");
-        this._chatMessagesAdapter.onMediaLoad(server.userId || "", sources.entryId);
+        this._qnaPushNotification.registerToPushServer(sources.id, session.userId || "");
+        this._chatMessagesAdapter.onMediaLoad(session.userId || "", sources.id);
     }
 
     onMediaUnload(): void {
@@ -169,17 +182,20 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     }
 
     private _initPluginManagers(): void {
-        const { server }: ContribConfig = this._contribServices.getContribConfig();
+        const {
+            playerConfig: { provider }
+        } = this._configs;
+
         // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
         this._qnaPushNotification.init({
-            ks: server.ks,
-            serviceUrl: server.serviceUrl,
+            ks: provider.ks,
+            serviceUrl: provider.env.serviceUrl,
             clientTag: "QnaPlugin_V7",
             corePlayer: this._corePlugin.player
         });
         this._aoaAdapter.init();
         this._announcementAdapter.init();
-        this._chatMessagesAdapter.init(this._contribServices.getContribConfig());
+        this._chatMessagesAdapter.init(provider.ks, provider.env.serviceUrl);
         this._delayedGiveUpLoading();
     }
 
@@ -297,8 +313,8 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
 
 ContribPluginManager.registerPlugin(
     "qna",
-    (data: ContribPluginData) => {
-        return new QnaPlugin(data.corePlugin, data.contribServices);
+    (data: ContribPluginData<QnaPluginConfig>) => {
+        return new QnaPlugin(data.corePlugin, data.contribServices, data.configs);
     },
     {
         defaultConfig: {

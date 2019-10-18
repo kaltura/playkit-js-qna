@@ -26,7 +26,7 @@ export interface AoaAdapterOptions {
     toastManager: ToastManager;
     updateMenuIcon: (indicatorState: boolean) => void;
     toastDuration: number;
-    corePlayer: CorePlayer;
+    corePlayer: KalturaPlayerTypes.Player;
     delayedEndTime: number;
 }
 
@@ -54,7 +54,7 @@ export class AoaAdapter {
     private _updateMenuIcon: (indicatorState: boolean) => void;
     private _toastManager: ToastManager;
     private _toastDuration: number;
-    private _kalturaPlayer: CorePlayer;
+    private _kalturaPlayer: KalturaPlayerTypes.Player;
     private _delayedEndTime: number;
 
     private _cuePointEngine: CuepointEngine<AoAMessage> | null = null;
