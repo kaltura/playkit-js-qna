@@ -227,7 +227,7 @@ export class ChatMessagesAdapter {
 
         this._toastManager.add({
             title: "Notifications",
-            text: "Couldn't sent message",
+            text: "Couldn't send message",
             icon: <ToastIcon type={ToastsType.Error} />,
             duration: this._toastDuration,
             severity: ToastSeverity.Error,
