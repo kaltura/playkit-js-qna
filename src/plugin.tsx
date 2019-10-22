@@ -32,7 +32,6 @@ import {
     KitchenSinkMessages,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
-import EntryTypes = KalturaPlayerTypes.PlayerConfig.EntryTypes;
 
 export type DisplayToast = (options: {
     text: string;
@@ -133,6 +132,18 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
 
         this._loading = true;
         this._hasError = false;
+        //Q&A kitchenSink is not available during VOD
+        // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
+        if (sources.type !== ("Vod" as any)) {
+            const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
+            this._kitchenSinkItem = this._contribServices.kitchenSinkManager.add({
+                label: "Q&A",
+                expandMode: expandMode,
+                renderIcon: this._renderMenuIcon,
+                position: KitchenSinkPositions.Right,
+                renderContent: this._renderKitchenSinkContent
+            });
+        }
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
         this._qnaPushNotification.registerToPushServer(
@@ -152,6 +163,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         this._aoaAdapter.reset();
         this._kitchenSinkMessages.reset();
         this._chatMessagesAdapter.reset();
+        //todo [sa] remove kitchenSink item
     }
 
     //todo [sakal] add onPluginDestroy
@@ -269,8 +281,8 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         const {
             playerConfig: { sources }
         } = this._configs;
-
-        if (!sources || sources.type === EntryTypes.Vod) return;
+        // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
+        if (!sources || sources.type === ("Vod" as any)) return;
         //display toast
         this._contribServices.uiManager.toast.add({
             title: "Notifications",
@@ -282,17 +294,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         });
     };
 
-    onRegisterUI(uiManager: UIManager): void {
-        const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
-
-        this._kitchenSinkItem = uiManager.kitchenSink.add({
-            label: "Q&A",
-            expandMode: expandMode,
-            renderIcon: this._renderMenuIcon,
-            position: KitchenSinkPositions.Right,
-            renderContent: this._renderKitchenSinkContent
-        });
-    }
+    onRegisterUI(uiManager: UIManager): void {}
 
     private _renderMenuIcon = (): ComponentChild => {
         return (

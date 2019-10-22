@@ -8,7 +8,6 @@ import {
 import { QnaMessage, QnaMessageFactory } from "./qnaMessageFactory";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
-import EntryTypes = KalturaPlayerTypes.PlayerConfig.EntryTypes;
 
 export enum PushNotificationEventTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
@@ -83,7 +82,7 @@ export class QnaPushNotification {
      * @param entryId
      * @param userId
      */
-    public registerToPushServer(entryId: string, entryType: EntryTypes, userId: string) {
+    public registerToPushServer(entryId: string, entryType: any, userId: string) {
         if (this._registeredToQnaMessages) {
             logger.error("Multiple registration error", { method: "registerToPushServer" });
             throw new Error("Already register to push server");
@@ -110,7 +109,8 @@ export class QnaPushNotification {
         // notifications objects
         registrationConfigs.push(this._createPublicQnaRegistration(entryId));
         // user related QnA objects
-        if (entryType !== EntryTypes.Vod) {
+        // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
+        if (entryType !== ("Vod" as any)) {
             registrationConfigs.push(this._createUserQnaRegistration(entryId, userId));
         }
 
