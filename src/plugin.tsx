@@ -132,9 +132,9 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
 
         this._loading = true;
         this._hasError = false;
-        //Q&A kitchenSink is not available during VOD
-        // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
+        //Q&A kitchenSink and push notifications are not available during VOD
         if (sources.type !== ("Vod" as any)) {
+            // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
             const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
             this._kitchenSinkItem = this._contribServices.kitchenSinkManager.add({
                 label: "Q&A",
@@ -143,14 +143,10 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
                 position: KitchenSinkPositions.Right,
                 renderContent: this._renderKitchenSinkContent
             });
+            //push notification event handlers were set during pluginSetup,
+            //on each media load we need to register for relevant entryId / userId notifications
+            this._qnaPushNotification.registerToPushServer(sources.id, session.userId || "");
         }
-        //push notification event handlers were set during pluginSetup,
-        //on each media load we need to register for relevant entryId / userId notifications
-        this._qnaPushNotification.registerToPushServer(
-            sources.id,
-            sources.type,
-            session.userId || ""
-        );
         this._chatMessagesAdapter.onMediaLoad(session.userId || "", sources.id);
     }
 

@@ -82,7 +82,7 @@ export class QnaPushNotification {
      * @param entryId
      * @param userId
      */
-    public registerToPushServer(entryId: string, entryType: any, userId: string) {
+    public registerToPushServer(entryId: string, userId: string) {
         if (this._registeredToQnaMessages) {
             logger.error("Multiple registration error", { method: "registerToPushServer" });
             throw new Error("Already register to push server");
@@ -105,14 +105,11 @@ export class QnaPushNotification {
 
             return;
         }
-        let registrationConfigs = [];
-        // notifications objects
-        registrationConfigs.push(this._createPublicQnaRegistration(entryId));
-        // user related QnA objects
-        // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
-        if (entryType !== ("Vod" as any)) {
-            registrationConfigs.push(this._createUserQnaRegistration(entryId, userId));
-        }
+
+        let registrationConfigs = [
+            this._createPublicQnaRegistration(entryId), // notifications objects
+            this._createUserQnaRegistration(entryId, userId)
+        ]; // user related QnA objects
 
         this._pushServerInstance
             .registerNotifications({
