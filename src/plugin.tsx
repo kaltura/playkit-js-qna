@@ -21,7 +21,7 @@ import {
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
 import { QnaMessage } from "./qnaMessageFactory";
-import { getContribLogger } from "@playkit-js-contrib/common";
+import { getContribLogger, KalturaLiveServices } from "@playkit-js-contrib/common";
 import { PushNotificationEventTypes, QnaPushNotification } from "./qnaPushNotification";
 import { AoaAdapter } from "./aoaAdapter";
 import { AnnouncementsAdapter } from "./announcementsAdapter";
@@ -48,6 +48,7 @@ interface QnaPluginConfig {
     toastDuration: number;
     dateFormat: string;
     expandMode: KitchenSinkExpandModes;
+    userRole: string;
 }
 
 export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
@@ -125,15 +126,26 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
 
     onMediaLoad(): void {
         const {
-            playerConfig: { sources, session }
+            playerConfig: { sources }
         } = this._configs;
 
         this._loading = true;
         this._hasError = false;
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
-        this._qnaPushNotification.registerToPushServer(sources.id, session.userId || "");
-        this._chatMessagesAdapter.onMediaLoad(session.userId || "", sources.id);
+        const userId = this.getUserId();
+        this._qnaPushNotification.registerToPushServer(sources.id, userId);
+        this._chatMessagesAdapter.onMediaLoad(userId, sources.id);
+    }
+
+    private getUserId(): string {
+        const { session } = this._configs.playerConfig;
+
+        if (this._corePlugin.config.userRole === "anonymousRole" || !session.userId) {
+            return KalturaLiveServices.getAnonymousUserId();
+        }
+
+        return session.userId;
     }
 
     onMediaUnload(): void {
@@ -321,7 +333,8 @@ ContribPluginManager.registerPlugin(
             bannerDuration: DefaultBannerDuration,
             toastDuration: DefaultToastDuration,
             dateFormat: "dd/mm/yyyy",
-            expandMode: KitchenSinkExpandModes.OverTheVideo
+            expandMode: KitchenSinkExpandModes.OverTheVideo,
+            userRole: "anonymousRole"
         }
     }
 );
