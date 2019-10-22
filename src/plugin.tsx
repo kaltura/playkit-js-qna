@@ -4,20 +4,20 @@ import {
     KitchenSinkExpandModes,
     KitchenSinkItem,
     KitchenSinkPositions,
-    ToastItemData,
     ToastSeverity,
     UIManager,
     ManagedComponent
 } from "@playkit-js-contrib/ui";
 import {
-    ContribConfig,
-    EntryTypes,
+    ContribPluginManager,
+    CorePlugin,
     OnMediaLoad,
-    OnMediaLoadConfig,
     OnMediaUnload,
     OnPluginSetup,
     OnRegisterUI,
-    PlayerContribPlugin
+    ContribServices,
+    ContribPluginData,
+    ContribPluginConfigs
 } from "@playkit-js-contrib/plugin";
 import { KitchenSink } from "./components/kitchen-sink";
 import { MenuIcon } from "./components/menu-icon";
@@ -32,6 +32,7 @@ import {
     KitchenSinkMessages,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
+import EntryTypes = KalturaPlayerTypes.PlayerConfig.EntryTypes;
 
 export type DisplayToast = (options: {
     text: string;
@@ -50,15 +51,14 @@ const logger = getContribLogger({
     module: "qna-plugin"
 });
 
-export class QnaPlugin extends PlayerContribPlugin
-    implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
-    static defaultConfig = {
-        bannerDuration: DefaultBannerDuration,
-        toastDuration: DefaultToastDuration,
-        dateFormat: "dd/mm/yyyy",
-        expandMode: "OverTheVideo"
-    };
+interface QnaPluginConfig {
+    bannerDuration: number;
+    toastDuration: number;
+    dateFormat: string;
+    expandMode: KitchenSinkExpandModes;
+}
 
+export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
@@ -74,31 +74,31 @@ export class QnaPlugin extends PlayerContribPlugin
 
     public static readonly LOADING_TIME_END = 3000;
 
-    constructor(...args: any) {
-        //padding args to player core via PlayerContribPlugin
-        // @ts-ignore
-        super(...args);
+    constructor(
+        private _corePlugin: CorePlugin,
+        private _contribServices: ContribServices,
+        private _configs: ContribPluginConfigs<QnaPluginConfig>
+    ) {
         let bannerDuration =
-            this.config.bannerDuration && this.config.bannerDuration >= MinBannerDuration
-                ? this.config.bannerDuration
+            this._corePlugin.config.bannerDuration &&
+            this._corePlugin.config.bannerDuration >= MinBannerDuration
+                ? this._corePlugin.config.bannerDuration
                 : DefaultBannerDuration;
         this._toastsDuration =
-            this.config.toastDuration && this.config.toastDuration >= MinToastDuration
-                ? this.config.toastDuration
+            this._corePlugin.config.toastDuration &&
+            this._corePlugin.config.toastDuration >= MinToastDuration
+                ? this._corePlugin.config.toastDuration
                 : DefaultToastDuration;
         //adapters
-        this._qnaPushNotification = new QnaPushNotification();
+        this._qnaPushNotification = new QnaPushNotification(this._corePlugin.player);
         this._kitchenSinkMessages = new KitchenSinkMessages({
-            kitchenSinkManager: this.uiManager.kitchenSink
+            kitchenSinkManager: this._contribServices.uiManager.kitchenSink
         });
         this._aoaAdapter = new AoaAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
-            bannerManager: this.uiManager.banner,
-            playerApi: {
-                kalturaPlayer: this.player,
-                eventManager: this.eventManager
-            },
+            bannerManager: this._contribServices.uiManager.banner,
+            corePlayer: this._corePlugin.player as any,
             delayedEndTime: bannerDuration,
             isKitchenSinkActive: this._isKitchenSinkActive,
             updateMenuIcon: this._updateMenuIcon,
@@ -122,22 +122,25 @@ export class QnaPlugin extends PlayerContribPlugin
         this._constructPluginListener();
     }
 
-    onPluginSetup(config: ContribConfig): void {
+    onPluginSetup(): void {
         this._initPluginManagers();
     }
 
-    onMediaLoad(config: OnMediaLoadConfig): void {
-        const { server }: ContribConfig = this.getContribConfig();
+    onMediaLoad(): void {
+        const {
+            playerConfig: { sources, session }
+        } = this._configs;
+
         this._loading = true;
         this._hasError = false;
         //push notification event handlers were set during pluginSetup,
         //on each media load we need to register for relevant entryId / userId notifications
         this._qnaPushNotification.registerToPushServer(
-            config.entryId,
-            config.entryType,
-            server.userId || ""
+            sources.id,
+            sources.type,
+            session.userId || ""
         );
-        this._chatMessagesAdapter.onMediaLoad(server.userId || "", this.entryId);
+        this._chatMessagesAdapter.onMediaLoad(session.userId || "", sources.id);
     }
 
     onMediaUnload(): void {
@@ -186,20 +189,20 @@ export class QnaPlugin extends PlayerContribPlugin
     }
 
     private _initPluginManagers(): void {
-        const { server }: ContribConfig = this.getContribConfig();
+        const {
+            playerConfig: { provider }
+        } = this._configs;
+
         // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
         this._qnaPushNotification.init({
-            ks: server.ks,
-            serviceUrl: server.serviceUrl,
+            ks: provider.ks,
+            serviceUrl: provider.env.serviceUrl,
             clientTag: "QnaPlugin_V7",
-            playerAPI: {
-                kalturaPlayer: this.player,
-                eventManager: this.eventManager
-            }
+            corePlayer: this._corePlugin.player
         });
         this._aoaAdapter.init();
         this._announcementAdapter.init();
-        this._chatMessagesAdapter.init(this.getContribConfig());
+        this._chatMessagesAdapter.init(provider.ks, provider.env.serviceUrl);
         this._delayedGiveUpLoading();
     }
 
@@ -263,9 +266,13 @@ export class QnaPlugin extends PlayerContribPlugin
         icon: ComponentChild;
         severity: ToastSeverity;
     }): void => {
-        if (!this.config || this.config.entryType === EntryTypes.Vod) return;
+        const {
+            playerConfig: { sources }
+        } = this._configs;
+
+        if (!sources || sources.type === EntryTypes.Vod) return;
         //display toast
-        this.uiManager.toast.add({
+        this._contribServices.uiManager.toast.add({
             title: "Notifications",
             text: options.text,
             icon: options.icon,
@@ -276,7 +283,7 @@ export class QnaPlugin extends PlayerContribPlugin
     };
 
     onRegisterUI(uiManager: UIManager): void {
-        const expandMode = this._parseExpandMode(this.config.expandMode);
+        const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
 
         this._kitchenSinkItem = uiManager.kitchenSink.add({
             label: "Q&A",
@@ -315,7 +322,7 @@ export class QnaPlugin extends PlayerContribPlugin
         return (
             <KitchenSink
                 {...rest}
-                dateFormat={this.config.dateFormat}
+                dateFormat={this._corePlugin.config.dateFormat}
                 threads={this._threads}
                 hasError={this._hasError}
                 loading={this._loading}
@@ -332,4 +339,17 @@ export class QnaPlugin extends PlayerContribPlugin
     };
 }
 
-KalturaPlayer.core.registerPlugin(pluginName, QnaPlugin);
+ContribPluginManager.registerPlugin(
+    "qna",
+    (data: ContribPluginData<QnaPluginConfig>) => {
+        return new QnaPlugin(data.corePlugin, data.contribServices, data.configs);
+    },
+    {
+        defaultConfig: {
+            bannerDuration: DefaultBannerDuration,
+            toastDuration: DefaultToastDuration,
+            dateFormat: "dd/mm/yyyy",
+            expandMode: KitchenSinkExpandModes.OverTheVideo
+        }
+    }
+);
