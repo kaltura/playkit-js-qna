@@ -15,9 +15,9 @@
   "scripts": {
     "clean": "rm -rf dist",
     "reset": "npm run clean && rm -rf node_modules",
-    "prebuild": "npm run clean",
-    "build": "npm run clean && webpack --mode production",
-    "serve": "webpack-dev-server -d",
+    "build": "webpack --config webpack.prod.js",
+    "build:dev": "webpack --config webpack.dev.js",
+    "serve": "webpack-dev-server --open --config webpack.dev.js",
     "serve:external": "npm run serve -- --host 0.0.0.0",
     "analyze": "npm run build && npx source-map-explorer dist/playkit-js-qna.js",
     "contrib:latest": "npm i @playkit-js-contrib/{push-notifications,common,ui,plugin,linkify}@latest",
@@ -28,6 +28,7 @@
   "author": "",
   "devDependencies": {
     "awesome-typescript-loader": "^5.2.1",
+    "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.0.2",
     "css-loader": "^2.1.1",
     "html-webpack-plugin": "^3.2.0",
@@ -47,7 +48,8 @@
     "typescript": "^3.2.1",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0",
-    "webpack-dev-server": "^3.2.1"
+    "webpack-dev-server": "^3.2.1",
+    "webpack-merge": "^4.2.2"
   },
   "dependencies": {
     "@playkit-js-contrib/common": "^0.1.2",

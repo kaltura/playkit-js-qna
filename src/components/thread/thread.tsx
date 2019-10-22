@@ -37,8 +37,9 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     };
 
     handleReply = (text: string) => {
-        this.setState({ showInputText: false });
-        this.props.onReply(text, this.props.thread.id);
+        this.setState({ showInputText: false, isThreadOpen: true }, () => {
+            this.props.onReply(text, this.props.thread.id);
+        });
     };
 
     handleResend = (qnaMessage: QnaMessage) => {

@@ -12,14 +12,13 @@ import {
     QnaMessageFactory,
     QnaMessageType
 } from "./qnaMessageFactory";
-import { ToastSeverity, ToastsManager } from "@playkit-js-contrib/ui";
+import { ToastSeverity, ToastManager } from "@playkit-js-contrib/ui";
 import {
     KalturaClient,
     KalturaMultiRequest,
     KalturaMultiResponse,
     KalturaRequest
 } from "kaltura-typescript-client";
-import { ContribConfig } from "@playkit-js-contrib/plugin";
 import { CuePointAddAction } from "kaltura-typescript-client/api/types/CuePointAddAction";
 import { CuePointUpdateAction } from "kaltura-typescript-client/api/types/CuePointUpdateAction";
 import {
@@ -38,8 +37,8 @@ export interface ChatMessagesAdapterOptions {
     qnaPushNotification: QnaPushNotification;
     activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
+    toastManager: ToastManager;
     updateMenuIcon: (indicatorState: boolean) => void;
-    toastsManager: ToastsManager;
     toastDuration: number;
 }
 
@@ -63,10 +62,9 @@ export class ChatMessagesAdapter {
     private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
     private _updateMenuIcon: (indicatorState: boolean) => void;
-    private _toastsManager: ToastsManager;
+    private _toastManager: ToastManager;
     private _toastDuration: number;
 
-    private _config: ContribConfig | null = null;
     private _userId: string | undefined;
     private _entryId: string | undefined;
     private _metadataProfileId: number | null = null;
@@ -79,22 +77,21 @@ export class ChatMessagesAdapter {
         this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._updateMenuIcon = options.updateMenuIcon;
-        this._toastsManager = options.toastsManager;
+        this._toastManager = options.toastManager;
         this._toastDuration = options.toastDuration;
     }
 
-    public init(config: ContribConfig): void {
+    public init(ks: string, serviceUrl: string): void {
         if (this._initialize) return;
 
         this._initialize = true;
-        this._config = config;
         this._kalturaClient.setOptions({
             clientTag: "playkit-js-qna",
-            endpointUrl: this._config.server.serviceUrl
+            endpointUrl: serviceUrl
         });
 
         this._kalturaClient.setDefaultRequestOptions({
-            ks: this._config.server.ks
+            ks
         });
         this._qnaPushNotification.on(
             PushNotificationEventTypes.UserNotifications,
@@ -225,9 +222,9 @@ export class ChatMessagesAdapter {
             }
         );
 
-        this._toastsManager.add({
+        this._toastManager.add({
             title: "Notifications",
-            text: "Couldn't sent message",
+            text: "Couldn't send message",
             icon: <ToastIcon type={ToastsType.Error} />,
             duration: this._toastDuration,
             severity: ToastSeverity.Error,
@@ -420,7 +417,7 @@ export class ChatMessagesAdapter {
         //menu icon indication
         this._updateMenuIcon(true);
         //toast indication
-        this._toastsManager.add({
+        this._toastManager.add({
             title: "Notifications",
             text: "New Reply",
             icon: <ToastIcon type={ToastsType.Reply} />,
