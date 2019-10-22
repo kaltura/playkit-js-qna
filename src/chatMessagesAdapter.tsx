@@ -308,7 +308,7 @@ export class ChatMessagesAdapter {
          */
         const kalturaAnnotationArgs: KalturaAnnotationArgs = {
             entryId: this._entryId,
-            startTime: Date.now(), // TODO get server/player time
+            startTime: Date.now(), // TODO player time (this.[_corePlugin].player.currentTime - gives wrong numbers)
             text: question,
             isPublic: 1, // TODO verify with backend team
             searchableOnEntry: 0,
