@@ -95,7 +95,6 @@ export class QnaPushNotification {
             data: { entryId, userId }
         });
 
-        // TODO [am] temp solutions for userId need to handle anonymous user id
         if (!this._pushServerInstance) {
             logger.error("Can't register to notifications as _pushServerInstance doesn't exists", {
                 method: "registerToPushServer"
@@ -160,7 +159,6 @@ export class QnaPushNotification {
         entryId: string,
         userId: string
     ): PrepareRegisterRequestConfig {
-        // TODO [am] temp solutions for userId need to handle anonymous user id
         logger.info("Register User QnA notification", {
             method: "_createUserQnaRegistration",
             data: { entryId, userId }
@@ -169,7 +167,7 @@ export class QnaPushNotification {
             eventName: PushNotificationEventTypes.UserNotifications,
             eventParams: {
                 entryId: entryId,
-                userId: userId // TODO [am] temp solutions for userId need to handle anonymous user id
+                userId: userId
             },
             onMessage: (response: any[]) => {
                 this._events.emit({
