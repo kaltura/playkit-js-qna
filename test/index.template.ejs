@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Q&A plugin for player V7 - Test page</title>
+    <title>QnA plugin for player V7 - Test page</title>
 
 
     <!--
@@ -123,15 +123,15 @@
     logLevel: "DEBUG",
     targetId: "player-div",
     provider: {
-      env,
-      partnerId,
-      uiConfId,
-      ks
+      env: env,
+      partnerId: partnerId,
+      uiConfId: uiConfId,
+      ks: ks
     },
     session: {
-      userId
+      userId: userId
     },
-    plugins,
+    plugins: plugins,
     ui: {
       debug: true
     }
@@ -139,7 +139,7 @@
 
   document.getElementById("bundle").onload =  function(){
 
-    var mediaInfo = {entryId};
+    var mediaInfo = { entryId: entryId };
     player = KalturaPlayer.setup(config);
     player.loadMedia(mediaInfo);
   }
