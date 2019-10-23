@@ -135,7 +135,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         const {
             playerConfig: { sources }
         } = this._configs;
-
+        const userId = this.getUserId();
         this._loading = true;
         this._hasError = false;
         //Q&A kitchenSink and push notifications are not available during VOD
@@ -151,7 +151,6 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
             });
             //push notification event handlers were set during pluginSetup,
             //on each media load we need to register for relevant entryId / userId notifications
-            const userId = this.getUserId();
             this._qnaPushNotification.registerToPushServer(sources.id, userId);
         }
         this._chatMessagesAdapter.onMediaLoad(userId, sources.id);
