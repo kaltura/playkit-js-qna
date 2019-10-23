@@ -271,6 +271,15 @@ export class ChatMessagesAdapter {
         const requests: KalturaRequest<any>[] = [];
         const missingProfileId = !this._metadataProfileId;
         const requestIndexCorrection = missingProfileId ? 1 : 0;
+
+        if (!this._entryId) {
+            throw new Error("Can't make requests without entryId");
+        }
+
+        if (!this._userId) {
+            throw new Error("Can't make requests without userId");
+        }
+
         /*
             1 - Conditional: Prepare get meta data profile request
          */
@@ -287,13 +296,9 @@ export class ChatMessagesAdapter {
         /*
             2 - Prepare to add annotation cuePoint request
          */
-        if (!this._entryId) {
-            throw new Error("Can't make requests without entryId");
-        }
-
         const kalturaAnnotationArgs: KalturaAnnotationArgs = {
             entryId: this._entryId,
-            startTime: Date.now(), // TODO get server/player time
+            startTime: Date.now(), // TODO player time (this.[_corePlugin].player.currentTime - gives wrong numbers)
             text: question,
             isPublic: 1, // TODO verify with backend team
             searchableOnEntry: 0,
@@ -342,7 +347,7 @@ export class ChatMessagesAdapter {
         }
 
         metadata.Type = QnaMessageType.Question;
-        metadata.ThreadCreatorId = this._userId!; // TODO temp solutions for userId need to handle anonymous user id
+        metadata.ThreadCreatorId = this._userId;
 
         const xmlData = Utils.createXmlFromObject(metadata);
 
