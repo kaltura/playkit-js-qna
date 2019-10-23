@@ -6,19 +6,18 @@ import {
 } from "./qnaPushNotification";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { getContribLogger } from "@playkit-js-contrib/common";
-import { ToastSeverity, ToastManager } from "@playkit-js-contrib/ui";
+import { ToastSeverity } from "@playkit-js-contrib/ui";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
 import { Utils } from "./utils";
+import { DisplayToast } from "./plugin";
 
 export interface AnnouncementsAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    toastManager: ToastManager;
     updateMenuIcon: (indicatorState: boolean) => void;
-    toastDuration: number;
+    displayToast: DisplayToast;
 }
 
 const logger = getContribLogger({
@@ -29,21 +28,17 @@ const logger = getContribLogger({
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
-    private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
     private _updateMenuIcon: (indicatorState: boolean) => void;
-    private _toastManager: ToastManager;
-    private _toastDuration: number;
+    private _displayToast: DisplayToast;
 
     private _initialize = false;
 
     constructor(options: AnnouncementsAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
-        this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
-        this._toastManager = options.toastManager;
-        this._toastDuration = options.toastDuration;
+        this._displayToast = options.displayToast;
         this._updateMenuIcon = options.updateMenuIcon;
     }
 
@@ -87,15 +82,10 @@ export class AnnouncementsAdapter {
             //menu icon indication
             this._updateMenuIcon(true);
             //toast indication
-            this._toastManager.add({
-                title: "Notifications",
+            this._displayToast({
                 text: "New Announcement",
                 icon: <ToastIcon type={ToastsType.Announcement} />,
-                duration: this._toastDuration,
-                severity: ToastSeverity.Info,
-                onClick: () => {
-                    this._activateKitchenSink();
-                }
+                severity: ToastSeverity.Info
             });
         }
     }
