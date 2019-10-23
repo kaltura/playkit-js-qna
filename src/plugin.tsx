@@ -4,6 +4,7 @@ import {
     KitchenSinkExpandModes,
     KitchenSinkItem,
     KitchenSinkPositions,
+    ToastSeverity,
     UIManager,
     ManagedComponent
 } from "@playkit-js-contrib/ui";
@@ -31,6 +32,12 @@ import {
     KitchenSinkMessages,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
+
+export type DisplayToast = (options: {
+    text: string;
+    icon: ComponentChild;
+    severity: ToastSeverity;
+}) => void;
 
 const pluginName = `qna`;
 const DefaultBannerDuration: number = 60 * 1000;
@@ -68,6 +75,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _showMenuIconIndication: boolean = false;
     private _menuIconRef: ManagedComponent | null = null;
+    private _toastsDuration: number;
 
     public static readonly LOADING_TIME_END = 3000;
 
@@ -81,7 +89,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
             this._corePlugin.config.bannerDuration >= MinBannerDuration
                 ? this._corePlugin.config.bannerDuration
                 : DefaultBannerDuration;
-        let toastDuration =
+        this._toastsDuration =
             this._corePlugin.config.toastDuration &&
             this._corePlugin.config.toastDuration >= MinToastDuration
                 ? this._corePlugin.config.toastDuration
@@ -97,29 +105,23 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
             bannerManager: this._contribServices.uiManager.banner,
             corePlayer: this._corePlugin.player as any,
             delayedEndTime: bannerDuration,
-            activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastManager: this._contribServices.uiManager.toast,
             updateMenuIcon: this._updateMenuIcon,
-            toastDuration: toastDuration
+            displayToast: this._displayToast
         });
         this._announcementAdapter = new AnnouncementsAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
-            activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastManager: this._contribServices.uiManager.toast,
             updateMenuIcon: this._updateMenuIcon,
-            toastDuration: toastDuration
+            displayToast: this._displayToast
         });
         this._chatMessagesAdapter = new ChatMessagesAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
-            activateKitchenSink: this._activateKitchenSink,
             isKitchenSinkActive: this._isKitchenSinkActive,
-            toastManager: this._contribServices.uiManager.toast,
             updateMenuIcon: this._updateMenuIcon,
-            toastDuration: toastDuration
+            displayToast: this._displayToast
         });
         //listeners
         this._constructPluginListener();
@@ -136,10 +138,22 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
 
         this._loading = true;
         this._hasError = false;
-        //push notification event handlers were set during pluginSetup,
-        //on each media load we need to register for relevant entryId / userId notifications
-        const userId = this.getUserId();
-        this._qnaPushNotification.registerToPushServer(sources.id, userId);
+        //Q&A kitchenSink and push notifications are not available during VOD
+        if (sources.type !== ("Vod" as any)) {
+            // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
+            const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
+            this._kitchenSinkItem = this._contribServices.kitchenSinkManager.add({
+                label: "Q&A",
+                expandMode: expandMode,
+                renderIcon: this._renderMenuIcon,
+                position: KitchenSinkPositions.Right,
+                renderContent: this._renderKitchenSinkContent
+            });
+            //push notification event handlers were set during pluginSetup,
+            //on each media load we need to register for relevant entryId / userId notifications
+            const userId = this.getUserId();
+            this._qnaPushNotification.registerToPushServer(sources.id, userId);
+        }
         this._chatMessagesAdapter.onMediaLoad(userId, sources.id);
     }
 
@@ -162,6 +176,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         this._aoaAdapter.reset();
         this._kitchenSinkMessages.reset();
         this._chatMessagesAdapter.reset();
+        //todo [sa] remove kitchenSink item
     }
 
     //todo [sakal] add onPluginDestroy
@@ -271,17 +286,28 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         }
     }
 
-    onRegisterUI(uiManager: UIManager): void {
-        const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
-
-        this._kitchenSinkItem = uiManager.kitchenSink.add({
-            label: "Q&A",
-            expandMode: expandMode,
-            renderIcon: this._renderMenuIcon,
-            position: KitchenSinkPositions.Right,
-            renderContent: this._renderKitchenSinkContent
+    private _displayToast = (options: {
+        text: string;
+        icon: ComponentChild;
+        severity: ToastSeverity;
+    }): void => {
+        const {
+            playerConfig: { sources }
+        } = this._configs;
+        // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
+        if (!sources || sources.type === ("Vod" as any)) return;
+        //display toast
+        this._contribServices.uiManager.toast.add({
+            title: "Notifications",
+            text: options.text,
+            icon: options.icon,
+            duration: this._toastsDuration,
+            severity: options.severity || ToastSeverity.Info,
+            onClick: this._activateKitchenSink
         });
-    }
+    };
+
+    onRegisterUI(uiManager: UIManager): void {}
 
     private _renderMenuIcon = (): ComponentChild => {
         return (

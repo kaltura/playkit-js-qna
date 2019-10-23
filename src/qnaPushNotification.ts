@@ -1,5 +1,4 @@
 import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
-
 import {
     PrepareRegisterRequestConfig,
     PushNotifications,
@@ -9,7 +8,6 @@ import {
 import { QnaMessage, QnaMessageFactory } from "./qnaMessageFactory";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
-import { ContribServices } from "@playkit-js-contrib/plugin";
 
 export enum PushNotificationEventTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
@@ -106,14 +104,15 @@ export class QnaPushNotification {
 
             return;
         }
-        // Announcement objects
-        const publicQnaRequestConfig = this._createPublicQnaRegistration(entryId);
-        // user related QnA objects
-        const privateQnaRequestConfig = this._createUserQnaRegistration(entryId, userId);
+
+        let registrationConfigs = [
+            this._createPublicQnaRegistration(entryId), // notifications objects
+            this._createUserQnaRegistration(entryId, userId)
+        ]; // user related QnA objects
 
         this._pushServerInstance
             .registerNotifications({
-                prepareRegisterRequestConfigs: [publicQnaRequestConfig, privateQnaRequestConfig],
+                prepareRegisterRequestConfigs: registrationConfigs,
                 onSocketReconnect: () => {}
             })
             .then(
