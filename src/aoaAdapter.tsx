@@ -4,28 +4,21 @@ import {
     PushNotificationEventTypes,
     QnaPushNotification
 } from "./qnaPushNotification";
-import {
-    BannerManager,
-    VisibilityMode,
-    BannerState,
-    ToastManager,
-    ToastSeverity
-} from "@playkit-js-contrib/ui";
+import { BannerManager, VisibilityMode, BannerState, ToastSeverity } from "@playkit-js-contrib/ui";
 import { CuepointEngine, getContribLogger, UpdateTimeResponse } from "@playkit-js-contrib/common";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
 import { Utils } from "./utils";
+import { DisplayToast } from "./plugin";
 
 export interface AoaAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
     bannerManager: BannerManager;
-    activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    toastManager: ToastManager;
     updateMenuIcon: (indicatorState: boolean) => void;
-    toastDuration: number;
+    displayToast: DisplayToast;
     corePlayer: KalturaPlayerTypes.Player;
     delayedEndTime: number;
 }
@@ -49,11 +42,9 @@ export class AoaAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
     private _bannerManager: BannerManager;
-    private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
     private _updateMenuIcon: (indicatorState: boolean) => void;
-    private _toastManager: ToastManager;
-    private _toastDuration: number;
+    private _displayToast: DisplayToast;
     private _kalturaPlayer: KalturaPlayerTypes.Player;
     private _delayedEndTime: number;
 
@@ -69,11 +60,9 @@ export class AoaAdapter {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
         this._bannerManager = options.bannerManager;
-        this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._updateMenuIcon = options.updateMenuIcon;
-        this._toastManager = options.toastManager;
-        this._toastDuration = options.toastDuration;
+        this._displayToast = options.displayToast;
         this._kalturaPlayer = options.corePlayer;
         this._delayedEndTime = options.delayedEndTime;
     }
@@ -242,15 +231,10 @@ export class AoaAdapter {
             //menu icon indication
             this._updateMenuIcon(true);
             //toast indication
-            this._toastManager.add({
-                title: "Notifications",
+            this._displayToast({
                 text: "New Audience asks",
                 icon: <ToastIcon type={ToastsType.AOA} />,
-                duration: this._toastDuration,
-                severity: ToastSeverity.Info,
-                onClick: () => {
-                    this._activateKitchenSink();
-                }
+                severity: ToastSeverity.Info
             });
         }
     }

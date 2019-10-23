@@ -12,7 +12,7 @@ import {
     QnaMessageFactory,
     QnaMessageType
 } from "./qnaMessageFactory";
-import { ToastSeverity, ToastManager } from "@playkit-js-contrib/ui";
+import { ToastSeverity } from "@playkit-js-contrib/ui";
 import {
     KalturaClient,
     KalturaMultiRequest,
@@ -31,15 +31,14 @@ import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataA
 import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { Utils } from "./utils";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
+import { DisplayToast } from "./plugin";
 
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
     qnaPushNotification: QnaPushNotification;
-    activateKitchenSink: () => void;
     isKitchenSinkActive: () => boolean;
-    toastManager: ToastManager;
     updateMenuIcon: (indicatorState: boolean) => void;
-    toastDuration: number;
+    displayToast: DisplayToast;
 }
 
 interface SubmitRequestParams {
@@ -59,11 +58,9 @@ export class ChatMessagesAdapter {
     private _kalturaClient = new KalturaClient();
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
-    private _activateKitchenSink: () => void;
     private _isKitchenSinkActive: () => boolean;
     private _updateMenuIcon: (indicatorState: boolean) => void;
-    private _toastManager: ToastManager;
-    private _toastDuration: number;
+    private _displayToast: DisplayToast;
 
     private _userId: string | undefined;
     private _entryId: string | undefined;
@@ -74,11 +71,9 @@ export class ChatMessagesAdapter {
     constructor(options: ChatMessagesAdapterOptions) {
         this._kitchenSinkMessages = options.kitchenSinkMessages;
         this._qnaPushNotification = options.qnaPushNotification;
-        this._activateKitchenSink = options.activateKitchenSink;
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._updateMenuIcon = options.updateMenuIcon;
-        this._toastManager = options.toastManager;
-        this._toastDuration = options.toastDuration;
+        this._displayToast = options.displayToast;
     }
 
     public init(ks: string, serviceUrl: string): void {
@@ -222,15 +217,10 @@ export class ChatMessagesAdapter {
             }
         );
 
-        this._toastManager.add({
-            title: "Notifications",
-            text: "Couldn't send message",
+        this._displayToast({
+            text: "Couldn't sent message",
             icon: <ToastIcon type={ToastsType.Error} />,
-            duration: this._toastDuration,
-            severity: ToastSeverity.Error,
-            onClick: () => {
-                this._activateKitchenSink();
-            }
+            severity: ToastSeverity.Error
         });
     }
 
@@ -281,6 +271,15 @@ export class ChatMessagesAdapter {
         const requests: KalturaRequest<any>[] = [];
         const missingProfileId = !this._metadataProfileId;
         const requestIndexCorrection = missingProfileId ? 1 : 0;
+
+        if (!this._entryId) {
+            throw new Error("Can't make requests without entryId");
+        }
+
+        if (!this._userId) {
+            throw new Error("Can't make requests without userId");
+        }
+
         /*
             1 - Conditional: Prepare get meta data profile request
          */
@@ -297,13 +296,9 @@ export class ChatMessagesAdapter {
         /*
             2 - Prepare to add annotation cuePoint request
          */
-        if (!this._entryId) {
-            throw new Error("Can't make requests without entryId");
-        }
-
         const kalturaAnnotationArgs: KalturaAnnotationArgs = {
             entryId: this._entryId,
-            startTime: Date.now(), // TODO get server/player time
+            startTime: Date.now(), // TODO player time (this.[_corePlugin].player.currentTime - gives wrong numbers)
             text: question,
             isPublic: 1, // TODO verify with backend team
             searchableOnEntry: 0,
@@ -352,7 +347,7 @@ export class ChatMessagesAdapter {
         }
 
         metadata.Type = QnaMessageType.Question;
-        metadata.ThreadCreatorId = this._userId!; // TODO temp solutions for userId need to handle anonymous user id
+        metadata.ThreadCreatorId = this._userId;
 
         const xmlData = Utils.createXmlFromObject(metadata);
 
@@ -407,27 +402,18 @@ export class ChatMessagesAdapter {
                     Utils.isMessageInTimeFrame(qnaMessage) &&
                     qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED
                 ) {
-                    this._showReplyNotifications();
+                    //menu icon indication
+                    this._updateMenuIcon(true);
+                    //toast indication
+                    this._displayToast({
+                        text: "New Reply",
+                        icon: <ToastIcon type={ToastsType.Reply} />,
+                        severity: ToastSeverity.Info
+                    });
                 }
             }
         });
     };
-
-    private _showReplyNotifications() {
-        //menu icon indication
-        this._updateMenuIcon(true);
-        //toast indication
-        this._toastManager.add({
-            title: "Notifications",
-            text: "New Reply",
-            icon: <ToastIcon type={ToastsType.Reply} />,
-            duration: this._toastDuration,
-            severity: ToastSeverity.Info,
-            onClick: () => {
-                this._activateKitchenSink();
-            }
-        });
-    }
 
     private _setWillBeAnsweredOnAir(messageId: string): void {
         this._kitchenSinkMessages.updateMessageById(messageId, null, (message: QnaMessage) => {
