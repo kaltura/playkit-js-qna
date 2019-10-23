@@ -51,6 +51,11 @@ interface QnaPluginConfig {
     userRole: string;
 }
 
+enum UserRole {
+    anonymousRole = "anonymousRole",
+    unmoderatedAdminRole = "unmoderatedAdminRole"
+}
+
 export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
@@ -141,7 +146,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     private getUserId(): string {
         const { session } = this._configs.playerConfig;
 
-        if (this._corePlugin.config.userRole === "anonymousRole" || !session.userId) {
+        if (this._corePlugin.config.userRole === UserRole.anonymousRole || !session.userId) {
             return KalturaLiveServices.getAnonymousUserId();
         }
 
@@ -334,7 +339,7 @@ ContribPluginManager.registerPlugin(
             toastDuration: DefaultToastDuration,
             dateFormat: "dd/mm/yyyy",
             expandMode: KitchenSinkExpandModes.OverTheVideo,
-            userRole: "anonymousRole"
+            userRole: UserRole.anonymousRole
         }
     }
 );
