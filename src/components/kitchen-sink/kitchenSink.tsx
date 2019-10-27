@@ -36,6 +36,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
     private _messagesEnd: any;
     private _scrollingTimeoutId: any = null;
+    private _animationInterval: any = null;
 
     componentDidMount() {
         this._scrollToBottom();
@@ -54,8 +55,22 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     };
 
     private _scrollToBottom = () => {
+        clearInterval(this._animationInterval);
         if (this._messagesEnd) {
-            this._messagesEnd.scrollTop = this._messagesEnd.scrollHeight;
+            this._animationInterval = setInterval(() => {
+                // check if ref still exists during intervals and test if scroll ended
+                if (
+                    this._messagesEnd &&
+                    this._messagesEnd.clientHeight >=
+                        this._messagesEnd.scrollHeight - this._messagesEnd.scrollTop
+                ) {
+                    clearInterval(this._animationInterval);
+                    this._messagesEnd.scrollTop = this._messagesEnd.scrollHeight;
+                    // again check ref still exists during intervals
+                } else if (this._messagesEnd) {
+                    this._messagesEnd.scrollTop += 30;
+                }
+            }, 20);
         }
     };
 
