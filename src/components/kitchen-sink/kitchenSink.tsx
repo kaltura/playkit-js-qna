@@ -115,7 +115,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                         <Thread
                             thread={qnaMessage}
                             dateFormat={props.dateFormat}
-                            key={qnaMessage.id}
+                            key={qnaMessage.pendingMessageId || qnaMessage.id}
                             onReply={this._handleOnSubmit}
                             onResend={this.handleOnResend}
                             onMassageRead={props.onMassageRead}
