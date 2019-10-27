@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Qna - Player V7</title>
 
-        <script src="kaltura-ovp-player.js"></script>
+        <script src="https://qa-apache-php7.dev.kaltura.com/p/6560/embedPlaykitJs/uiconf_id/15224252/versions/kaltura-ovp-player=0.47.8-vamb.1"></script>
         <script src="playkit-js-qna.js"></script>
 
         <style>
@@ -24,6 +24,10 @@
 
             .test-form div {
                 margin: 0 22px 4px 4px;
+            }
+
+            .test-form .marginRight {
+                margin-right: 40px;
             }
 
             .test-form .field-name {
@@ -89,16 +93,6 @@
             </div>
 
             <div>
-                <span class="field-name">serviceUrl:</span>
-                <input
-                    type="text"
-                    id="serviceUrl"
-                    name="serviceUrl"
-                    placeholder="serviceUrl"
-                /><br />
-            </div>
-
-            <div>
                 <span class="field-name">partnerId:</span>
                 <input type="text" id="partnerId" name="partnerId" placeholder="partnerId" /><br />
             </div>
@@ -124,7 +118,7 @@
                 /><br />
             </div>
 
-            <div>
+            <div class="marginRight">
                 <input
                     type="radio"
                     name="expandMode"
@@ -135,6 +129,18 @@
                 Application Mode
                 <input type="radio" name="expandMode" id="OverTheVideo" value="OverTheVideo" />
                 Embedded Mode<br />
+            </div>
+
+            <div>
+                <input type="radio" name="prodOrQA" id="prod" value="prod" checked="checked" />
+                Prod
+                <input type="radio" name="prodOrQA" id="qa" value="qa" />
+                QA (php7)<br />
+            </div>
+
+            <div>
+                <input type="checkbox" name="AnonymousUser" id="AnonymousUser" value="true" />
+                Anonymous User
             </div>
 
             <div class="action-buttons">
@@ -152,29 +158,30 @@
         </div>
 
         <script>
-            var player;
             var errorMsg = document.getElementById("errorMsg");
             var isValid = false;
 
             // get search params from url string
             var urlParams = new urlParamParse(window.location.search);
-            var entryId = urlParams.get('entryId');
-            var userId = urlParams.get('userId');
-            var ks = urlParams.get('ks');
-            var serviceUrl = urlParams.get('serviceUrl');
-            var partnerId = urlParams.get('partnerId');
-            var uiConfId = urlParams.get('uiConfId');
-            var width = urlParams.get('width') >>> 0;
-            var height = urlParams.get('height') >>> 0;
-            var expandMode = urlParams.get('expandMode');
+
+            var entryId = urlParams.get("entryId");
+            var userId = urlParams.get("userId");
+            var ks = urlParams.get("ks");
+            var partnerId = urlParams.get("partnerId");
+            var uiConfId = urlParams.get("uiConfId");
+            var width = urlParams.get("width") >>> 0;
+            var height = urlParams.get("height") >>> 0;
+            var expandMode = urlParams.get("expandMode");
+            var prodOrQA = urlParams.get("prodOrQA");
+            var AnonymousUser = urlParams.get("AnonymousUser");
+            var env;
 
             // Insert params to form and put default values when needed
-            if (entryId)    document.getElementById("entryId").value      = entryId;
-            if (userId)     document.getElementById("userId").value       = userId;
-            if (ks)         document.getElementById("ks").value           = ks;
-            if (serviceUrl) document.getElementById("serviceUrl").value   = serviceUrl;
-            if (partnerId)  document.getElementById("partnerId").value    = partnerId;
-            if (uiConfId)   document.getElementById("uiConfId").value     = uiConfId;
+            if (entryId) document.getElementById("entryId").value = entryId;
+            if (userId) document.getElementById("userId").value = userId;
+            if (ks) document.getElementById("ks").value = ks;
+            if (partnerId) document.getElementById("partnerId").value = partnerId;
+            if (uiConfId) document.getElementById("uiConfId").value = uiConfId;
 
             if (!width) {
                 width = 800;
@@ -186,83 +193,114 @@
             }
             document.getElementById("height").value = height;
 
-            if (expandMode && expandMode === 'OverTheVideo') {
+            if (expandMode && expandMode === "OverTheVideo") {
                 document.getElementById("OverTheVideo").checked = true;
-            }
-            else {
+            } else {
                 // default
                 expandMode = "AlongSideTheVideo";
                 document.getElementById("AlongSideTheVideo").checked = true;
             }
 
+            if (prodOrQA && prodOrQA === "qa") {
+                document.getElementById("qa").checked = true;
+                env = {
+                    serviceUrl: "https://qa-apache-php7.dev.kaltura.com/api_v3",
+                    cdnUrl: "https://qa-nginx-vod.dev.kaltura.com"
+                };
+            } else {
+                // default
+                prodOrQA = "prod";
+                document.getElementById("prod").checked = true;
+                env = {
+                    serviceUrl: "https://cdnapisec.kaltura.com/api_v3",
+                    cdnUrl: "https://cfvod.kaltura.com"
+                };
+            }
+
+            if (AnonymousUser && AnonymousUser === "true") {
+                document.getElementById("AnonymousUser").checked = true;
+                AnonymousUser = "anonymousRole";
+            } else {
+                // default
+                AnonymousUser = "unmoderatedAdminRole";
+                document.getElementById("AnonymousUser").checked = false;
+            }
+
             // Validation check
-            if (entryId && userId && ks && serviceUrl && partnerId && uiConfId) {
+            if (entryId && userId && ks && partnerId && uiConfId) {
                 errorMsg.style.display = "none";
                 isValid = true;
-            }
-            else {
+            } else {
                 errorMsg.style.display = "block";
             }
 
             // init player size:
             var playerDiv = document.getElementById("player-div");
-            playerDiv.style.width = width + 'px';
-            playerDiv.style.height = height + 'px';
+            playerDiv.style.width = width + "px";
+            playerDiv.style.height = height + "px";
 
             if (isValid) {
+                var plugins = {
+                    qna: {
+                        dateFormat: "mmmm do, yyyy",
+                        expandMode: expandMode,
+                        expandOnFirstPlay: true,
+                        userRole: AnonymousUser // 'unmoderatedAdminRole' || 'anonymousRole' etc'
+                    }
+                };
+
+                var player;
+
+                function changeMedia() {
+                    player.loadMedia({
+                        entryId: switchMediaEntryId
+                    });
+                }
+
                 var config = {
                     logLevel: "DEBUG",
                     targetId: "player-div",
                     provider: {
+                        env: env,
                         partnerId: partnerId,
                         uiConfId: uiConfId,
-                        env: {  <!-- TEMPORARY ADDED: needed when using local player -->
-                            serviceUrl: serviceUrl + "/api_v3",
-                            cdnUrl: serviceUrl
-                        },
                         ks: ks
                     },
                     session: {
                         userId: userId
                     },
-                    plugins: {
-                        'qna': {
-                            dateFormat: 'mmmm do, yyyy',
-                            expandMode: expandMode,
-                            expandOnFirstPlay: true
-                        },
-                        'kalturaLive': {}
+                    plugins: plugins,
+                    ui: {
+                        debug: true
                     }
                 };
-                //document.getElementById("bundle").onload =  function(){
 
-                var mediaInfo = { entryId: entryId };
-                player = KalturaPlayer.setup(config);
-                player.loadMedia(mediaInfo).then(function() {
-                    player.play();
-                });
+                window.onload = function() {
+                    var mediaInfo = { entryId: entryId };
+                    player = KalturaPlayer.setup(config);
+                    player.loadMedia(mediaInfo);
+                };
             }
 
             /*
-            * Get url params
-            * replace the URLSearchParams as IE doesn't support it
-            * */
+             * Get url params
+             * replace the URLSearchParams as IE doesn't support it
+             * */
             function urlParamParse(url) {
                 this.url = url;
 
-                this.get = function (name) {
-                    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(this.url);
-                    if (results == null){
+                this.get = function(name) {
+                    var results = new RegExp("[\?&]" + name + "=([^&#]*)").exec(this.url);
+                    if (results == null) {
                         return null;
-                    }
-                    else {
+                    } else {
                         return unescape(decodeURI(results[1]) || 0);
                     }
                 };
             }
 
             function getValueFromExpandModeRadioButton() {
-                var radios = document.getElementsByName('expandMode');
+                var radios = document.getElementsByName("expandMode");
 
                 for (var i = 0; i < radios.length; i++) {
                     if (radios[i].checked) {
