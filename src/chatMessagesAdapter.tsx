@@ -398,9 +398,11 @@ export class ChatMessagesAdapter {
                 this._setWillBeAnsweredOnAir(qnaMessage.parentId);
                 this._setMessageAsUnRead(qnaMessage.parentId, qnaMessage);
                 //display toasts only for newly created messages in server (not pending/failed)
+                //and only for messages sent from the producer and not by current user
                 if (
                     Utils.isMessageInTimeFrame(qnaMessage) &&
-                    qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED
+                    qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED &&
+                    qnaMessage.type === QnaMessageType.Answer
                 ) {
                     //menu icon indication
                     this._updateMenuIcon(true);
@@ -433,6 +435,8 @@ export class ChatMessagesAdapter {
     private _setMessageAsUnRead(messageId: string, reply: QnaMessage): void {
         // an old reply
         if (!Utils.isMessageInTimeFrame(reply)) return;
+        // a reply created by current user and not by producer
+        if (reply.type !== QnaMessageType.Answer) return;
         // new reply
         this._kitchenSinkMessages.updateMessageById(messageId, null, (message: QnaMessage) => {
             return { ...message, unRead: true };
