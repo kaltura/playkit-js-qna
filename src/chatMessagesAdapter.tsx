@@ -402,8 +402,8 @@ export class ChatMessagesAdapter {
                     Utils.isMessageInTimeFrame(qnaMessage) &&
                     qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED
                 ) {
-                    //menu icon indication
-                    this._updateMenuIcon(true);
+                    //menu icon indication if kitchenSink is closed
+                    if (!this._isKitchenSinkActive()) this._updateMenuIcon(true);
                     //toast indication
                     this._displayToast({
                         text: "New Reply",
