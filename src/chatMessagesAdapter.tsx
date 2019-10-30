@@ -401,7 +401,6 @@ export class ChatMessagesAdapter {
                 //and only for messages sent from the producer and not by current user
                 if (
                     Utils.isMessageInTimeFrame(qnaMessage) &&
-                    qnaMessage.deliveryStatus === MessageDeliveryStatus.CREATED &&
                     qnaMessage.type === QnaMessageType.Answer
                 ) {
                     //menu icon indication
