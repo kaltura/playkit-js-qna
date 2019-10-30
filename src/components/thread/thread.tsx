@@ -165,7 +165,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         placeholder={"Reply"}
                         enableBlackInputTheme={true}
                         initialFocus={true}
-                        open={true}
+                        initialOpen={true}
                         disabled={thread.deliveryStatus !== MessageDeliveryStatus.CREATED}
                         showLockIcon={false}
                     />
