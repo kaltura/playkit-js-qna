@@ -6,7 +6,9 @@ import {
     KitchenSinkPositions,
     ToastSeverity,
     UIManager,
-    ManagedComponent
+    ManagedComponent,
+    EventTypes,
+    ItemActiveStateChangeEvent
 } from "@playkit-js-contrib/ui";
 import {
     ContribPluginManager,
@@ -198,6 +200,10 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
             KitchenSinkEventTypes.MessagesUpdatedEvent,
             this._onQnaMessage
         );
+        this._contribServices.uiManager.kitchenSink.off(
+            EventTypes.ItemActiveStateChangeEvent,
+            this._onKitchenSinkStateChange
+        );
     }
 
     private _constructPluginListener(): void {
@@ -209,6 +215,10 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         this._kitchenSinkMessages.on(
             KitchenSinkEventTypes.MessagesUpdatedEvent,
             this._onQnaMessage
+        );
+        this._contribServices.uiManager.kitchenSink.on(
+            EventTypes.ItemActiveStateChangeEvent,
+            this._onKitchenSinkStateChange
         );
     }
 
@@ -264,8 +274,6 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     private _activateKitchenSink = (): void => {
         if (this._kitchenSinkItem) {
             this._kitchenSinkItem.activate();
-            //clear menu icon indication if kitchenSink is active
-            this._updateMenuIcon(false);
         }
     };
 
@@ -274,6 +282,11 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         if (this._menuIconRef) {
             this._menuIconRef.update();
         }
+    };
+
+    private _onKitchenSinkStateChange = ({ item }: ItemActiveStateChangeEvent) => {
+        if (!this._kitchenSinkItem || this._kitchenSinkItem !== item) return;
+        this._updateMenuIcon(false);
     };
 
     private _parseExpandMode(value: string): KitchenSinkExpandModes {
@@ -312,14 +325,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         return (
             <ManagedComponent
                 label={"qna-menu-icon"}
-                renderChildren={() => (
-                    <MenuIcon
-                        showIndication={this._showMenuIconIndication}
-                        onClick={() => {
-                            this._updateMenuIcon(false);
-                        }}
-                    />
-                )}
+                renderChildren={() => <MenuIcon showIndication={this._showMenuIconIndication} />}
                 isShown={() => true}
                 ref={ref => (this._menuIconRef = ref)}
             />
@@ -331,11 +337,9 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
             return <div />;
         }
 
-        const { onClose, ...rest } = props;
-
         return (
             <KitchenSink
-                {...rest}
+                {...props}
                 dateFormat={this._corePlugin.config.dateFormat}
                 threads={this._threads}
                 hasError={this._hasError}
@@ -343,11 +347,6 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
                 onSubmit={this._chatMessagesAdapter.submitQuestion}
                 onResend={this._chatMessagesAdapter.resendQuestion}
                 onMassageRead={this._chatMessagesAdapter.onMessageRead}
-                //enriching default on close to handle menu icon indicator update
-                onClose={() => {
-                    this._updateMenuIcon(false);
-                    onClose();
-                }}
             />
         );
     };

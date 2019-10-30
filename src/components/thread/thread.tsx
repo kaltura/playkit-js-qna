@@ -21,6 +21,8 @@ interface ThreadState {
 }
 
 export class Thread extends Component<ThreadProps, ThreadState> {
+    private _autoExpandTextAreaRef: AutoExpandTextArea | null = null;
+
     static defaultProps = {};
 
     state = {
@@ -33,7 +35,11 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     };
 
     handleOnReplyButtonClick = () => {
-        this.setState({ showInputText: !this.state.showInputText });
+        this.setState({ showInputText: !this.state.showInputText }, () => {
+            if (this._autoExpandTextAreaRef && this.state.showInputText) {
+                this._autoExpandTextAreaRef.focus();
+            }
+        });
     };
 
     handleReply = (text: string) => {
@@ -74,6 +80,10 @@ export class Thread extends Component<ThreadProps, ThreadState> {
 
     handleThreadClick = (): void => {
         this.props.onMassageRead(this.props.thread.id);
+    };
+
+    handleAutoExpandTextAreaFocusOut = () => {
+        this.setState({ showInputText: false });
     };
 
     render() {
@@ -158,29 +168,36 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                     </div>
                 )}
 
-                {/*  Reply Button and Input  */
-                showInputText ? (
+                <div className={classNames({ [styles.displayNone]: !showInputText })}>
                     <AutoExpandTextArea
+                        ref={autoExpandTextAreaRef =>
+                            (this._autoExpandTextAreaRef = autoExpandTextAreaRef)
+                        }
                         onSubmit={this.handleReply}
                         placeholder={"Reply"}
                         enableBlackInputTheme={true}
                         initialFocus={true}
-                        open={true}
+                        alwaysOpen={true}
                         disabled={thread.deliveryStatus !== MessageDeliveryStatus.CREATED}
                         showLockIcon={false}
+                        onFocusOut={this.handleAutoExpandTextAreaFocusOut}
                     />
-                ) : (
-                    <div className={styles.lastInfoLine}>
-                        <button
-                            onClick={this.handleOnReplyButtonClick}
-                            className={styles.clearStyledButton}
-                            type={"button"}
-                        >
-                            <span className={styles.replyIcon} />
-                            <span className={styles.replyText}>{"Reply"}</span>
-                        </button>
-                    </div>
-                )}
+                </div>
+
+                <div
+                    className={classNames(styles.lastInfoLine, {
+                        [styles.displayNone]: showInputText
+                    })}
+                >
+                    <button
+                        onClick={this.handleOnReplyButtonClick}
+                        className={styles.clearStyledButton}
+                        type={"button"}
+                    >
+                        <span className={styles.replyIcon} />
+                        <span className={styles.replyText}>{"Reply"}</span>
+                    </button>
+                </div>
             </div>
         );
     }

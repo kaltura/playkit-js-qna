@@ -3,7 +3,6 @@ import * as styles from "./menuIcon.scss";
 
 export interface MenuIconProps {
     showIndication: boolean;
-    onClick: () => void;
 }
 
 export class MenuIcon extends Component<MenuIconProps> {
@@ -13,7 +12,7 @@ export class MenuIcon extends Component<MenuIconProps> {
 
     render() {
         return (
-            <div className={styles.icon} onClick={this.props.onClick}>
+            <div className={styles.icon}>
                 {this.props.showIndication && <span className={styles.indicator} />}
             </div>
         );

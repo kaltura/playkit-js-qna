@@ -1,5 +1,4 @@
 a {
-  font-family: Lato;
   font-size: 15px;
   font-weight: normal;
   font-style: normal;
@@ -20,7 +19,6 @@ a {
   user-select: text;
   word-break: break-all;
   white-space: pre-wrap;
-  font-family: Lato;
 
   &::selection {
     background: #c4c4c4;
@@ -29,8 +27,8 @@ a {
 
 .show-more-or-less {
   font-size: 15px;
-  color: #a3f0ffe6;
-  font-family: Lato;
+  color: rgba(163, 240, 255, 0.9);
+  line-height: 1.1;
 
   margin: 0;
   padding: 0;

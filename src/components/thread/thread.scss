@@ -69,10 +69,9 @@
   margin-right: 1px;
   margin-top: 2px;
 
-  font-family: Lato;
   font-size: 12px;
   font-weight: bold;
-  color: #cccccce6;
+  color: rgba(204, 204, 204, 0.9);
 }
 
 .resend-button {
@@ -82,7 +81,6 @@
 }
 
 .resend-title {
-  font-family: Lato;
   font-size: 12px;
   font-weight: bold;
   color: #ff6876;
@@ -182,4 +180,8 @@
   position: absolute;
   right: -5px;
   top: -7px;
+}
+
+.displayNone {
+  display: none;
 }

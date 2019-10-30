@@ -7,15 +7,16 @@ interface AutoExpandTextAreaProps {
     onSubmit: (text: string) => void;
     enableBlackInputTheme?: boolean;
     initialFocus?: boolean;
-    open?: boolean;
+    alwaysOpen?: boolean;
     disabled?: boolean;
     showLockIcon?: boolean;
     enableAnimation?: boolean;
+    onFocusOut?: () => void;
 }
 
 interface AutoExpandTextAreaState {
     text: string;
-    openByEvent: boolean;
+    open: boolean;
     bleepingAnimation: boolean;
 }
 
@@ -41,21 +42,22 @@ export class AutoExpandTextArea extends Component<
         enableAnimation: false
     };
 
-    state: AutoExpandTextAreaState = { text: "", openByEvent: false, bleepingAnimation: false };
+    state: AutoExpandTextAreaState = { text: "", open: false, bleepingAnimation: false };
 
     componentDidMount(): void {
+        if (this.props.alwaysOpen) {
+            this.setState({ open: true });
+        }
+
         if (!this._textareaContainer) {
             return;
         }
 
-        if (typeof this.props.open === "undefined") {
-            this._textareaContainer.addEventListener("focusin", this._handleFocusIn);
-            this._textareaContainer.addEventListener("focusout", this._handleFocusOut);
-            return;
-        }
+        this._textareaContainer.addEventListener("focusin", this._handleFocusIn);
+        this._textareaContainer.addEventListener("focusout", this._handleFocusOut);
 
         if (this.props.initialFocus) {
-            this.focusOnInput();
+            this.focus();
         }
     }
 
@@ -65,7 +67,7 @@ export class AutoExpandTextArea extends Component<
             this._allowClickTimeout = null;
         }
 
-        this.setState({ openByEvent: true, bleepingAnimation: true });
+        this.setState({ open: true, bleepingAnimation: true });
         setTimeout(() => {
             this.setState({ bleepingAnimation: false });
         }, AnimationDuration);
@@ -76,14 +78,20 @@ export class AutoExpandTextArea extends Component<
             return;
         }
 
-        // this helps to catch the click on an outside element (like, button) when clicking outsides the element.
-        // otherwise the click is missed and swallowed.
-        this._allowClickTimeout = setTimeout(() => {
-            this.setState(() => ({ openByEvent: false, bleepingAnimation: false }));
-        }, 200);
+        if (!this.props.alwaysOpen) {
+            // this helps to catch the click on an outside element (like, button) when clicking outsides the element.
+            // otherwise the click is missed and swallowed.
+            this._allowClickTimeout = setTimeout(() => {
+                this.setState(() => ({ open: false, bleepingAnimation: false }));
+            }, 200);
+        }
+
+        if (this.props.onFocusOut) {
+            this.props.onFocusOut();
+        }
     };
 
-    focusOnInput = () => {
+    focus = () => {
         if (this._textAreaRef) {
             this._textAreaRef.focus();
         }
@@ -152,11 +160,10 @@ export class AutoExpandTextArea extends Component<
     };
 
     render() {
-        const { text, openByEvent, bleepingAnimation } = this.state;
+        const { text, open, bleepingAnimation } = this.state;
         const {
             enableBlackInputTheme,
             placeholder,
-            open,
             disabled,
             showLockIcon,
             enableAnimation
@@ -170,7 +177,7 @@ export class AutoExpandTextArea extends Component<
                 {showLockIcon && (
                     <i
                         className={classNames(styles.ignoreClicks, {
-                            [styles.privateIcon]: open || openByEvent,
+                            [styles.privateIcon]: open,
                             [styles.beatingPrivateIcon]: bleepingAnimation
                         })}
                     />
@@ -189,11 +196,10 @@ export class AutoExpandTextArea extends Component<
                 />
                 <div
                     className={classNames({
-                        [styles.inputActionsContainer]: open || openByEvent,
-                        [styles.inputActionsContainerAnimation]:
-                            (open || openByEvent) && enableAnimation,
-                        [styles.hide]: !open && !openByEvent,
-                        [styles.hideAnimation]: !open && !openByEvent && enableAnimation
+                        [styles.inputActionsContainer]: open,
+                        [styles.inputActionsContainerAnimation]: open && enableAnimation,
+                        [styles.hide]: !open,
+                        [styles.hideAnimation]: !open && enableAnimation
                     })}
                     ref={element => (this._actionsContainer = element)}
                 >
@@ -214,10 +220,7 @@ export class AutoExpandTextArea extends Component<
 
     componentWillUnmount(): void {
         this._textareaContainer.removeEventListener("focusin", this._handleFocusIn);
-
-        if (!this.props.open) {
-            this._textareaContainer.removeEventListener("focusout", this._handleFocusOut);
-        }
+        this._textareaContainer.removeEventListener("focusout", this._handleFocusOut);
 
         if (this._allowClickTimeout) {
             clearTimeout(this._allowClickTimeout);
