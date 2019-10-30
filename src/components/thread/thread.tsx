@@ -166,7 +166,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         enableBlackInputTheme={true}
                         initialFocus={true}
                         open={true}
-                        disabled={thread.deliveryStatus === MessageDeliveryStatus.SEND_FAILED}
+                        disabled={thread.deliveryStatus !== MessageDeliveryStatus.CREATED}
                         showLockIcon={false}
                     />
                 ) : (

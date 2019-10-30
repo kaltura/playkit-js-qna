@@ -25,7 +25,7 @@ $background-color: #222222e6;
 }
 
 .headerContainer {
-  padding: 12px 16px 0 16px;
+  padding: 12px 16px 0 12px;
 
   .header {
     display: flex;
@@ -40,8 +40,9 @@ $background-color: #222222e6;
   .title {
     margin-left: 9px;
     line-height: 28px;
-    color: #cccccce6;
-    font-weight: bold;
+    font-family: Lato;
+    font-size: 15px;
+    color: #cccccc;
   }
 
   .close-button {
@@ -104,14 +105,14 @@ $background-color: #222222e6;
 .empty-list-title {
   font-size: 18px;
   font-weight: bold;
-  color: #999999e6;
+  color: rgba(153, 153, 153, 0.9);
   text-align: center;
 }
 
 .empty-list-sub-title{
   text-align: center;
   font-size: 14px;
-  color: #999999e6;
+  color: rgba(153, 153, 153, 0.9);
 }
 
 .messages-end-anchor {
