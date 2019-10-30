@@ -37,7 +37,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     handleOnReplyButtonClick = () => {
         this.setState({ showInputText: !this.state.showInputText }, () => {
             if (this._autoExpandTextAreaRef && this.state.showInputText) {
-                this._autoExpandTextAreaRef.focusOnInput();
+                this._autoExpandTextAreaRef.focus();
             }
         });
     };
@@ -83,7 +83,6 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     };
 
     handleAutoExpandTextAreaFocusOut = () => {
-        debugger;
         this.setState({ showInputText: false });
     };
 
@@ -178,7 +177,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         placeholder={"Reply"}
                         enableBlackInputTheme={true}
                         initialFocus={true}
-                        initialOpen={true}
+                        alwaysOpen={true}
                         disabled={thread.deliveryStatus !== MessageDeliveryStatus.CREATED}
                         showLockIcon={false}
                         onFocusOut={this.handleAutoExpandTextAreaFocusOut}

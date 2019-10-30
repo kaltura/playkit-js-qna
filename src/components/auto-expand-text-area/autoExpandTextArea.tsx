@@ -7,7 +7,7 @@ interface AutoExpandTextAreaProps {
     onSubmit: (text: string) => void;
     enableBlackInputTheme?: boolean;
     initialFocus?: boolean;
-    initialOpen?: boolean;
+    alwaysOpen?: boolean;
     disabled?: boolean;
     showLockIcon?: boolean;
     enableAnimation?: boolean;
@@ -45,7 +45,7 @@ export class AutoExpandTextArea extends Component<
     state: AutoExpandTextAreaState = { text: "", open: false, bleepingAnimation: false };
 
     componentDidMount(): void {
-        if (this.props.initialOpen) {
+        if (this.props.alwaysOpen) {
             this.setState({ open: true });
         }
 
@@ -57,7 +57,7 @@ export class AutoExpandTextArea extends Component<
         this._textareaContainer.addEventListener("focusout", this._handleFocusOut);
 
         if (this.props.initialFocus) {
-            this.focusOnInput();
+            this.focus();
         }
     }
 
@@ -78,7 +78,7 @@ export class AutoExpandTextArea extends Component<
             return;
         }
 
-        if (!this.props.initialOpen) {
+        if (!this.props.alwaysOpen) {
             // this helps to catch the click on an outside element (like, button) when clicking outsides the element.
             // otherwise the click is missed and swallowed.
             this._allowClickTimeout = setTimeout(() => {
@@ -91,7 +91,7 @@ export class AutoExpandTextArea extends Component<
         }
     };
 
-    focusOnInput = () => {
+    focus = () => {
         if (this._textAreaRef) {
             this._textAreaRef.focus();
         }
