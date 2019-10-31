@@ -185,7 +185,9 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 <div className={styles.footer}>
                     <div
                         className={classNames(styles.scrollDownButton, {
-                            [styles.scrollDownButtonHidden]: state.autoScroll
+                            [styles.scrollDownButtonHidden]: state.autoScroll,
+                            [styles.scrollDownButtonHiddenAnnouncementOnly]:
+                                state.autoScroll && props.announcementsOnly
                         })}
                     >
                         <ScrollDownButton onClick={this._scrollToBottom} />
