@@ -131,7 +131,7 @@ $background-color: #222222e6;
 }
 
 .scroll-down-button-hidden {
-  top: 0px;
+  top: 1px;
   //visibility: hidden;
   transition-property: top;
   transition-timing-function: cubic-bezier(0.4, 0.0, 1, 1);
