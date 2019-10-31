@@ -172,20 +172,22 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 </div>
 
                 {/* footer */}
-                <div className={styles.footer}>
-                    <div
-                        className={classNames(styles.scrollDownButton, {
-                            [styles.scrollDownButtonHidden]: state.autoScroll
-                        })}
-                    >
-                        <ScrollDownButton onClick={this._scrollToBottom} />
+                {!props.hasError && (
+                    <div className={styles.footer}>
+                        <div
+                            className={classNames(styles.scrollDownButton, {
+                                [styles.scrollDownButtonHidden]: state.autoScroll
+                            })}
+                        >
+                            <ScrollDownButton onClick={this._scrollToBottom} />
+                        </div>
+                        <AutoExpandTextArea
+                            onSubmit={this._handleOnSubmit}
+                            placeholder={"Type a private question"}
+                            enableAnimation={true}
+                        />
                     </div>
-                    <AutoExpandTextArea
-                        onSubmit={this._handleOnSubmit}
-                        placeholder={"Type a private question"}
-                        enableAnimation={true}
-                    />
-                </div>
+                )}
             </div>
         );
     }

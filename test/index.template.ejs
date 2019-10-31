@@ -41,39 +41,58 @@
     <script src="https://qa-apache-php7.dev.kaltura.com/p/6560/embedPlaykitJs/uiconf_id/15224252/versions/kaltura-ovp-player=0.47.8-vamb.1"></script>
 
     <script>
-      // Step 2: configure the player with relevant information
+        // Step 2: configure the player with relevant information
 
-      const partnerId = "6560"; // 6560 = partner in QA dedicated for plugins test page
-      const uiConfId = "15224252"; // 15224252 = uiConf of 6560 in QA dedicated for plugins test page
-      const ks = "";
-      const userId = ""; // usually optional, mandatory for webcast plugins (ie Shimi)
-      const entryId = "0_dbwcaqfq"; // 0_dbwcaqfq = sample entry of 6560 in QA
-      const switchMediaEntryId = ""; // optional
+        const partnerId = "6560"; // 6560 = partner in QA dedicated for plugins test page
+        const uiConfId = "15224252"; // 15224252 = uiConf of 6560 in QA dedicated for plugins test page
+        const ks = "";
+        const userId = ""; // usually optional, mandatory for webcast plugins (ie Shimi)
+        const entryId = "0_dbwcaqfq"; // 0_dbwcaqfq = sample entry of 6560 in QA
+        const switchMediaEntryId = ""; // optional
 
-      // Step 3: choose which environment to use at runtime (qa / production)
-      // qa server
-      // Step 3: choose which environment to use at runtime (qa / production)
-      // qa server
-      let env = {
-        serviceUrl:"https://qa-apache-php7.dev.kaltura.com/api_v3",
-        cdnUrl: "https://qa-nginx-vod.dev.kaltura.com"
-      };
+        // Step 3: choose which environment to use at runtime (qa / production)
+        // qa server
+        // Step 3: choose which environment to use at runtime (qa / production)
+        // qa server
+        let env = {
+            serviceUrl:"https://qa-apache-php7.dev.kaltura.com/api_v3",
+            cdnUrl: "https://qa-nginx-vod.dev.kaltura.com"
+        };
 
-      // uncomment this to use production
-      // env = {
-      //     serviceUrl:"https://cdnapisec.kaltura.com/api_v3",
-      //     cdnUrl: "https://cfvod.kaltura.com"
-      // };
+        // uncomment this to use production
+        // env = {
+        //     serviceUrl:"https://cdnapisec.kaltura.com/api_v3",
+        //     cdnUrl: "https://cfvod.kaltura.com"
+        // };
 
-      // Step 4: configure relevant plugins
-      const plugins = {
-        'qna': {
-          dateFormat: 'mmmm do, yyyy',
-          expandMode: 'AlongSideTheVideo',
-          expandOnFirstPlay: true,
-          userRole: 'anonymousRole' // 'unmoderatedAdminRole' || 'anonymousRole' etc'
-        }
-      };
+        // Step 4: configure relevant plugins
+        const plugins = {
+            'qna': {
+                dateFormat: 'mmmm do, yyyy',
+                expandMode: 'AlongSideTheVideo',
+                expandOnFirstPlay: true,
+                userRole: 'anonymousRole' // 'unmoderatedAdminRole' || 'anonymousRole' etc'
+            }
+        };
+
+        // Step 5: configure plugins font style
+        const contrib = {
+            ui: {
+                fonts: {
+                    fontFamily: 'Lato, sans-serif',
+
+                    // optional property for overriding font existence testing
+                    // testingFont: { text: 'aaaaa', size: 72, fontName : 'Lato'}
+
+                    // optional property. relevant only for this test page
+                    // mediaspace will provide Lato font by default
+                    downloadData: {
+                        url: 'https://fonts.googleapis.com/css?family=Lato&display=swap',
+                        name: 'Lato'
+                    }
+                }
+            }
+        };
 
     </script>
 
@@ -110,41 +129,42 @@
 </div>
 
 <script>
-  var player;
+    var player;
 
 
-  function changeMedia() {
-    player.loadMedia({
-      entryId: switchMediaEntryId
-    });
-  }
-
-  var config = {
-    logLevel: "DEBUG",
-    targetId: "player-div",
-    provider: {
-      env: env,
-      partnerId: partnerId,
-      uiConfId: uiConfId,
-      ks: ks
-    },
-    session: {
-      userId: userId
-    },
-    plugins: plugins,
-    ui: {
-      debug: true
+    function changeMedia() {
+        player.loadMedia({
+            entryId: switchMediaEntryId
+        });
     }
-  };
 
-  document.getElementById("bundle").onload =  function(){
+    var config = {
+        logLevel: "DEBUG",
+        targetId: "player-div",
+        provider: {
+            env: env,
+            partnerId: partnerId,
+            uiConfId: uiConfId,
+            ks: ks
+        },
+        session: {
+            userId: userId
+        },
+        contrib,
+        plugins: plugins,
+        ui: {
+            debug: true
+        }
+    };
 
-    var mediaInfo = { entryId: entryId };
-    player = KalturaPlayer.setup(config);
-    player.loadMedia(mediaInfo);
-  }
+    document.getElementById("bundle").onload =  function(){
 
-  makeResizableDiv('.resizable');
+        var mediaInfo = { entryId: entryId };
+        player = KalturaPlayer.setup(config);
+        player.loadMedia(mediaInfo);
+    }
+
+    makeResizableDiv('.resizable');
 </script>
 
 </body>
