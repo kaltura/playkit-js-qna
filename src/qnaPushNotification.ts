@@ -8,11 +8,19 @@ import {
 import { QnaMessage, QnaMessageFactory } from "./qnaMessageFactory";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
+import { KalturaCodeCuePoint } from "kaltura-typescript-client/api/types";
 
 export enum PushNotificationEventTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
     UserNotifications = "USER_QNA_NOTIFICATIONS",
+    CodeNotifications = "CODE_QNA_NOTIFICATIONS",
     PushNotificationsError = "PUSH_NOTIFICATIONS_ERROR"
+}
+
+export interface QnaSettings {
+    createdAt: Date;
+    qnaEnabled: boolean;
+    announcementOnly: boolean;
 }
 
 export interface UserQnaNotificationsEvent {
@@ -30,7 +38,16 @@ export interface QnaNotificationsErrorEvent {
     error: string;
 }
 
-type Events = UserQnaNotificationsEvent | PublicQnaNotificationsEvent | QnaNotificationsErrorEvent;
+export interface SettingsNotificationsEvent {
+    type: PushNotificationEventTypes.CodeNotifications;
+    settings: QnaSettings;
+}
+
+type Events =
+    | UserQnaNotificationsEvent
+    | PublicQnaNotificationsEvent
+    | QnaNotificationsErrorEvent
+    | SettingsNotificationsEvent;
 
 const logger = getContribLogger({
     class: "qnaPushNotification",
@@ -107,7 +124,8 @@ export class QnaPushNotification {
 
         let registrationConfigs = [
             this._createPublicQnaRegistration(entryId), // notifications objects
-            this._createUserQnaRegistration(entryId, userId)
+            this._createUserQnaRegistration(entryId, userId),
+            this._createCodeQnaRegistration(entryId)
         ]; // user related QnA objects
 
         this._pushServerInstance
@@ -177,6 +195,25 @@ export class QnaPushNotification {
         };
     }
 
+    private _createCodeQnaRegistration(entryId: string): PrepareRegisterRequestConfig {
+        logger.info("Register Code QnA notification for receiving settings data", {
+            method: "_createCodeQnaRegistration",
+            data: { entryId }
+        });
+        return {
+            eventName: PushNotificationEventTypes.CodeNotifications,
+            eventParams: {
+                entryId: entryId
+            },
+            onMessage: (response: any[]) => {
+                this._events.emit({
+                    type: PushNotificationEventTypes.CodeNotifications,
+                    settings: this._getLastSettingsObject(response)
+                });
+            }
+        };
+    }
+
     private _createQnaMessagesArray(pushResponse: any[]): QnaMessage[] {
         return pushResponse.reduce((qnaMessages: QnaMessage[], item: any) => {
             if (item.objectType === "KalturaAnnotation") {
@@ -189,6 +226,28 @@ export class QnaPushNotification {
                 }
             }
             return qnaMessages;
+        }, []);
+    }
+
+    private _getLastSettingsObject(pushResponse: any[]): QnaSettings {
+        const settings = this._createQnaSettingsObjects(pushResponse);
+        settings.sort((a: QnaSettings, b: QnaSettings) => {
+            return a.createdAt.valueOf() - b.createdAt.valueOf();
+        });
+        return settings[0];
+    }
+
+    private _createQnaSettingsObjects(pushResponse: any[]): QnaSettings[] {
+        return pushResponse.reduce((settings: QnaSettings[], item: any) => {
+            if (item.objectType === "KalturaCodeCuePoint") {
+                const kalturaCodeCuepoint: KalturaCodeCuePoint = new KalturaCodeCuePoint();
+                kalturaCodeCuepoint.fromResponseObject(item);
+                const settingsObject = this._createSettingsObject(kalturaCodeCuepoint);
+                if (settingsObject) {
+                    settings.push(settingsObject);
+                }
+            }
+            return settings;
         }, []);
     }
 
@@ -214,5 +273,27 @@ export class QnaPushNotification {
         }
 
         return metadata.xml;
+    }
+
+    private _createSettingsObject(settingsCuepoint: KalturaCodeCuePoint): QnaSettings | null {
+        try {
+            if (!settingsCuepoint || !settingsCuepoint.createdAt || !settingsCuepoint.partnerData)
+                return null;
+            const settingsObject = JSON.parse(settingsCuepoint.partnerData);
+            if (
+                !settingsObject["qnaSettings"] ||
+                !settingsObject["qnaSettings"].hasOwnProperty("qnaEnabled") ||
+                !settingsObject["qnaSettings"].hasOwnProperty("announcementOnly")
+            )
+                return null;
+
+            return {
+                createdAt: settingsCuepoint.createdAt,
+                qnaEnabled: settingsObject["qnaSettings"]["qnaEnabled"],
+                announcementOnly: settingsObject["qnaSettings"]["announcementOnly"]
+            };
+        } catch (e) {
+            return null;
+        }
     }
 }

@@ -13,6 +13,7 @@ interface ThreadProps {
     onReply: (text: string, parentId: string | null) => void;
     onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
     onMassageRead: (id: string) => void;
+    announcementsOnly: boolean;
 }
 
 interface ThreadState {
@@ -186,7 +187,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
 
                 <div
                     className={classNames(styles.lastInfoLine, {
-                        [styles.displayNone]: showInputText
+                        [styles.displayNone]: showInputText || this.props.announcementsOnly
                     })}
                 >
                     <button
