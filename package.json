@@ -69,8 +69,8 @@
     "webpack-merge": "^4.2.2"
   },
   "lint-staged": {
-    "*.{ts,tsx,json,css,html}": [
-      "prettier --write",
+    "src/**/*.{ts,tsx}": [
+      "npm run --silent lint:fix",
       "git add"
     ]
   },
