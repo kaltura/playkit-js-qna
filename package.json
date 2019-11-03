@@ -75,7 +75,9 @@
     ]
   },
   "husky": {
-
+    "hooks": {
+      "commit-msg": "npm run husky:commit-msg"
+    }
   },
   "dependencies": {
     "@playkit-js-contrib/common": "^2.1.0",
