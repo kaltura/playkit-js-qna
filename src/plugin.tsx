@@ -28,7 +28,7 @@ import { getContribLogger, KalturaLiveServices } from "@playkit-js-contrib/commo
 import {
     PushNotificationEventTypes,
     QnaPushNotification,
-    QnaSettings,
+    ModeratorSettings,
     SettingsNotificationsEvent
 } from "./qnaPushNotification";
 import { AoaAdapter } from "./aoaAdapter";
@@ -83,7 +83,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     private _showMenuIconIndication: boolean = false;
     private _menuIconRef: ManagedComponent | null = null;
     private _toastsDuration: number;
-    private _qnaSettings: QnaSettings | null = null;
+    private _qnaSettings: ModeratorSettings | null = null;
 
     public static readonly LOADING_TIME_END = 3000;
 
@@ -283,8 +283,8 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     private _onQnaSettings = ({ settings }: SettingsNotificationsEvent): void => {
         // settings received are out of date
         if (
-            this._qnaSettings &&
-            this._qnaSettings.createdAt.getTime() > settings.createdAt.getTime()
+            !settings || (this._qnaSettings &&
+            this._qnaSettings.createdAt.getTime() > settings.createdAt.getTime())
         )
             return;
         this._qnaSettings = { ...settings };

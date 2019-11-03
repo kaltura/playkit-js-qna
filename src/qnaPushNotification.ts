@@ -17,7 +17,7 @@ export enum PushNotificationEventTypes {
     PushNotificationsError = "PUSH_NOTIFICATIONS_ERROR"
 }
 
-export interface QnaSettings {
+export interface ModeratorSettings {
     createdAt: Date;
     qnaEnabled: boolean;
     announcementOnly: boolean;
@@ -40,7 +40,7 @@ export interface QnaNotificationsErrorEvent {
 
 export interface SettingsNotificationsEvent {
     type: PushNotificationEventTypes.CodeNotifications;
-    settings: QnaSettings;
+    settings: ModeratorSettings | null;
 }
 
 type Events =
@@ -229,16 +229,16 @@ export class QnaPushNotification {
         }, []);
     }
 
-    private _getLastSettingsObject(pushResponse: any[]): QnaSettings {
+    private _getLastSettingsObject(pushResponse: any[]): ModeratorSettings | null {
         const settings = this._createQnaSettingsObjects(pushResponse);
-        settings.sort((a: QnaSettings, b: QnaSettings) => {
+        settings.sort((a: ModeratorSettings, b: ModeratorSettings) => {
             return a.createdAt.valueOf() - b.createdAt.valueOf();
         });
-        return settings[0];
+        return settings.length === 1 ? settings[0] : null;
     }
 
-    private _createQnaSettingsObjects(pushResponse: any[]): QnaSettings[] {
-        return pushResponse.reduce((settings: QnaSettings[], item: any) => {
+    private _createQnaSettingsObjects(pushResponse: any[]): ModeratorSettings[] {
+        return pushResponse.reduce((settings: ModeratorSettings[], item: any) => {
             if (item.objectType === "KalturaCodeCuePoint") {
                 const kalturaCodeCuepoint: KalturaCodeCuePoint = new KalturaCodeCuePoint();
                 kalturaCodeCuepoint.fromResponseObject(item);
@@ -275,7 +275,7 @@ export class QnaPushNotification {
         return metadata.xml;
     }
 
-    private _createSettingsObject(settingsCuepoint: KalturaCodeCuePoint): QnaSettings | null {
+    private _createSettingsObject(settingsCuepoint: KalturaCodeCuePoint): ModeratorSettings | null {
         try {
             if (!settingsCuepoint || !settingsCuepoint.createdAt || !settingsCuepoint.partnerData)
                 return null;
