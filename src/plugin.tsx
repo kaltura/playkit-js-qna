@@ -83,7 +83,11 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     private _showMenuIconIndication: boolean = false;
     private _menuIconRef: ManagedComponent | null = null;
     private _toastsDuration: number;
-    private _qnaSettings: ModeratorSettings | null = null;
+    private _qnaSettings: ModeratorSettings = {
+      createdAt: new Date(-8640000000000000), //oldest date
+      qnaEnabled: true,
+      announcementOnly: false
+    };
 
     public static readonly LOADING_TIME_END = 3000;
 
@@ -148,20 +152,24 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         this._hasError = false;
         //Q&A kitchenSink and push notifications are not available during VOD
         if (sources.type !== ("Vod" as any)) {
-            // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
-            const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
-            this._kitchenSinkItem = this._contribServices.kitchenSinkManager.add({
-                label: "Q&A",
-                expandMode: expandMode,
-                renderIcon: this._renderMenuIcon,
-                position: KitchenSinkPositions.Right,
-                renderContent: this._renderKitchenSinkContent
-            });
+            this._addKitchenSinkItem();
             //push notification event handlers were set during pluginSetup,
             //on each media load we need to register for relevant entryId / userId notifications
             this._qnaPushNotification.registerToPushServer(sources.id, userId);
         }
         this._chatMessagesAdapter.onMediaLoad(userId, sources.id);
+    }
+
+    private _addKitchenSinkItem(): void {
+      // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
+      const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
+      this._kitchenSinkItem = this._contribServices.kitchenSinkManager.add({
+        label: "Q&A",
+        expandMode: expandMode,
+        renderIcon: this._renderMenuIcon,
+        position: KitchenSinkPositions.Right,
+        renderContent: this._renderKitchenSinkContent
+      });
     }
 
     private getUserId(): string {
@@ -282,12 +290,25 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
 
     private _onQnaSettings = ({ settings }: SettingsNotificationsEvent): void => {
         // settings received are out of date
-        if (this._qnaSettings &&
-            this._qnaSettings.createdAt.getTime() > settings.createdAt.getTime())
+        if (this._qnaSettings.createdAt.getTime() > settings.createdAt.getTime())
             return;
         this._qnaSettings = { ...settings };
-        this._updateKitchenSink();
+        this._handleQnaSettingsChange();
     };
+
+    private _handleQnaSettingsChange(): void {
+      //remove kitchenSink
+      if(this._kitchenSinkItem && !this._qnaSettings.qnaEnabled) {
+        this._contribServices.uiManager.kitchenSink.remove(this._kitchenSinkItem);
+        this._kitchenSinkItem = null;
+      }
+      //add kitchenSink
+      if(!this._kitchenSinkItem && this._qnaSettings.qnaEnabled) {
+        this._addKitchenSinkItem();
+      }
+
+      this._updateKitchenSink();
+    }
 
     private _isKitchenSinkActive = (): boolean => {
         if (!this._kitchenSinkItem) return false;
