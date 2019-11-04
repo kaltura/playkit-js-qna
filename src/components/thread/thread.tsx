@@ -6,6 +6,7 @@ import classNames from "classnames";
 import { TrimmedText } from "../trimmed-text";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
 import { AnsweredOnAirIcon } from "../answered-on-air-icon";
+import { MessageTheme } from "../../plugin";
 
 interface ThreadProps {
     thread: QnaMessage;
@@ -13,6 +14,7 @@ interface ThreadProps {
     onReply: (text: string, parentId: string | null) => void;
     onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
     onMassageRead: (id: string) => void;
+    theme: MessageTheme;
 }
 
 interface ThreadState {
@@ -90,6 +92,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         const { thread, dateFormat } = this.props;
         const { replies } = thread;
         const { isThreadOpen, showInputText } = this.state;
+        const { backgroundColor } = this.props.theme;
 
         return (
             <div
@@ -104,10 +107,16 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                         <AnsweredOnAirIcon />
                     </div>
                 )}
-                <div className={styles.messageContent}>
+                <div
+                    style={`background-color: ${backgroundColor};`}
+                    className={styles.messageContent}
+                >
                     <TrimmedText maxLength={120} text={thread.messageContent} />
                 </div>
-                <div className={styles.secondInfoLine}>
+                <div
+                    style={`background-color: ${backgroundColor};`}
+                    className={styles.secondInfoLine}
+                >
                     {this.showTimeOrStatus(thread, dateFormat)}
                     {/*    Show Number of Replies/Show Less button and thread time  */
                     replies.length > 0 && (
@@ -133,7 +142,10 @@ export class Thread extends Component<ThreadProps, ThreadState> {
 
                 {/*    Replies Collapsed area  */
                 isThreadOpen && (
-                    <div className={styles.collapsedArea}>
+                    <div
+                        style={`background-color: ${backgroundColor};`}
+                        className={styles.collapsedArea}
+                    >
                         {replies.map((reply: QnaMessage) => {
                             return (
                                 <div
@@ -144,6 +156,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                                 >
                                     <div>
                                         <div
+                                            style={`background-color: ${backgroundColor};`}
                                             className={classNames(styles.reply, {
                                                 [styles.autoReplay]: reply.isAoAAutoReply
                                             })}
@@ -185,6 +198,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                 </div>
 
                 <div
+                    style={`background-color: ${backgroundColor};`}
                     className={classNames(styles.lastInfoLine, {
                         [styles.displayNone]: showInputText
                     })}

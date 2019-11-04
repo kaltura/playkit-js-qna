@@ -7,6 +7,7 @@ import { AutoExpandTextArea } from "../auto-expand-text-area";
 import { Notification } from "../notification";
 import { ScrollDownButton } from "../scroll-down-button";
 import classNames from "classnames";
+import { QnaTheme } from "../../plugin";
 
 export interface KitchenSinkProps {
     onClose: () => void;
@@ -17,6 +18,7 @@ export interface KitchenSinkProps {
     onSubmit: (text: string, parentId: string | null) => void;
     onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
     onMassageRead: (id: string) => void;
+    theme: QnaTheme;
 }
 
 interface KitchenSinkState {}
@@ -113,6 +115,8 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 </div>
             );
         } else {
+            const messageTheme = this.props.theme.message;
+
             return props.threads.map((qnaMessage: QnaMessage) => {
                 if (
                     qnaMessage.type === QnaMessageType.Announcement ||
@@ -123,6 +127,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             qnaMessage={qnaMessage}
                             dateFormat={props.dateFormat}
                             key={qnaMessage.id}
+                            theme={messageTheme}
                         />
                     );
                 } else {
@@ -134,6 +139,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             onReply={this._handleOnSubmit}
                             onResend={this.handleOnResend}
                             onMassageRead={props.onMassageRead}
+                            theme={messageTheme}
                         />
                     );
                 }
