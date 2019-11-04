@@ -40,10 +40,10 @@ module.exports = {
           {
             loader: 'css-loader',
             options: {
+              localsConvention: 'camelCase',
               modules: {
                 localIdentName: 'contrib[name]__[local]___[hash:base64:5]'
               },
-
             }
           },
           {
