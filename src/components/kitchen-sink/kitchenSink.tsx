@@ -134,6 +134,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             onReply={this._handleOnSubmit}
                             onResend={this.handleOnResend}
                             onMassageRead={props.onMassageRead}
+                            onHeightChange={this._trackScrolling}
                         />
                     );
                 }
@@ -185,6 +186,8 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             onSubmit={this._handleOnSubmit}
                             placeholder={"Type a private question"}
                             enableAnimation={true}
+                            onFocusIn={this._trackScrolling}
+                            onFocusOut={this._trackScrolling}
                         />
                     </div>
                 )}

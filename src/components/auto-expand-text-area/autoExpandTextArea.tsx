@@ -12,6 +12,7 @@ interface AutoExpandTextAreaProps {
     showLockIcon?: boolean;
     enableAnimation?: boolean;
     onFocusOut?: () => void;
+    onFocusIn?: () => void;
 }
 
 interface AutoExpandTextAreaState {
@@ -71,6 +72,10 @@ export class AutoExpandTextArea extends Component<
         setTimeout(() => {
             this.setState({ bleepingAnimation: false });
         }, AnimationDuration);
+
+      if (this.props.onFocusIn) {
+        this.props.onFocusIn();
+      }
     };
 
     private _handleFocusOut = (e: any) => {
