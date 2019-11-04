@@ -282,10 +282,8 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
 
     private _onQnaSettings = ({ settings }: SettingsNotificationsEvent): void => {
         // settings received are out of date
-        if (
-            !settings || (this._qnaSettings &&
+        if (this._qnaSettings &&
             this._qnaSettings.createdAt.getTime() > settings.createdAt.getTime())
-        )
             return;
         this._qnaSettings = { ...settings };
         this._updateKitchenSink();

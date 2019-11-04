@@ -40,7 +40,7 @@ export interface QnaNotificationsErrorEvent {
 
 export interface SettingsNotificationsEvent {
     type: PushNotificationEventTypes.CodeNotifications;
-    settings: ModeratorSettings | null;
+    settings: ModeratorSettings;
 }
 
 type Events =
@@ -206,10 +206,13 @@ export class QnaPushNotification {
                 entryId: entryId
             },
             onMessage: (response: any[]) => {
+              const newSettings = this._getLastSettingsObject(response);
+              if(newSettings) {
                 this._events.emit({
-                    type: PushNotificationEventTypes.CodeNotifications,
-                    settings: this._getLastSettingsObject(response)
+                  type: PushNotificationEventTypes.CodeNotifications,
+                  settings: newSettings
                 });
+              }
             }
         };
     }
@@ -234,7 +237,7 @@ export class QnaPushNotification {
         settings.sort((a: ModeratorSettings, b: ModeratorSettings) => {
             return a.createdAt.valueOf() - b.createdAt.valueOf();
         });
-        return settings.length === 1 ? settings[0] : null;
+        return settings.length >= 1 ? settings[0] : null;
     }
 
     private _createQnaSettingsObjects(pushResponse: any[]): ModeratorSettings[] {
