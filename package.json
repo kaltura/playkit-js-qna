@@ -100,6 +100,10 @@
     "svg-url-loader": "^2.3.2"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+    "src"
   ]
 }
