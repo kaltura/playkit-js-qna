@@ -8,7 +8,7 @@ import {
 import { QnaMessage, QnaMessageFactory } from "./qnaMessageFactory";
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { KalturaMetadataListResponse } from "kaltura-typescript-client/api/types/KalturaMetadataListResponse";
-import { KalturaCodeCuePoint } from "kaltura-typescript-client/api/types";
+import { KalturaCodeCuePoint } from "kaltura-typescript-client/api/types/KalturaCodeCuePoint";
 
 export enum PushNotificationEventTypes {
     PublicNotifications = "PUBLIC_QNA_NOTIFICATIONS",
