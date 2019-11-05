@@ -44,7 +44,7 @@ function showSummary() {
     {bold git reset --hard}
     
     To commit changes to github run:
-    {bold git commit -am "chore(release): publish version ${version}"}
+    {bold git commit -am "chore: publish version ${version}"}
     {bold git tag -a ${tagName} -m "${tagName}"}
     {bold git push --follow-tags}  
     
