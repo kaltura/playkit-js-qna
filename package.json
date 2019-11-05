@@ -26,7 +26,9 @@
     "lint": "tsc --noEmit && eslint ./src --ext .ts,.tsx",
     "lint:fix": "tsc --noEmit && eslint ./src --ext .ts,.tsx --fix",
     "husky:pre-commit": "lint-staged",
-    "husky:commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    "husky:commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+    "deploy": "npm clean && npm ci && npm analyze && standard-version",
+    "deploy:next": "npm clean && npm ci && npm analyze && standard-version --prerelease next"
   },
   "keywords": [],
   "author": "",
@@ -56,6 +58,7 @@
     "prettier": "^1.16.4",
     "sass-loader": "^7.1.0",
     "source-map-loader": "^0.2.4",
+    "standard-version": "^7.0.0",
     "style-loader": "^0.23.1",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.17.0",
