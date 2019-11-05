@@ -83,7 +83,7 @@ This script will prepare the next plugin version.
   }
 
   if (answers.contrib && !answers.contribLatest) {
-    console.log('Cannot continue with the deployment. Please publish contrib first and try again');
+    console.log(chalk.red('Cannot continue with the deployment. Please publish contrib first and try again'));
     return false;
   }
 

@@ -11,9 +11,6 @@ const extraArgs = process.argv.splice(2);
 
 const rootFolder = path.resolve(__dirname, '../');
 const packageJsonPath = path.resolve(rootFolder, 'package.json');
-const binPath = path.resolve(rootFolder, 'node_modules', '.bin');
-
-
 
 function runSpawn(command, args, extra = {}) {
   const stdio = typeof extra.stdio === 'string' ? [extra.stdio,extra.stdio, 'pipe'] :
@@ -29,46 +26,63 @@ function runSpawn(command, args, extra = {}) {
 
 function showSummary() {
   const version = getPluginVersion();
-  const tagName = `v${version}`;
 
   console.log(chalk`
-    {green Successfully created new plugin version}
+    {green Successfully published plugin to npm}
      
     Version :${version}
-  
-    Before committing please test version.  
-      
-    To abort changes run:
-    {bold git reset --hard}
-    
-    To commit changes to github run:
-    {bold git commit -am "chore(release): publish version ${version}"}
-    {bold git tag -a ${tagName} -m "${tagName}"}
-    {bold git push --follow-tags}  
-    
-    Then, publish to npm:
-    {bold npm run deploy:publish-to-npm}
   `);
 }
 
 
 async function promptWelcome() {
+  const version = getPluginVersion();
+  const isNext = version.indexOf('next') !== -1;
+
   console.log(chalk`{bgCyan {bold Welcome!}}
-This script will prepare the next plugin version.
+This script will publish version {bold ${version}} to npm.
 `);
-  const {ready} = await inquirer.prompt(
+  const answers = await inquirer.prompt(
     [{
       name: 'ready',
       type: 'confirm',
       message: 'Are you ready to begin?'
-    }]
+    },
+      {
+        name: 'confirmVersion',
+        type: 'confirm',
+        message: `Are you trying to publish version ${version}?`
+      },
+      {
+        name: 'tag',
+        type: 'rawlist',
+        choices: ['Latest', 'Next'],
+        message: `What is the type of version you want to publish?`,
+        when: answers => answers.confirmVersion
+      }]
   );
 
-  if (!ready) {
+  if (!answers.ready) {
     console.log('See you next time....');
+    return false;
   }
 
-  return ready;
+  if (!answers.confirmVersion) {
+    console.log(chalk.red(`Cannot continue with the publish. Current version is set to ${version} (Did you remember to prepare the requested version?)`));
+    return false;
+  }
+
+  if (answers.tag === 'Latest' && isNext) {
+    console.log(chalk.red(`Cannot continue with the publish. Current version is tagged as 'next'.`));
+    return false;
+  }
+
+  if (answers.tag === 'Next' && !isNext) {
+    console.log(chalk.red(`Cannot continue with the publish. Current version is tagged as 'latest'.`));
+    return false;
+  }
+
+  return true;
 }
 
 function getPluginVersion() {
@@ -90,7 +104,7 @@ function getPluginVersion() {
     console.log(chalk.blue(`build code`));
     runSpawn('npm', ['build'], { cwd: rootFolder});
     console.log(chalk.blue(`run standard version`));
-    runSpawn('npm', ['publish', '--access', 'public',extraArgs], { cwd: rootFolder});
+    runSpawn('npm', ['publish', '--access', 'public', extraArgs], { cwd: rootFolder});
 
     showSummary();
   } catch (err) {
