@@ -27,8 +27,8 @@
     "lint:fix": "tsc --noEmit && eslint ./src --ext .ts,.tsx --fix",
     "husky:pre-commit": "lint-staged",
     "husky:commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-    "deploy": "npm clean && npm ci && npm analyze && standard-version",
-    "deploy:next": "npm clean && npm ci && npm analyze && standard-version --prerelease next"
+    "deploy": "npm run clean && npm ci && npm run analyze && standard-version",
+    "deploy:next": "npm run clean && npm ci && npm run analyze && standard-version --prerelease next"
   },
   "keywords": [],
   "author": "",
