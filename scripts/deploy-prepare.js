@@ -67,13 +67,14 @@ This script will prepare the next plugin version.
       {
         name: 'contrib',
         type: 'confirm',
-        message: 'Did you change contrib libraries do support this version?'
+        message: 'Did you work with local version of contrib libraries?'
       },
       {
         name: 'contribLatest',
         type: 'confirm',
         message: 'Did you or someone else published those changes to npm?',
-        when: answers => answers.contrib
+        when: answers => answers.contrib,
+        default: false
       }]
   );
 
@@ -82,9 +83,15 @@ This script will prepare the next plugin version.
     return false;
   }
 
-  if (answers.contrib && !answers.contribLatest) {
-    console.log(chalk.red('Cannot continue with the deployment. Please publish contrib first and try again'));
-    return false;
+  if (answers.contrib) {
+    if (!answers.contribLatest) {
+      console.log(chalk.red('Cannot continue with the deployment. Please publish contrib first and try again'));
+      return false;
+    }
+
+    console.log(chalk.blue(`update contrib dependencies to latest`));
+    runSpawn('npm', ['run','contrib:latest'], { cwd: rootFolder});
+
   }
 
   return true;
@@ -102,14 +109,12 @@ function getPluginVersion() {
       return;
     }
 
-    console.log(chalk.blue(`update contrib dependencies to latest`));
-    runSpawn('npm', ['run','contrib:latest'], { cwd: rootFolder});
-    console.log(chalk.blue(`delete dist folder`));
-    runSpawn('npm', ['run','clean'], { cwd: rootFolder});
-    console.log(chalk.blue(`re-install dependencies in CI mode`));
-    runSpawn('npm', ['ci'], { cwd: rootFolder});
+    console.log(chalk.blue(`delete dist folder and node_modules`));
+    runSpawn('npm', ['run','reset'], { cwd: rootFolder});
+    console.log(chalk.blue(`install dependencies`));
+    runSpawn('npm', ['install'], { cwd: rootFolder});
     console.log(chalk.blue(`build code and run open analyzer`));
-    runSpawn('npm', ['analyze'], { cwd: rootFolder});
+    runSpawn('npm', ['run', 'analyze'], { cwd: rootFolder});
     console.log(chalk.blue(`run standard version`));
     runSpawn(path.resolve(binPath, 'standard-version'), extraArgs, {cwd: rootFolder});
     console.log(chalk.blue(`git stage all changes`));
