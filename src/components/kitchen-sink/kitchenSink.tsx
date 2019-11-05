@@ -18,6 +18,7 @@ export interface KitchenSinkProps {
     onSubmit: (text: string, parentId: string | null) => void;
     onResend: (qnaMessage: QnaMessage, parentId: string | null) => void;
     onMassageRead: (id: string) => void;
+    announcementsOnly: boolean;
     theme: QnaTheme;
 }
 
@@ -100,17 +101,23 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                                     ${
                                         props.hasError
                                             ? styles.whoopseErrorImage
+                                            : props.announcementsOnly
+                                            ? styles.noAnnouncementsYetImage
                                             : styles.noQuestionYetImage
                                     }                               
                                    `}
                     />
                     <div className={styles.emptyListTitle}>
-                        {props.hasError ? "Whoops!" : "No Question Yet"}
+                        {props.hasError
+                            ? "Whoops!"
+                            : `No ${props.announcementsOnly ? "Announcements" : "Questions"} Yet`}
                     </div>
                     <div className={styles.emptyListSubTitle}>
                         {props.hasError
                             ? "We couldn’t retrieve your messages. Please try again later"
-                            : "Type your first question below"}
+                            : props.announcementsOnly
+                            ? ""
+                            : `Type your first question below`}
                     </div>
                 </div>
             );
@@ -139,6 +146,8 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             onReply={this._handleOnSubmit}
                             onResend={this.handleOnResend}
                             onMassageRead={props.onMassageRead}
+                            onHeightChange={this._trackScrolling}
+                            announcementsOnly={props.announcementsOnly}
                             theme={messageTheme}
                         />
                     );
@@ -156,7 +165,9 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 {/* header */}
                 <div className={styles.headerContainer}>
                     <div className={styles.header}>
-                        <div className={styles.title}>Notifications</div>
+                        <div className={styles.title}>
+                            {props.announcementsOnly ? "Announcements" : "Q&A"}
+                        </div>
                         <button className={styles.closeButton} onClick={onClose} />
                     </div>
                 </div>
@@ -178,20 +189,28 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 </div>
 
                 {/* footer */}
-                <div className={styles.footer}>
-                    <div
-                        className={classNames(styles.scrollDownButton, {
-                            [styles.scrollDownButtonHidden]: state.autoScroll
+                {!props.hasError && (
+                    <div className={styles.footer}>
+                        <div
+                            className={classNames(styles.scrollDownButton, {
+                                [styles.scrollDownButtonHidden]: state.autoScroll,
+                            [styles.scrollDownButtonHiddenAnnouncementOnly]:
+                                state.autoScroll && props.announcementsOnly
                         })}
                     >
                         <ScrollDownButton onClick={this._scrollToBottom} />
                     </div>
-                    <AutoExpandTextArea
-                        onSubmit={this._handleOnSubmit}
-                        placeholder={"Type a private question"}
-                        enableAnimation={true}
-                    />
-                </div>
+                    {!props.announcementsOnly && (
+                        <AutoExpandTextArea
+                            onSubmit={this._handleOnSubmit}
+                            placeholder={"Type a private question"}
+                            enableAnimation={true}
+                            onFocusIn={this._trackScrolling}
+                            onFocusOut={this._trackScrolling}
+                        />
+                        )}
+                    </div>
+                )}
             </div>
         );
     }

@@ -22,21 +22,38 @@
     "analyze": "npm run build && npx source-map-explorer dist/playkit-js-qna.js",
     "contrib:latest": "npm i @playkit-js-contrib/{push-notifications,common,ui,plugin,linkify}@latest",
     "contrib:next": "npm i @playkit-js-contrib/{push-notifications,common,ui,plugin,linkify}@next",
-    "contrib:local": "npm link @playkit-js-contrib/{push-notifications,common,ui,plugin,linkify} --production"
+    "contrib:local": "npm link @playkit-js-contrib/{push-notifications,common,ui,plugin,linkify} --production",
+    "lint": "tsc --noEmit && eslint ./src --ext .ts,.tsx",
+    "lint:fix": "tsc --noEmit && eslint ./src --ext .ts,.tsx --fix",
+    "husky:pre-commit": "lint-staged",
+    "husky:commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
   },
   "keywords": [],
   "author": "",
   "devDependencies": {
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "@typescript-eslint/eslint-plugin": "^2.6.0",
+    "@typescript-eslint/parser": "^2.6.0",
     "awesome-typescript-loader": "^5.2.1",
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.0.2",
-    "css-loader": "^2.1.1",
+    "css-loader": "^3.2.0",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-plugin-filenames": "^1.3.2",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.16.0",
+    "eslint-plugin-standard": "^4.0.1",
     "html-webpack-plugin": "^3.2.0",
     "husky": "^1.3.1",
-    "lint-staged": "^8.1.5",
+    "lint-staged": "^8.2.1",
     "node-sass": "^4.5.3",
     "npm": "^6.9.0",
-    "prettier": "^1.15.3",
+    "prettier": "^1.16.4",
     "sass-loader": "^7.1.0",
     "source-map-loader": "^0.2.4",
     "style-loader": "^0.23.1",
@@ -51,10 +68,23 @@
     "webpack-dev-server": "^3.2.1",
     "webpack-merge": "^4.2.2"
   },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "npm run --silent lint:fix",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "npm run husky:commit-msg"
+    }
+  },
   "dependencies": {
-    "@playkit-js-contrib/common": "^0.1.2",
-    "@playkit-js-contrib/plugin": "^0.1.2",
-    "@playkit-js-contrib/ui": "^0.1.2",
+    "@playkit-js-contrib/common": "^2.1.0",
+    "@playkit-js-contrib/linkify": "^2.1.0",
+    "@playkit-js-contrib/plugin": "^2.1.0",
+    "@playkit-js-contrib/push-notifications": "^2.1.0",
+    "@playkit-js-contrib/ui": "^2.1.0",
     "@types/classnames": "^2.2.9",
     "classnames": "^2.2.6",
     "kaltura-typescript-client": "file:libs/kaltura-typescript-client-7.0.0-v20190324-101134.tgz",
@@ -63,16 +93,5 @@
   },
   "files": [
     "dist"
-  ],
-  "lint-staged": {
-    "*.{ts,tsx,json,css,html}": [
-      "prettier --write",
-      "git add"
-    ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  }
+  ]
 }
