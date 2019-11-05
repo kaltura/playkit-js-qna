@@ -97,10 +97,10 @@ function getPluginVersion() {
       return;
     }
 
-    console.log(chalk.blue(`delete dist folder`));
-    runSpawn('npm', ['run','clean'], { cwd: rootFolder});
-    console.log(chalk.blue(`re-install dependencies in CI mode`));
-    runSpawn('npm', ['ci'], { cwd: rootFolder});
+    console.log(chalk.blue(`delete dist folder and node_modules`));
+    runSpawn('npm', ['run','reset'], { cwd: rootFolder});
+    console.log(chalk.blue(`install dependencies`));
+    runSpawn('npm', ['install'], { cwd: rootFolder});
     console.log(chalk.blue(`build code`));
     runSpawn('npm', ['build'], { cwd: rootFolder});
     console.log(chalk.blue(`run standard version`));
