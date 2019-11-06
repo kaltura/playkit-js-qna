@@ -180,7 +180,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         renderContent: this._renderKitchenSinkContent
       });
 
-      if (this._corePlugin.config.expandMode) {
+      if (this._corePlugin.config.expandOnFirstPlay) {
         this._kitchenSinkItem.activate();
       }
     }
