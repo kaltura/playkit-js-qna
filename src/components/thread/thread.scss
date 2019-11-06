@@ -13,7 +13,6 @@
 }
 
 .message-content {
-  background-color: #333333cc;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
   padding: 8px 18px 8px 8px;
@@ -26,7 +25,6 @@
 
 .second-info-line {
   overflow: auto;
-  background-color: #333333cc;
   min-height: 16px;
   border-bottom: 1px solid #222222e6;
   padding: 0 8px 8px 8px;
@@ -34,7 +32,6 @@
 }
 
 .collapsed-area {
-  background-color: #333333cc;
   border-bottom: 1px solid #222222e6;
   padding: 16px 8px;
   box-sizing: initial;
@@ -98,7 +95,6 @@
 
 .reply {
   border-radius: 4px;
-  background-color: #666666;
   padding: 4px 8px;
 }
 
@@ -145,7 +141,6 @@
 }
 
 .last-info-line {
-  background-color: #333333cc;
   height: 32px;
   padding: 6px 8px;
   border-bottom-left-radius: 4px;
@@ -168,7 +163,7 @@
 }
 
 .reply-text {
-  color: #01accd;
+  color: #ffffff;
   font-size: 12px;
   font-weight: bold;
   position: relative;

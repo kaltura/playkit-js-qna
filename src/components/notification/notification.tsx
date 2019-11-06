@@ -4,18 +4,21 @@ import * as styles from "./notification.scss";
 import { TrimmedText } from "../trimmed-text";
 import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
+import { MessageTheme } from "../../plugin";
 
 export interface NotificationProps {
     qnaMessage: QnaMessage;
     dateFormat: string;
+    theme: MessageTheme;
 }
 
 export class Notification extends Component<NotificationProps> {
     render(props: NotificationProps) {
         const { qnaMessage, dateFormat } = this.props;
+        const { backgroundColor } = this.props.theme;
 
         return (
-            <div className={styles.notification}>
+            <div style={`background-color: ${backgroundColor};`} className={styles.notification}>
                 <div className={styles.leftContainer}>
                     <div className={styles.iconWrapper}>
                         <div

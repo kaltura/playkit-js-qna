@@ -20,8 +20,8 @@ a {
   word-break: break-all;
   white-space: pre-wrap;
 
-  &::selection {
-    background: #c4c4c4;
+  span::selection {
+    background: #bababa;
   }
 }
 

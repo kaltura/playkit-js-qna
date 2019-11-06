@@ -65,6 +65,14 @@ interface QnaPluginConfig {
     userRole: string;
 }
 
+export interface QnaTheme {
+    message: MessageTheme;
+}
+
+export interface MessageTheme {
+    backgroundColor: string;
+}
+
 enum UserRole {
     anonymousRole = "anonymousRole",
     unmoderatedAdminRole = "unmoderatedAdminRole"
@@ -381,6 +389,8 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
             return <div />;
         }
 
+        const theme = this._getTheme();
+
         return (
             <KitchenSink
                 {...props}
@@ -392,9 +402,21 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
                 onResend={this._chatMessagesAdapter.resendQuestion}
                 onMassageRead={this._chatMessagesAdapter.onMessageRead}
                 announcementsOnly={this._qnaSettings ? this._qnaSettings.announcementOnly : false}
+                theme={theme}
             />
         );
     };
+
+    private _getTheme(): QnaTheme {
+        const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
+
+        switch (expandMode) {
+            case KitchenSinkExpandModes.AlongSideTheVideo:
+                return { message: { backgroundColor: "rgba(255,255,255, 0.24)" } };
+            default:
+                return { message: { backgroundColor: "rgba(255,255,255, 0.16)" } };
+        }
+    }
 }
 
 ContribPluginManager.registerPlugin(
