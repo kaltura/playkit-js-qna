@@ -102,7 +102,7 @@ function getPluginVersion() {
     console.log(chalk.blue(`install dependencies`));
     runSpawn('npm', ['install'], { cwd: rootFolder});
     console.log(chalk.blue(`build code`));
-    runSpawn('npm', ['build'], { cwd: rootFolder});
+    runSpawn('npm', ['run', 'build'], { cwd: rootFolder});
     console.log(chalk.blue(`publish to npm`));
     runSpawn('npm', ['publish', '--access', 'public', ...extraArgs], { cwd: rootFolder});
 
