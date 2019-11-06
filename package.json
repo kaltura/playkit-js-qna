@@ -95,7 +95,6 @@
     "@playkit-js-contrib/ui": "^2.2.0",
     "@types/classnames": "^2.2.9",
     "classnames": "^2.2.6",
-    "kaltura-typescript-client": "file:libs/kaltura-typescript-client-7.0.0-v20190324-101134.tgz",
     "preact": "^8.4.2",
     "svg-url-loader": "^2.3.2"
   },
