@@ -62,6 +62,7 @@ interface QnaPluginConfig {
     toastDuration: number;
     dateFormat: string;
     expandMode: KitchenSinkExpandModes;
+    expandOnFirstPlay: boolean;
     userRole: string;
 }
 
@@ -178,6 +179,10 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         position: KitchenSinkPositions.Right,
         renderContent: this._renderKitchenSinkContent
       });
+
+      if (this._corePlugin.config.expandMode) {
+        this._kitchenSinkItem.activate();
+      }
     }
 
     private getUserId(): string {
@@ -430,6 +435,7 @@ ContribPluginManager.registerPlugin(
             toastDuration: DefaultToastDuration,
             dateFormat: "dd/mm/yyyy",
             expandMode: KitchenSinkExpandModes.OverTheVideo,
+            expandOnFirstPlay: false,
             userRole: UserRole.anonymousRole
         }
     }
