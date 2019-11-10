@@ -430,7 +430,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     // if only widgetKs was provided, take ks from session
     if(session && session.ks) return session.ks;
 
-    logger.error('Error: Failed to retrieve ks from configuration ' +
+    logger.warn('Warn: Failed to retrieve ks from configuration ' +
       '(both providers and session objects returned with an undefined KS),' +
       ' please check your configuration file.', {
       method: '_getKs'
