@@ -87,11 +87,11 @@
     }
   },
   "dependencies": {
-    "@playkit-js-contrib/common": "^2.2.0",
-    "@playkit-js-contrib/linkify": "^2.2.0",
-    "@playkit-js-contrib/plugin": "^2.2.0",
-    "@playkit-js-contrib/push-notifications": "^2.2.0",
-    "@playkit-js-contrib/ui": "^2.2.0",
+    "@playkit-js-contrib/common": "^3.0.0",
+    "@playkit-js-contrib/linkify": "^3.0.0",
+    "@playkit-js-contrib/plugin": "^3.0.0",
+    "@playkit-js-contrib/push-notifications": "^3.0.0",
+    "@playkit-js-contrib/ui": "^3.0.0",
     "@types/classnames": "^2.2.9",
     "classnames": "^2.2.6",
     "kaltura-typescript-client": "file:libs/kaltura-typescript-client-7.0.0-v20190324-101134.tgz",
