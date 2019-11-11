@@ -258,8 +258,16 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
   }
 
   private _initPluginManagers(): void {
-    const ks = this._getKs();
-    if(!ks) return;
+    const ks = this._contribServices.userKs;
+    if(!ks) {
+      logger.warn('Warn: Q&A Failed to initialize.' +
+        'Failed to retrieve ks from configuration ' +
+        '(both providers and session objects returned with an undefined KS),' +
+        ' please check your configuration file.', {
+        method: '_getKs'
+      });
+      return;
+    }
 
     const { playerConfig: { provider } } = this._configs;
     // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
@@ -421,21 +429,6 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
       default:
         return { message: { backgroundColor: "rgba(255,255,255, 0.16)" } };
     }
-  }
-
-  private _getKs(): string | null {
-    const { playerConfig: { provider, session } } = this._configs;
-    // if KS was provided in configuration
-    if(provider && provider.ks) return provider.ks;
-    // if only widgetKs was provided, take ks from session
-    if(session && session.ks) return session.ks;
-
-    logger.warn('Warn: Failed to retrieve ks from configuration ' +
-      '(both providers and session objects returned with an undefined KS),' +
-      ' please check your configuration file.', {
-      method: '_getKs'
-    });
-    return null;
   }
 }
 
