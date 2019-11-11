@@ -5,9 +5,8 @@ import {
     KitchenSinkItem,
     KitchenSinkPositions,
     ToastSeverity,
-    UIManager,
     ManagedComponent,
-    EventTypes,
+    KitchenSinkEventTypes,
     ItemActiveStateChangeEvent
 } from "@playkit-js-contrib/ui";
 import {
@@ -16,7 +15,6 @@ import {
     OnMediaLoad,
     OnMediaUnload,
     OnPluginSetup,
-    OnRegisterUI,
     ContribServices,
     ContribPluginData,
     ContribPluginConfigs
@@ -35,7 +33,7 @@ import { AoaAdapter } from "./aoaAdapter";
 import { AnnouncementsAdapter } from "./announcementsAdapter";
 import { ChatMessagesAdapter } from "./chatMessagesAdapter";
 import {
-    KitchenSinkEventTypes,
+    KitchenSinkPluginEventTypes,
     KitchenSinkMessages,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
@@ -79,7 +77,7 @@ enum UserRole {
     unmoderatedAdminRole = "unmoderatedAdminRole"
 }
 
-export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMediaUnload {
+export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
     private _kitchenSinkItem: KitchenSinkItem | null = null;
     private _threads: QnaMessage[] | [] = [];
     private _hasError: boolean = false;
@@ -118,12 +116,12 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         //adapters
         this._qnaPushNotification = new QnaPushNotification(this._corePlugin.player);
         this._kitchenSinkMessages = new KitchenSinkMessages({
-            kitchenSinkManager: this._contribServices.uiManager.kitchenSink
+            kitchenSinkManager: this._contribServices.kitchenSinkManager
         });
         this._aoaAdapter = new AoaAdapter({
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
-            bannerManager: this._contribServices.uiManager.banner,
+            bannerManager: this._contribServices.bannerManager,
             corePlayer: this._corePlugin.player as any,
             delayedEndTime: bannerDuration,
             isKitchenSinkActive: this._isKitchenSinkActive,
@@ -228,11 +226,11 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         this._kitchenSinkMessages.destroy();
         //remove listeners
         this._kitchenSinkMessages.off(
-            KitchenSinkEventTypes.MessagesUpdatedEvent,
+            KitchenSinkPluginEventTypes.MessagesUpdatedEvent,
             this._onQnaMessage
         );
-        this._contribServices.uiManager.kitchenSink.off(
-            EventTypes.ItemActiveStateChangeEvent,
+        this._contribServices.kitchenSinkManager.off(
+          KitchenSinkEventTypes.ItemActiveStateChangeEvent,
             this._onKitchenSinkStateChange
         );
     }
@@ -248,11 +246,11 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         );
         //register to kitchenSink updated qnaMessages array
         this._kitchenSinkMessages.on(
-            KitchenSinkEventTypes.MessagesUpdatedEvent,
+            KitchenSinkPluginEventTypes.MessagesUpdatedEvent,
             this._onQnaMessage
         );
-        this._contribServices.uiManager.kitchenSink.on(
-            EventTypes.ItemActiveStateChangeEvent,
+        this._contribServices.kitchenSinkManager.on(
+          KitchenSinkEventTypes.ItemActiveStateChangeEvent,
             this._onKitchenSinkStateChange
         );
     }
@@ -312,7 +310,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
     private _handleQnaSettingsChange(): void {
       //remove kitchenSink
       if(this._kitchenSinkItem && !this._qnaSettings.qnaEnabled) {
-        this._contribServices.uiManager.kitchenSink.remove(this._kitchenSinkItem);
+        this._contribServices.kitchenSinkManager.remove(this._kitchenSinkItem);
         this._kitchenSinkItem = null;
       }
       //add kitchenSink
@@ -366,7 +364,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
         // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
         if (!sources || sources.type === ("Vod" as any)) return;
         //display toast
-        this._contribServices.uiManager.toast.add({
+        this._contribServices.toastManager.add({
             title: "Notifications",
             text: options.text,
             icon: options.icon,
@@ -375,8 +373,6 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnRegisterUI, OnMe
             onClick: this._activateKitchenSink
         });
     };
-
-    onRegisterUI(uiManager: UIManager): void {}
 
     private _renderMenuIcon = (): ComponentChild => {
         return (
