@@ -19,7 +19,7 @@ export interface AoaAdapterOptions {
     isKitchenSinkActive: () => boolean;
     updateMenuIcon: (indicatorState: boolean) => void;
     displayToast: DisplayToast;
-    corePlayer: KalturaPlayerTypes.Player;
+    kalturaPlayer: KalturaPlayerTypes.Player;
     delayedEndTime: number;
 }
 
@@ -63,7 +63,7 @@ export class AoaAdapter {
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._updateMenuIcon = options.updateMenuIcon;
         this._displayToast = options.displayToast;
-        this._kalturaPlayer = options.corePlayer;
+        this._kalturaPlayer = options.kalturaPlayer;
         this._delayedEndTime = options.delayedEndTime;
     }
 

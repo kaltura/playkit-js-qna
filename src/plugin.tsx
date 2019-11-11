@@ -122,7 +122,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
             kitchenSinkMessages: this._kitchenSinkMessages,
             qnaPushNotification: this._qnaPushNotification,
             bannerManager: this._contribServices.bannerManager,
-            corePlayer: this._corePlugin.player as any,
+            kalturaPlayer: this._corePlugin.player as any,
             delayedEndTime: bannerDuration,
             isKitchenSinkActive: this._isKitchenSinkActive,
             updateMenuIcon: this._updateMenuIcon,
@@ -265,7 +265,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
             ks: provider.ks,
             serviceUrl: provider.env.serviceUrl,
             clientTag: "QnaPlugin_V7",
-            corePlayer: this._corePlugin.player
+            kalturaPlayer: this._corePlugin.player
         });
         this._aoaAdapter.init();
         this._announcementAdapter.init();
