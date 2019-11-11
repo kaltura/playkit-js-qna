@@ -3,12 +3,12 @@ import { Utils } from "./utils";
 import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
 import { KitchenSinkManager } from "@playkit-js-contrib/ui";
 
-export enum KitchenSinkEventTypes {
+export enum KitchenSinkPluginEventTypes {
     MessagesUpdatedEvent = "MessagesUpdatedEvent"
 }
 
 export interface MessagesUpdatedEvent {
-    type: KitchenSinkEventTypes.MessagesUpdatedEvent;
+    type: KitchenSinkPluginEventTypes.MessagesUpdatedEvent;
     messages: QnaMessage[];
 }
 
@@ -142,7 +142,7 @@ export class KitchenSinkMessages {
 
     public triggerUpdateUIEvent(): void {
         this._events.emit({
-            type: KitchenSinkEventTypes.MessagesUpdatedEvent,
+            type: KitchenSinkPluginEventTypes.MessagesUpdatedEvent,
             messages: this._qnaMessages
         });
     }
