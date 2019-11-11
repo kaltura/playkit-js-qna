@@ -257,7 +257,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
   }
 
   private _initPluginManagers(): void {
-    const ks = this._contribServices.userKs;
+    const ks = this._contribServices.getPlayerKS();
     if(!ks) {
       logger.warn('Warn: Q&A Failed to initialize.' +
         'Failed to retrieve ks from configuration ' +
