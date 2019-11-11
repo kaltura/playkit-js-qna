@@ -6,7 +6,7 @@ import {
     KitchenSinkPositions,
     ToastSeverity,
     ManagedComponent,
-    EventTypes,
+    KitchenSinkEventTypes,
     ItemActiveStateChangeEvent
 } from "@playkit-js-contrib/ui";
 import {
@@ -33,7 +33,7 @@ import { AoaAdapter } from "./aoaAdapter";
 import { AnnouncementsAdapter } from "./announcementsAdapter";
 import { ChatMessagesAdapter } from "./chatMessagesAdapter";
 import {
-    KitchenSinkEventTypes,
+    KitchenSinkPluginEventTypes,
     KitchenSinkMessages,
     MessagesUpdatedEvent
 } from "./kitchenSinkMessages";
@@ -226,11 +226,11 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
         this._kitchenSinkMessages.destroy();
         //remove listeners
         this._kitchenSinkMessages.off(
-            KitchenSinkEventTypes.MessagesUpdatedEvent,
+            KitchenSinkPluginEventTypes.MessagesUpdatedEvent,
             this._onQnaMessage
         );
         this._contribServices.kitchenSinkManager.off(
-            EventTypes.ItemActiveStateChangeEvent,
+          KitchenSinkEventTypes.ItemActiveStateChangeEvent,
             this._onKitchenSinkStateChange
         );
     }
@@ -246,11 +246,11 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
         );
         //register to kitchenSink updated qnaMessages array
         this._kitchenSinkMessages.on(
-            KitchenSinkEventTypes.MessagesUpdatedEvent,
+            KitchenSinkPluginEventTypes.MessagesUpdatedEvent,
             this._onQnaMessage
         );
         this._contribServices.kitchenSinkManager.on(
-            EventTypes.ItemActiveStateChangeEvent,
+          KitchenSinkEventTypes.ItemActiveStateChangeEvent,
             this._onKitchenSinkStateChange
         );
     }
