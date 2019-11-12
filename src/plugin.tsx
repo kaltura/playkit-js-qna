@@ -274,7 +274,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
       ks: ks,
       serviceUrl: provider.env.serviceUrl,
       clientTag: "QnaPlugin_V7",
-      corePlayer: this._corePlugin.player
+      kalturaPlayer: this._corePlugin.player
     });
     this._aoaAdapter.init();
     this._announcementAdapter.init();
