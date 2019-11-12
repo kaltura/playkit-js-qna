@@ -123,7 +123,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
       kitchenSinkMessages: this._kitchenSinkMessages,
       qnaPushNotification: this._qnaPushNotification,
       bannerManager: this._contribServices.bannerManager,
-      corePlayer: this._corePlugin.player as any,
+      kalturaPlayer: this._corePlugin.player as any,
       delayedEndTime: bannerDuration,
       isKitchenSinkActive: this._isKitchenSinkActive,
       updateMenuIcon: this._updateMenuIcon,
@@ -263,7 +263,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
         'Failed to retrieve ks from configuration ' +
         '(both providers and session objects returned with an undefined KS),' +
         ' please check your configuration file.', {
-        method: '_getKs'
+        method: '_initPluginManagers'
       });
       return;
     }
