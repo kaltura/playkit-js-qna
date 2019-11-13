@@ -78,6 +78,8 @@ enum UserRole {
   unmoderatedAdminRole = "unmoderatedAdminRole"
 }
 
+const DefaultAnonymousPrefix = 'Guest';
+
 export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
   private _kitchenSinkItem: KitchenSinkItem | null = null;
   private _threads: QnaMessage[] | [] = [];
@@ -188,7 +190,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
     const { session } = this._configs.playerConfig;
 
     if (this._corePlugin.config.userRole === UserRole.anonymousRole || !session.userId) {
-      return KalturaLiveServices.getAnonymousUserId();
+      return KalturaLiveServices.getAnonymousUserId(session.userId || DefaultAnonymousPrefix);
     }
 
     return session.userId;
