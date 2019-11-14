@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.4](https://github.com/kaltura/playkit-js-qna/compare/v0.7.3...v0.7.4) (2019-11-14)
+
+
+### Bug Fixes
+
+* send messages to moderator in embeded player  WEBC-1696 ([#58](https://github.com/kaltura/playkit-js-qna/issues/58)) ([2ef3d56](https://github.com/kaltura/playkit-js-qna/commit/2ef3d561b7df45d10c25c09c820a6deafddaa745))
+
 ### [0.7.3](https://github.com/kaltura/playkit-js-qna/compare/v0.7.2...v0.7.3) (2019-11-11)
 
 
