@@ -6,7 +6,7 @@ import classNames from "classnames";
 import { TrimmedText } from "../trimmed-text";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
 import { AnsweredOnAirIcon } from "../answered-on-air-icon";
-import { MessageTheme } from "../../plugin";
+import { MessageTheme } from "../../qna-plugin";
 
 interface ThreadProps {
   thread: QnaMessage;

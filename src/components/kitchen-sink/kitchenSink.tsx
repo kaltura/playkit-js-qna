@@ -7,7 +7,7 @@ import { AutoExpandTextArea } from "../auto-expand-text-area";
 import { Notification } from "../notification";
 import { ScrollDownButton } from "../scroll-down-button";
 import classNames from "classnames";
-import { QnaTheme } from "../../plugin";
+import { QnaTheme } from "../../qna-plugin";
 
 export interface KitchenSinkProps {
     onClose: () => void;

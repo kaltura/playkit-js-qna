@@ -4,7 +4,7 @@ import * as styles from "./notification.scss";
 import { TrimmedText } from "../trimmed-text";
 import { TimeDisplay } from "../time-display";
 import classNames from "classnames";
-import { MessageTheme } from "../../plugin";
+import { MessageTheme } from "../../qna-plugin";
 
 export interface NotificationProps {
     qnaMessage: QnaMessage;
