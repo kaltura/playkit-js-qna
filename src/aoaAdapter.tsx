@@ -10,7 +10,7 @@ import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
 import { Utils } from "./utils";
-import { DisplayToast } from "./plugin";
+import { DisplayToast } from "./qna-plugin";
 
 export interface AoaAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;

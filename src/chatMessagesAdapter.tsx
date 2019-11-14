@@ -31,7 +31,7 @@ import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataA
 import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { Utils } from "./utils";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
-import { DisplayToast } from "./plugin";
+import { DisplayToast } from "./qna-plugin";
 
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;

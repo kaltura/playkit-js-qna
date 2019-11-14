@@ -10,7 +10,7 @@ import { ToastSeverity } from "@playkit-js-contrib/ui";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
 import { Utils } from "./utils";
-import { DisplayToast } from "./plugin";
+import { DisplayToast } from "./qna-plugin";
 
 export interface AnnouncementsAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;

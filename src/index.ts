@@ -1,1 +1,1 @@
-import "./plugin";
+import "./qna-plugin";
