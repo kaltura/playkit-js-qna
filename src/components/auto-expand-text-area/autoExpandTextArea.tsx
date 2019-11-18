@@ -9,7 +9,6 @@ interface AutoExpandTextAreaProps {
   initialFocus?: boolean;
   alwaysOpen?: boolean;
   disabled?: boolean;
-  showLockIcon?: boolean;
   enableAnimation?: boolean;
   onFocusOut?: () => void;
   onFocusIn?: () => void;
@@ -18,12 +17,11 @@ interface AutoExpandTextAreaProps {
 interface AutoExpandTextAreaState {
   text: string;
   open: boolean;
-  bleepingAnimation: boolean;
+
 }
 
 const MAX_NUM_OF_CHARS = 500;
 const MAX_HEIGHT = 103;
-const AnimationDuration = 700;
 
 export class AutoExpandTextArea extends Component<
   AutoExpandTextAreaProps,
@@ -39,11 +37,11 @@ export class AutoExpandTextArea extends Component<
     placeholder: "",
     enableBlackInputTheme: false,
     disabled: false,
-    showLockIcon: true,
+
     enableAnimation: false
   };
 
-  state: AutoExpandTextAreaState = { text: "", open: false, bleepingAnimation: false };
+  state: AutoExpandTextAreaState = { text: "", open: false };
 
   componentDidMount(): void {
     if (this.props.alwaysOpen) {
@@ -68,10 +66,7 @@ export class AutoExpandTextArea extends Component<
       this._allowClickTimeout = null;
     }
 
-    this.setState({ open: true, bleepingAnimation: true });
-    setTimeout(() => {
-      this.setState({ bleepingAnimation: false });
-    }, AnimationDuration);
+    this.setState({ open: true});
 
     if(this.props.onFocusOut)
       this._textareaContainer.removeEventListener('transitionend', this.props.onFocusOut);
@@ -80,9 +75,9 @@ export class AutoExpandTextArea extends Component<
       if(this.props.enableAnimation){
         this._textareaContainer.addEventListener('transitionend', this.props.onFocusIn);
       } else {
-        this.props.onFocusIn();
-      }
+      this.props.onFocusIn();
     }
+  }
   };
 
   private _handleFocusOut = (e: any) => {
@@ -94,7 +89,7 @@ export class AutoExpandTextArea extends Component<
       // this helps to catch the click on an outside element (like, button) when clicking outsides the element.
       // otherwise the click is missed and swallowed.
       this._allowClickTimeout = setTimeout(() => {
-        this.setState(() => ({ open: false, bleepingAnimation: false }));
+        this.setState(() => ({ open: false }));
       }, 200);
     }
 
@@ -179,12 +174,12 @@ export class AutoExpandTextArea extends Component<
   };
 
   render() {
-    const { text, open, bleepingAnimation } = this.state;
+    const { text, open } = this.state;
     const {
       enableBlackInputTheme,
       placeholder,
       disabled,
-      showLockIcon,
+
       enableAnimation
     } = this.props;
 
@@ -193,14 +188,7 @@ export class AutoExpandTextArea extends Component<
         className={styles.textareaContainer}
         ref={textareaContainer => (this._textareaContainer = textareaContainer)}
       >
-        {showLockIcon && (
-          <i
-            className={classNames(styles.ignoreClicks, {
-              [styles.privateIcon]: open,
-              [styles.beatingPrivateIcon]: bleepingAnimation
-            })}
-          />
-        )}
+
         <textarea
           value={text}
           className={classNames(styles.textarea, {

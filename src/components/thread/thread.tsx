@@ -198,7 +198,6 @@ export class Thread extends Component<ThreadProps, ThreadState> {
             initialFocus={true}
             alwaysOpen={true}
             disabled={thread.deliveryStatus !== MessageDeliveryStatus.CREATED}
-            showLockIcon={false}
             onFocusOut={this.handleAutoExpandTextAreaFocusOut}
           />
         </div>
