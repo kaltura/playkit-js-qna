@@ -17,6 +17,7 @@ interface AutoExpandTextAreaProps {
 interface AutoExpandTextAreaState {
   text: string;
   open: boolean;
+
 }
 
 const MAX_NUM_OF_CHARS = 500;
@@ -36,6 +37,7 @@ export class AutoExpandTextArea extends Component<
     placeholder: "",
     enableBlackInputTheme: false,
     disabled: false,
+
     enableAnimation: false
   };
 
@@ -64,11 +66,18 @@ export class AutoExpandTextArea extends Component<
       this._allowClickTimeout = null;
     }
 
-    this.setState({ open: true });
+    this.setState({ open: true});
+
+    if(this.props.onFocusOut)
+      this._textareaContainer.removeEventListener('transitionend', this.props.onFocusOut);
 
     if (this.props.onFocusIn) {
+      if(this.props.enableAnimation){
+        this._textareaContainer.addEventListener('transitionend', this.props.onFocusIn);
+      } else {
       this.props.onFocusIn();
     }
+  }
   };
 
   private _handleFocusOut = (e: any) => {
@@ -84,8 +93,15 @@ export class AutoExpandTextArea extends Component<
       }, 200);
     }
 
+    if(this.props.onFocusIn)
+      this._textareaContainer.removeEventListener('transitionend', this.props.onFocusIn);
+
     if (this.props.onFocusOut) {
-      this.props.onFocusOut();
+      if(this.props.enableAnimation){
+        this._textareaContainer.addEventListener('transitionend', this.props.onFocusOut);
+      } else {
+        this.props.onFocusOut();
+      }
     }
   };
 
@@ -163,6 +179,7 @@ export class AutoExpandTextArea extends Component<
       enableBlackInputTheme,
       placeholder,
       disabled,
+
       enableAnimation
     } = this.props;
 
@@ -171,6 +188,7 @@ export class AutoExpandTextArea extends Component<
         className={styles.textareaContainer}
         ref={textareaContainer => (this._textareaContainer = textareaContainer)}
       >
+
         <textarea
           value={text}
           className={classNames(styles.textarea, {
@@ -210,6 +228,10 @@ export class AutoExpandTextArea extends Component<
   componentWillUnmount(): void {
     this._textareaContainer.removeEventListener("focusin", this._handleFocusIn);
     this._textareaContainer.removeEventListener("focusout", this._handleFocusOut);
+    if(this.props.onFocusOut)
+      this._textareaContainer.removeEventListener('transitionend', this.props.onFocusOut);
+    if(this.props.onFocusIn)
+      this._textareaContainer.removeEventListener('transitionend', this.props.onFocusIn);
 
     if (this._allowClickTimeout) {
       clearTimeout(this._allowClickTimeout);

@@ -89,6 +89,13 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
         return el && el.scrollHeight - el.scrollTop === el.clientHeight;
     }
 
+    private _handleTextAreaFocusIn = (): void => {
+      if(this.state.autoScroll) {
+        this._scrollToBottom();
+      }
+      this._trackScrolling();
+    };
+
     private _generateContent(props: KitchenSinkProps) {
         if (props.loading) {
             return <Spinner />;
@@ -205,7 +212,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                             onSubmit={this._handleOnSubmit}
                             placeholder={"Type a private question"}
                             enableAnimation={true}
-                            onFocusIn={this._trackScrolling}
+                            onFocusIn={this._handleTextAreaFocusIn}
                             onFocusOut={this._trackScrolling}
                         />
                         )}
