@@ -1,6 +1,6 @@
 {
   "name": "@playkit-js/qna-plugin",
-  "version": "0.7.4",
+  "version": "0.7.5-next.0",
   "license": "AGPL-3.0",
   "bugs": {
     "url": "https://github.com/kaltura/playkit-js-qna/issues"
@@ -88,10 +88,10 @@
   },
   "dependencies": {
     "@playkit-js-contrib/common": "^3.0.1",
-    "@playkit-js-contrib/linkify": "^3.0.1",
-    "@playkit-js-contrib/plugin": "^3.0.1",
+    "@playkit-js-contrib/linkify": "^3.0.2",
+    "@playkit-js-contrib/plugin": "^3.0.2",
     "@playkit-js-contrib/push-notifications": "^3.0.1",
-    "@playkit-js-contrib/ui": "^3.0.1",
+    "@playkit-js-contrib/ui": "^3.0.2",
     "@types/classnames": "^2.2.9",
     "classnames": "^2.2.6",
     "kaltura-typescript-client": "file:libs/kaltura-typescript-client-7.0.0-v20190324-101134.tgz",

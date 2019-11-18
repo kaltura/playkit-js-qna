@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.5-next.0](https://github.com/kaltura/playkit-js-qna/compare/v0.7.4...v0.7.5-next.0) (2019-11-18)
+
+
+### Features
+
+* removing lock icon from input ([#63](https://github.com/kaltura/playkit-js-qna/issues/63)) WEBC-1645 ([3d753c1](https://github.com/kaltura/playkit-js-qna/commit/3d753c12a5794737f0bee152d245bebd838282a8))
+* auto scroll button stays visible after auto expand text area animation (WEBC-1697)
+* the scroll down button appears when opening the input (WEBC-1714)
+
+### Bug Fixes
+
+* adding a root style for aligning text to the left as default ([#65](https://github.com/kaltura/playkit-js-qna/issues/65)) WEBC-1721 ([e9a670f](https://github.com/kaltura/playkit-js-qna/commit/e9a670fabfa0e74fa693c5aa3e447b2834c71c2c))
+
 ### [0.7.4](https://github.com/kaltura/playkit-js-qna/compare/v0.7.3...v0.7.4) (2019-11-14)
 
 
