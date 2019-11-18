@@ -77,7 +77,11 @@ export class AutoExpandTextArea extends Component<
       this._textareaContainer.removeEventListener('transitionend', this.props.onFocusOut);
 
     if (this.props.onFocusIn) {
-      this.props.onFocusIn();
+      if(this.props.enableAnimation){
+        this._textareaContainer.addEventListener('transitionend', this.props.onFocusIn);
+      } else {
+        this.props.onFocusIn();
+      }
     }
   };
 
@@ -93,6 +97,9 @@ export class AutoExpandTextArea extends Component<
         this.setState(() => ({ open: false, bleepingAnimation: false }));
       }, 200);
     }
+
+    if(this.props.onFocusIn)
+      this._textareaContainer.removeEventListener('transitionend', this.props.onFocusIn);
 
     if (this.props.onFocusOut) {
       if(this.props.enableAnimation){
@@ -235,6 +242,8 @@ export class AutoExpandTextArea extends Component<
     this._textareaContainer.removeEventListener("focusout", this._handleFocusOut);
     if(this.props.onFocusOut)
       this._textareaContainer.removeEventListener('transitionend', this.props.onFocusOut);
+    if(this.props.onFocusIn)
+      this._textareaContainer.removeEventListener('transitionend', this.props.onFocusIn);
 
     if (this._allowClickTimeout) {
       clearTimeout(this._allowClickTimeout);
