@@ -1,7 +1,7 @@
 .thread{
   position: relative;
   border-radius: 4px;
-  color: #ffffffe6;
+  color: #ffffff;
   width: 100%;
   margin-top: 16px;
 }
@@ -19,20 +19,24 @@
   min-height: 15px;
   font-size: 15px;
   line-height: 1;
-  color: #ffffffe6;
+  color: #ffffff;
   white-space: pre-wrap;
 }
 
-.second-info-line {
-  overflow: auto;
-  min-height: 16px;
-  border-bottom: 1px solid #222222e6;
+.second-info-line-container {
+  display: flex;
+  border-bottom: 1px solid rgba(33, 33, 33, 0.9);
   padding: 0 8px 8px 8px;
   box-sizing: initial;
 }
 
+.second-info-line {
+  width: 100%;
+  box-sizing: initial;
+}
+
 .collapsed-area {
-  border-bottom: 1px solid #222222e6;
+  border-bottom: 1px solid rgba(33, 33, 33, 0.9);
   padding: 16px 8px;
   box-sizing: initial;
   transition: all 150ms ease;
