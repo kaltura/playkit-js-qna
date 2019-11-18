@@ -31,7 +31,7 @@
 
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 4px;
-  padding: 7px 34px 8px 8px;
+  padding: 7px 8px 8px 8px;
   color: rgb(255, 255, 255);
   background-color: rgb(86, 86, 86);
   font-size: 15px;
@@ -131,31 +131,4 @@
 
 @keyframes come-in {
   to { transform: translateY(0); }
-}
-
-@keyframes heartbeat {
-  0% {
-    transform: scale( .60);
-  }
-  15% {
-    transform: scale( 0.75);
-  }
-  30% {
-    transform: scale( 1);
-  }
-  45% {
-    transform: scale( 1.2);
-  }
-  60% {
-    transform: scale( 1);
-  }
-  75% {
-    transform: scale( 0.9);
-  }
-  90% {
-    transform: scale(1);
-  }
-  100% {
-    transform: scale(1);
-  }
 }
