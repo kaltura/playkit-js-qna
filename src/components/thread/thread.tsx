@@ -119,32 +119,34 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                 >
           <TrimmedText maxLength={120} text={thread.messageContent} />
         </div>
-        <div
-                    style={`background-color: ${backgroundColor};`}
-                    className={styles.secondInfoLine}
+
+        <div style={`background-color: ${backgroundColor};`}
+             className={styles.secondInfoLineContainer}>
+          <div className={styles.secondInfoLine} >
+            {this.showTimeOrStatus(thread, dateFormat)}
+            {/*    Show Number of Replies/Show Less button and thread time  */
+              replies.length > 0 && (
+                <button
+                  className={styles.clearStyledButton}
+                  onClick={this.handleOnShowMoreClick}
+                  type={"button"}
                 >
-          {this.showTimeOrStatus(thread, dateFormat)}
-          {/*    Show Number of Replies/Show Less button and thread time  */
-            replies.length > 0 && (
-              <button
-                className={styles.clearStyledButton}
-                onClick={this.handleOnShowMoreClick}
-                type={"button"}
-              >
                             <span
                               className={classNames(styles.numOfRepliesIcon, {
                                 [styles.arrowLeft]: !isThreadOpen
                               })}
                             />
-                <span className={styles.numOfReplies}>
+                  <span className={styles.numOfReplies}>
                                 {isThreadOpen
                                   ? "Show less"
                                   : replies.length +
                                   (replies.length === 1 ? " Reply" : " Replies")}
                             </span>
-              </button>
-            )}
+                </button>
+              )}
+          </div>
         </div>
+
 
         {/*    Replies Collapsed area  */
           isThreadOpen && (

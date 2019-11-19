@@ -1,4 +1,4 @@
-$background-color: #222222e6;
+$background-color: rgba(33, 33, 33, 0.9);
 
 /* TODO: (1) remove this once 3rd party cross-browser custom scroll bar is Added */
 .flexible-main::-webkit-scrollbar {
@@ -35,13 +35,12 @@ $background-color: #222222e6;
     height: 29px;
     width: 100%;
     font-size: 14px;
-    border-bottom: 1px solid #666666e6;
+    border-bottom: 1px solid rgba(102, 102, 102, 0.9);
   }
 
   .title {
     margin-left: 9px;
     line-height: 28px;
-    font-family: Lato;
     font-size: 15px;
     color: #cccccc;
   }
