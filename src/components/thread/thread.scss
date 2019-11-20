@@ -22,6 +22,10 @@
   color: #ffffff;
   white-space: pre-wrap;
   word-break: break-all;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 }
 
 .second-info-line-container {

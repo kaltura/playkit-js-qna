@@ -16,9 +16,12 @@ a {
 
 .text {
   margin-right: 4px;
-  user-select: text;
   word-break: break-all;
   white-space: pre-wrap;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
 
   span::selection {
     background: #bababa;
