@@ -26,6 +26,7 @@
 
   overflow: hidden;
   outline: none;
+  outline-offset: -1px;
   resize: none;
   border: none;
 
@@ -58,6 +59,9 @@
     border-bottom-left-radius: 4px;
     background-color: black;
     color: white;
+    /* these 2 lines support ie11 outline from breaking */
+    margin-left: 1px;
+    width: calc(100% - 1px);
   }
 }
 
