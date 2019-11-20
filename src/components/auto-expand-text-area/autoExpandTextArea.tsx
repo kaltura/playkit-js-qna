@@ -212,7 +212,7 @@ export class AutoExpandTextArea extends Component<
         >
           <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
           <button
-            onClick={this._handleOnSend}
+            onMouseDown={this._handleOnSend}
             className={styles.sendButton}
             type={"button"}
             disabled={!text.length || disabled}
