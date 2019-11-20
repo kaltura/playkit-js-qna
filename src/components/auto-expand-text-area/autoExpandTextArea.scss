@@ -65,6 +65,11 @@
   }
 }
 
+.textarea::-ms-input-placeholder {
+  color: #cccccc;
+  font-size: 15px;
+}
+
 .private-icon {
   width: 40px;
   height: 40px;
