@@ -86,7 +86,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
 
     private _isBottom(): boolean {
         const el = document.getElementsByClassName(styles.flexibleMain)[0];
-        return el && el.scrollHeight - el.scrollTop === el.clientHeight;
+        return el && el.scrollHeight - el.scrollTop <= el.clientHeight;
     }
 
     private _handleTextAreaFocusIn = (): void => {
