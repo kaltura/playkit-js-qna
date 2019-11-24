@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.6](https://github.com/kaltura/playkit-js-qna/compare/v0.7.5-next.0...v0.7.6) (2019-11-24)
+
+
+### Bug Fixes
+
+* enable messages text selection ([#71](https://github.com/kaltura/playkit-js-qna/issues/71)) WEBC-1701 ([772de98](https://github.com/kaltura/playkit-js-qna/commit/772de983892cba953ed5086f806cd43ec6994d8e))
+* enable send reply in safari ([#69](https://github.com/kaltura/playkit-js-qna/issues/69)) WEBC-1707 ([1009208](https://github.com/kaltura/playkit-js-qna/commit/1009208ea3f45160873d1397cb92f757b6442f38))
+* fix border lines ([bdf9be7](https://github.com/kaltura/playkit-js-qna/commit/bdf9be7b8c734077e4ddbf5dac5a85d416f3f845))
+* fix textarea placeholder and border color WEBC-1712 ([b777e5c](https://github.com/kaltura/playkit-js-qna/commit/b777e5cd12a1338364cdcbbb9ecf5aad54071ee6))
+* fix word-break in IE ([#68](https://github.com/kaltura/playkit-js-qna/issues/68)) WEBC-1702 ([068145c](https://github.com/kaltura/playkit-js-qna/commit/068145c42a977d66c2cf3a29f38d85404ce9cc78))
+* fix Edge placeholder color ([#73](https://github.com/kaltura/playkit-js-qna/issues/73)) ([fc6667d](https://github.com/kaltura/playkit-js-qna/commit/fc6667d0926dcdc3dfb85fa9e2da13a6e568c4fe))
+* hide scroll to bottom button in IE ([#74](https://github.com/kaltura/playkit-js-qna/issues/74)) WEBC-1725 ([a3e83da](https://github.com/kaltura/playkit-js-qna/commit/a3e83da8bf1648e25f685701e369680de0b8ec05))
+* IE and safari auto resize textbox ([d46525c](https://github.com/kaltura/playkit-js-qna/commit/d46525c24a0e27dbdd558284c797efc2a93fb057))
+* IE | safari fix for missing safari images when no question or announcements exists (webc-1698) ([a32a763](https://github.com/kaltura/playkit-js-qna/commit/a32a76324169431cc871f4d41f8fb80ef6c0b211))
+
 ### [0.7.5](https://github.com/kaltura/playkit-js-qna/compare/v0.7.4...v0.7.5) (2019-11-18)
 
 
