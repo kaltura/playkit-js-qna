@@ -7,7 +7,6 @@ import { TrimmedText } from "../trimmed-text";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
 import { AnsweredOnAirIcon } from "../answered-on-air-icon";
 import { MessageTheme } from "../../qna-plugin";
-import {ToastsType} from "../toast-icon";
 
 interface ThreadProps {
   thread: QnaMessage;
