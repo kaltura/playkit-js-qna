@@ -67,6 +67,7 @@ export class Utils {
         return dateFormat;
       }
 
+      // the list was taken from media-space and approved in `KMS-20129`
       switch (dateFormat) {
         case 'j.n.Y':
           dateFormat = 'd.m.yyyy';
