@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.7](https://github.com/kaltura/playkit-js-qna/compare/v0.7.6...v0.7.7) (2019-11-25)
+
+
+### Bug Fixes
+
+* convert php date formatting to js ones (KMS-20129) ([1b80414](https://github.com/kaltura/playkit-js-qna/commit/1b80414d646b09be37acf3abe6e8e4857804494a))
+
 ### [0.7.6](https://github.com/kaltura/playkit-js-qna/compare/v0.7.5-next.0...v0.7.6) (2019-11-24)
 
 
