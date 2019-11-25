@@ -7,6 +7,7 @@ import { TrimmedText } from "../trimmed-text";
 import { AutoExpandTextArea } from "../auto-expand-text-area";
 import { AnsweredOnAirIcon } from "../answered-on-air-icon";
 import { MessageTheme } from "../../qna-plugin";
+import {ToastsType} from "../toast-icon";
 
 interface ThreadProps {
   thread: QnaMessage;
@@ -121,7 +122,9 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         </div>
 
         <div style={`background-color: ${backgroundColor};`}
-             className={styles.secondInfoLineContainer}>
+             className={classNames(styles.secondInfoLineContainer, {
+               [styles.withReply]: replies.length > 0,
+             })}>
           <div className={styles.secondInfoLine} >
             {this.showTimeOrStatus(thread, dateFormat)}
             {/*    Show Number of Replies/Show Less button and thread time  */
