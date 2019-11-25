@@ -10,7 +10,7 @@ export class Utils {
             return;
         }
 
-        let dateString = dateFormat;
+        let dateString = Utils._convertPhpDateFormattingToJsDateFormatting(dateFormat);
 
         const d = date.getDate();
         const dd = d < 10 ? `0${d}` : d;
@@ -60,6 +60,38 @@ export class Utils {
         dateString = dateString.replace(/yyyy/, yyyy.toString());
 
         return dateString;
+    }
+
+    private static _convertPhpDateFormattingToJsDateFormatting(dateFormat: string): string{
+      if (dateFormat.indexOf('j') === -1) {
+        return dateFormat;
+      }
+
+      // the list was taken from media-space and approved in `KMS-20129`
+      switch (dateFormat) {
+        case 'j.n.Y':
+          dateFormat = 'd.m.yyyy';
+          break;
+        case 'j/n/Y':
+          dateFormat = 'd/m/yyyy';
+          break;
+        case 'j F, Y':
+          dateFormat = 'd mmmm, yyyy';
+          break;
+        case 'm/j/Y':
+          dateFormat = 'mm/d/yyyy';
+          break;
+        case 'Y-n-j':
+          dateFormat = 'yyyy-m-d';
+          break;
+        case 'F jS, Y':
+          dateFormat = 'mmmm do, yyyy';
+          break;
+        default:
+          dateFormat = 'dd/mm/yyyy';
+      }
+
+      return dateFormat;
     }
 
     public static getDisplayTime(date: Date | null) {
