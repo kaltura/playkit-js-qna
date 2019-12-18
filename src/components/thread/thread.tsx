@@ -121,7 +121,9 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         </div>
 
         <div style={`background-color: ${backgroundColor};`}
-             className={styles.secondInfoLineContainer}>
+             className={classNames(styles.secondInfoLineContainer, {
+               [styles.withReply]: replies.length > 0,
+             })}>
           <div className={styles.secondInfoLine} >
             {this.showTimeOrStatus(thread, dateFormat)}
             {/*    Show Number of Replies/Show Less button and thread time  */
