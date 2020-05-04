@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.8](https://github.com/kaltura/playkit-js-qna/compare/v0.7.7...v2.0.0) (2020-05-04)
+
+
+### Bug Fixes
+
+* active state of a clicked link ([#87](https://github.com/kaltura/playkit-js-qna/issues/87)) WEBC-1733 ([7a3c987](https://github.com/kaltura/playkit-js-qna/commit/7a3c98727d30e41d2736ad25206fe8c640a29ede))
+* cli integration FEV-562 ([#168](https://github.com/kaltura/playkit-js-qna/issues/168)) ([7444035](https://github.com/kaltura/playkit-js-qna/commit/7444035ae3c30d6d0b7f3bd79d5475f1cd40d670))
+* padding in input and in the master question ([#86](https://github.com/kaltura/playkit-js-qna/issues/86)) WEBC-1729 ([1845c69](https://github.com/kaltura/playkit-js-qna/commit/1845c6965b9812be3033978a2a06e5c6c452a2ef))
+* upd contrib version ([87bc146](https://github.com/kaltura/playkit-js-qna/commit/87bc146a68c4f708b89340fb5acd8e86ae264d2c))
+
 ### [0.7.7](https://github.com/kaltura/playkit-js-qna/compare/v0.7.6...v0.7.7) (2019-11-25)
 
 
