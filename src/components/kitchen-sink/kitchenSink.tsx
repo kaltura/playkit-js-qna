@@ -57,6 +57,13 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
         this.props.onResend(qnaMessage, parentId);
     };
 
+    private _getCurrentScrollPosition = () => {
+        // we should round down value to avoid inconsistent result when browser zoom is active
+        const rounded = Math.floor(this._messagesEnd.scrollHeight - this._messagesEnd.scrollTop);
+        // current scroll position should not be more than clientHeight to avoid "pin to bottom" effect
+        return rounded < this._messagesEnd.clientHeight ? this._messagesEnd.clientHeight : rounded;
+    }
+
     private _scrollToBottom = () => {
         clearInterval(this._animationInterval);
         if (this._messagesEnd) {
@@ -64,8 +71,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
                 // check if ref still exists during intervals and test if scroll ended
                 if (
                     this._messagesEnd &&
-                    this._messagesEnd.clientHeight >=
-                        this._messagesEnd.scrollHeight - this._messagesEnd.scrollTop
+                    this._messagesEnd.clientHeight >= this._getCurrentScrollPosition()
                 ) {
                     clearInterval(this._animationInterval);
                     this._messagesEnd.scrollTop = this._messagesEnd.scrollHeight;
@@ -85,8 +91,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     };
 
     private _isBottom(): boolean {
-        const el = document.getElementsByClassName(styles.flexibleMain)[0];
-        return el && el.scrollHeight - el.scrollTop <= el.clientHeight;
+        return this._messagesEnd && this._getCurrentScrollPosition() <= this._messagesEnd.clientHeight;
     }
 
     private _handleTextAreaFocusIn = (): void => {
