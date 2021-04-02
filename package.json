@@ -38,7 +38,7 @@
   "author": "",
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
-    "@commitlint/config-conventional": "^8.2.0",
+    "@commitlint/config-conventional": "^12.1.0",
     "@types/classnames": "^2.2.9",
     "eslint": "^6.6.0",
     "eslint-config-prettier": "^6.5.0",
