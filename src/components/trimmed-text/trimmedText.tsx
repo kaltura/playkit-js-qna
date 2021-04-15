@@ -1,6 +1,7 @@
 import { h, Component } from "preact";
 import * as styles from "./trimmedText.scss";
 import { LinkifyString } from "@playkit-js-contrib/linkify";
+import { Utils } from "../../utils";
 
 interface TrimmedTextProps {
     maxLength: number;
@@ -30,7 +31,7 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
             <span>
                 <span className={styles.text}>
                     <LinkifyString
-                        text={isTrimmed ? `${text.substring(0, maxLength).trim()}...` : text}
+                        text={isTrimmed ? `${Utils.wordBoundaryTrim(text, maxLength)}...` : text}
                     />
                 </span>
                 <button
