@@ -201,4 +201,12 @@ export class Utils {
     public static isMessageInTimeFrame(qnaMessage: QnaMessage) {
         return qnaMessage.createdAt.getTime() >= new Date().getTime() - NewMessageTimeDelay;
     }
+
+    public static wordBoundaryTrim = (
+        text: string,
+        maxLength: number
+      ): string => {
+        const subString = text.substring(0, maxLength);
+        return subString.substr(0, subString.lastIndexOf(' '));
+      };
 }
