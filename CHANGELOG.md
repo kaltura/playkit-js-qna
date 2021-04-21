@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.1](https://github.com/kaltura/playkit-js-qna/compare/v2.1.0...v2.1.1) (2021-04-21)
+
+
+### Bug Fixes
+
+* round scroll position to avoid inconsistent behavior of scroll when zoom active (FEV-764) ([#224](https://github.com/kaltura/playkit-js-qna/issues/224)) ([e9acee4](https://github.com/kaltura/playkit-js-qna/commit/e9acee4d44c0efca6d94a31469dbba21c1919a37))
+* **FEV-837:** QnA wrapping text in the middle of the word  ([89155a0](https://github.com/kaltura/playkit-js-qna/commit/89155a07abcbfbd154d426b09293a7ae0f416de2))
+
 ### [2.1.0](https://github.com/kaltura/playkit-js-qna/compare/v2.0.4...v2.1.0) (2021-01-04)
 
 ### [2.0.4](https://github.com/kaltura/playkit-js-qna/compare/v2.0.3...v2.0.4) (2020-07-29)
