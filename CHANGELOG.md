@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.2](https://github.com/kaltura/playkit-js-qna/compare/v2.1.1...v2.1.2) (2021-05-13)
+
+
+### Bug Fixes
+
+* **fev-837:** ie11 issue for word breaks; ([#246](https://github.com/kaltura/playkit-js-qna/issues/246)) ([f43dbfd](https://github.com/kaltura/playkit-js-qna/commit/f43dbfd710f4c158ee7dce65a8fb388b1333ad5d))
+
 ### [2.1.1](https://github.com/kaltura/playkit-js-qna/compare/v2.1.0...v2.1.1) (2021-04-21)
 
 
