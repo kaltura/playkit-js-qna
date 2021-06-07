@@ -1,5 +1,5 @@
 {
-  "name": "@playkit-js/qna-plugin",
+  "name": "@playkit-js/qna",
   "version": "2.1.2",
   "license": "AGPL-3.0",
   "bugs": {
@@ -26,8 +26,6 @@
     "husky:pre-commit": "lint-staged",
     "husky:commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
     "deploy:prepare": "kcontrib deploy --prepare",
-    "deploy:publish-to-npm": "kcontrib deploy --publish",
-    "deploy:next:prepare": "kcontrib deploy --prepare --prerelease next",
     "contrib:latest": "kcontrib infra --type=latest",
     "infra:latest": "kcontrib infra --type=latest",
     "infra:next": "kcontrib infra --type=next",
