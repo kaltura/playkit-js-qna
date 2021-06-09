@@ -25,7 +25,6 @@ script: ./scripts/travis.sh
 
 stages:
   - Tests
-  - Tests1
   - Release canary
   - Release
   - Deploy
@@ -82,4 +81,5 @@ jobs:
         - ./scripts/after_deploy.sh "$JENKINS_CANARY_TOKEN"
     - stage: Tests
       if: (branch = master) OR (tag IS present) OR (type = pull_request)
+      name: 'Running lint'
       env: TRAVIS_MODE=tests
