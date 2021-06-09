@@ -1,7 +1,6 @@
 #!/bin/sh
 # https://docs.travis-ci.com/user/customizing-the-build/#Implementing-Complex-Build-Steps
 set -ev
-CI=false
 npm install
 if [ "${TRAVIS_MODE}" = "release" ] || [ "${TRAVIS_MODE}" = "releaseCanary" ]; then
   if [ "${TRAVIS_MODE}" = "releaseCanary" ]; then

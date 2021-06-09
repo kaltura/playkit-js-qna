@@ -16,6 +16,7 @@ cache:
     - node_modules
 
 before_install:
+  - CI=false
   - export DISPLAY=:99.0
   - chmod +x ./scripts/travis.sh
   - chmod +x ./scripts/after_deploy.sh
