@@ -16,7 +16,7 @@
     "clean": "rm -rf dist",
     "reset": "npm run clean && rm -rf node_modules",
     "build": "kcontrib build",
-    "release-canary": "npx standard-version --prerelease canary --skip.commit=true --skip.tag=true --no-ci",
+    "release-canary": "standard-version --prerelease canary --skip.commit=true --skip.tag=true --no-ci",
     "build:dev": "kcontrib build --dev",
     "serve": "kcontrib serve",
     "serve:update-modes": "kcontrib serve --update-modes",
