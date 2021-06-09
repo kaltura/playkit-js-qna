@@ -1,11 +1,11 @@
 #!/bin/sh
 # https://docs.travis-ci.com/user/customizing-the-build/#Implementing-Complex-Build-Steps
 set -ev
-npm install
+yarn install
 if [ "${TRAVIS_MODE}" = "release" ] || [ "${TRAVIS_MODE}" = "releaseCanary" ]; then
   if [ "${TRAVIS_MODE}" = "releaseCanary" ]; then
     echo "Run standard-version"
-    npm run release-canary
+    yarn run release-canary
     sha=$(git rev-parse --verify --short HEAD)
     echo "Current sha ${sha}"
     commitNumberAfterTag=$(git rev-list  `git rev-list --tags --no-walk --max-count=1`..HEAD --count)
@@ -26,7 +26,7 @@ if [ "${TRAVIS_MODE}" = "release" ] || [ "${TRAVIS_MODE}" = "releaseCanary" ]; t
     conventional-github-releaser -p angular -t $GH_TOKEN || true
   fi
   echo "Building..."
-  npm run build
+  yarn run build
   echo "Finish building"
 elif [ "${TRAVIS_MODE}" = "deploy" ]; then
   echo "Deploy..."
