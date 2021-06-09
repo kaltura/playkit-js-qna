@@ -1,6 +1,7 @@
 #!/bin/sh
 # https://docs.travis-ci.com/user/customizing-the-build/#Implementing-Complex-Build-Steps
 set -ev
+CI=false
 npm install
 npm run release-canary
 exit 0
@@ -28,7 +29,7 @@ if [ "${TRAVIS_MODE}" = "release" ] || [ "${TRAVIS_MODE}" = "releaseCanary" ]; t
     conventional-github-releaser -p angular -t $GH_TOKEN || true
   fi
   echo "Building..."
-  CI=false npm run build
+  npm run build
   echo "Finish building"
 elif [ "${TRAVIS_MODE}" = "deploy" ]; then
   echo "Deploy..."
