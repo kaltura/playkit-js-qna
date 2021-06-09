@@ -3,8 +3,6 @@
 set -ev
 CI=false
 npm install
-npm run release-canary
-exit 0
 if [ "${TRAVIS_MODE}" = "release" ] || [ "${TRAVIS_MODE}" = "releaseCanary" ]; then
   if [ "${TRAVIS_MODE}" = "releaseCanary" ]; then
     echo "Run standard-version"
@@ -35,7 +33,7 @@ elif [ "${TRAVIS_MODE}" = "deploy" ]; then
   echo "Deploy..."
 elif [ "${TRAVIS_MODE}" = "tests" ]; then
     echo "Run standard-version"
-    standard-version --prerelease canary --skip.commit=true --skip.tag=true
+    npm run release-canary
     sha=$(git rev-parse --verify --short HEAD)
     echo "Current sha ${sha}"
     commitNumberAfterTag=$(git rev-list  `git rev-list --tags --no-walk --max-count=1`..HEAD --count)
