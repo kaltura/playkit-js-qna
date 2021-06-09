@@ -14,8 +14,10 @@ if [ "${TRAVIS_MODE}" = "release" ] || [ "${TRAVIS_MODE}" = "releaseCanary" ]; t
     echo "Current version ${currentVersion}"
     newVersion=$(echo $currentVersion | sed -e "s/canary\.[[:digit:]]/canary.${commitNumberAfterTag}-${sha}/g")
     echo "New version ${newVersion}"
+    sed -iE "s/$currentVersion/$newVersion/g" package-lock.json
     sed -iE "s/$currentVersion/$newVersion/g" package.json
     sed -iE "s/$currentVersion/$newVersion/g" CHANGELOG.md
+    rm package-lock.jsonE
     rm package.jsonE
     rm CHANGELOG.mdE
   else
@@ -24,7 +26,7 @@ if [ "${TRAVIS_MODE}" = "release" ] || [ "${TRAVIS_MODE}" = "releaseCanary" ]; t
     conventional-github-releaser -p angular -t $GH_TOKEN || true
   fi
   echo "Building..."
-  npm run build
+  CI=false npm run build
   echo "Finish building"
 elif [ "${TRAVIS_MODE}" = "deploy" ]; then
   echo "Deploy..."
