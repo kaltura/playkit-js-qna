@@ -1,7 +1,12 @@
 #!/bin/sh
 # https://docs.travis-ci.com/user/customizing-the-build/#Implementing-Complex-Build-Steps
 set -ev
-npm install
+#npm install
+#--skip.commit=true --skip.tag=true
+pwd
+standard-version --prerelease canary --skip.commit=true --skip.tag=true
+#standard-version --version
+exit 0
 if [ "${TRAVIS_MODE}" = "release" ] || [ "${TRAVIS_MODE}" = "releaseCanary" ]; then
   if [ "${TRAVIS_MODE}" = "releaseCanary" ]; then
     echo "Run standard-version"
