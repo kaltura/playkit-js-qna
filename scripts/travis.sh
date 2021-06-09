@@ -49,5 +49,5 @@ elif [ "${TRAVIS_MODE}" = "tests" ]; then
     rm CHANGELOG.mdE
 else
 	echo "Unknown travis mode: ${TRAVIS_MODE}" 1>&2
-	exit 1
+#	exit 1
 fi
