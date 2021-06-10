@@ -1,4 +1,4 @@
-name: Npm Publish
+name: Release version
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
@@ -6,7 +6,7 @@ on:
       - 'v*'
 jobs:
   release:
-    name: publish
+    name: Release version
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
