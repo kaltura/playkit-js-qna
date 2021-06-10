@@ -1,0 +1,42 @@
+name: Npm Publish
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    tags:
+      - 'v*'
+jobs:
+  release:
+    name: publish
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2.1.1
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 12
+          registry-url: https://registry.npmjs.org/
+      - run: yarn install
+
+      - name: Update release notes
+        run: conventional-github-releaser -p angular -t ${{ secrets.GH_TOKEN }} || true
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GH_TOKEN }}
+          file: dist/*
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+
+      - name: NPM publish
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+      - name: Trigger Jenkins Tag
+        run: |
+          chmod +x ./after_deploy.sh
+          bash ./after_deploy.sh "${{secrets.JENKINS_TAG_TOKEN}}"

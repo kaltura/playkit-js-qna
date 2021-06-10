@@ -7,8 +7,6 @@ on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -62,13 +60,13 @@ jobs:
           rm package.jsonE
           rm CHANGELOG.mdE
 
-#      - name: deploy NPM
-#        run: npm publish --access public --tag canary
-#        env:
-#          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-#
-#
-#      - name: Deploy
-#        run: |
-#          chmod +x ./after_deploy.sh
-#          bash ./after_deploy.sh "${{secrets.JENKINS_CANARY_TOKEN}}"
+      - name: deploy NPM
+        run: npm publish --access public --tag canary
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+
+      - name: Deploy
+        run: |
+          chmod +x ./after_deploy.sh
+          bash ./after_deploy.sh "${{secrets.JENKINS_CANARY_TOKEN}}"
