@@ -67,5 +67,5 @@ jobs:
 
       - name: Deploy
         run: |
-          chmod +x ./scripts/after_deploy.sh
-          bash ./scripts/after_deploy.sh "${{secrets.JENKINS_CANARY_TOKEN}}"
+          chmod +x ./after_deploy.sh
+          bash ./after_deploy.sh "${{secrets.JENKINS_CANARY_TOKEN}}"

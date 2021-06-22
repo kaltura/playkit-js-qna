@@ -45,5 +45,5 @@ jobs:
 
       - name: Trigger Jenkins Tag
         run: |
-          chmod +x ./scripts/after_deploy.sh
-          bash ./scripts/after_deploy.sh "${{secrets.JENKINS_TAG_TOKEN}}"
+          chmod +x ./after_deploy.sh
+          bash ./after_deploy.sh "${{secrets.JENKINS_TAG_TOKEN}}"
