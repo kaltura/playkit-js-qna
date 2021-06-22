@@ -23,6 +23,7 @@ before_install:
 script: ./scripts/travis.sh
 
 stages:
+  - Tests
   - Release canary
   - Release
   - Deploy
@@ -77,3 +78,6 @@ jobs:
           branch: master
       after_deploy:
         - ./scripts/after_deploy.sh "$JENKINS_CANARY_TOKEN"
+    - stage: Tests
+      if: (type == pull_request)
+      env: TRAVIS_MODE=Tests
