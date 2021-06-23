@@ -11,7 +11,7 @@ packageName="playkit-${repoName#$REPO_PREFIX}"
 echo "$packageName"
 echo "$currentVersion"
 
-TAGGED_BRANCH=$(git ls-remote origin | sed -n "\|$GITHUB_SHA\s\+refs/heads/|{s///p}")
+TAGGED_BRANCH=$(git ls-remote origin | sed -n "\|$TRAVIS_COMMIT\s\+refs/heads/|{s///p}")
 UPDATE_SCHEMA=true
 if [ "$TAGGED_BRANCH" != "master" ]; then
   UPDATE_SCHEMA=false
