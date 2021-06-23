@@ -33,6 +33,7 @@ elif [ "${TRAVIS_MODE}" = "deploy" ]; then
   echo "Deploy..."
 else
   echo "Run standard-version"
+  npm run version-check
   npm run bump-canary
   sha=$(git rev-parse --verify --short HEAD)
   echo "Current sha ${sha}"
