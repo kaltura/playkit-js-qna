@@ -15,7 +15,6 @@ import {
   OnMediaLoad,
   OnMediaUnload,
   OnPluginSetup,
-
   ContribServices,
   ContribPluginData,
   ContribPluginConfigs
@@ -154,6 +153,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
   }
 
   onMediaLoad(): void {
+    this._addPlayerListeners();
     const {
       playerConfig: { sources }
     } = this._configs;
@@ -170,6 +170,27 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
     this._chatMessagesAdapter.onMediaLoad(userId, sources.id);
   }
 
+  private _addPlayerListeners() {
+    this._removePlayerListeners();
+    this._corePlugin.player.addEventListener(
+      this._corePlugin.player.Event.FIRST_PLAYING,
+      this._expandOnFirstPlay
+    );
+  }
+
+  private _removePlayerListeners() {
+    this._corePlugin.player.removeEventListener(
+      this._corePlugin.player.Event.FIRST_PLAYING,
+      this._expandOnFirstPlay
+    );
+  }
+
+  private _expandOnFirstPlay = (): void => {
+    if (this._corePlugin.config.expandOnFirstPlay) {
+      this._activateKitchenSink();
+    }
+  };
+
   private _addKitchenSinkItem(): void {
     // todo [sakal] allow usage of KalturaPlayerTypes.PlayerConfig.EntryTypes.Vod
     const expandMode = this._parseExpandMode(this._corePlugin.config.expandMode);
@@ -180,10 +201,6 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
       position: KitchenSinkPositions.Right,
       renderContent: this._renderKitchenSinkContent
     });
-
-    if (this._corePlugin.config.expandOnFirstPlay) {
-      this._kitchenSinkItem.activate();
-    }
   }
 
   private getUserId(): string {
@@ -197,6 +214,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
   }
 
   onMediaUnload(): void {
+    this._removePlayerListeners();
     this._hasError = false;
     this._loading = true;
     this._threads = [];
@@ -384,8 +402,6 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
       onClick: this._activateKitchenSink
     });
   };
-
-
 
   private _renderMenuIcon = (): ComponentChild => {
     return (
