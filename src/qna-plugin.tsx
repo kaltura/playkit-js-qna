@@ -153,6 +153,9 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
   }
 
   onMediaLoad(): void {
+    if (this._kitchenSinkItem) {
+      return;
+    }
     this._addPlayerListeners();
     const {
       playerConfig: { sources }
@@ -161,7 +164,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
     this._loading = true;
     this._hasError = false;
     //Q&A kitchenSink and push notifications are not available during VOD
-    if (sources.type !== ("Vod" as any) && !this._kitchenSinkItem) {
+    if (sources.type !== ("Vod" as any)) {
       this._addKitchenSinkItem();
       //push notification event handlers were set during pluginSetup,
       //on each media load we need to register for relevant entryId / userId notifications
