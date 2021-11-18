@@ -226,7 +226,7 @@ export class QnaPlugin implements OnMediaLoad, OnPluginSetup, OnMediaUnload {
     this._aoaAdapter.reset();
     this._kitchenSinkMessages.reset();
     this._chatMessagesAdapter.reset();
-    //todo [sa] remove kitchenSink item
+    this._kitchenSinkItem = null;
   }
 
   //todo [sakal] add onPluginDestroy
