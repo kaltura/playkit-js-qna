@@ -1,7 +1,6 @@
 import { MessageDeliveryStatus, QnaMessage } from "./qnaMessageFactory";
 import { Utils } from "./utils";
-import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
-import { KitchenSinkManager } from "@playkit-js-contrib/ui";
+import { EventsManager } from "@playkit-js-contrib/common";
 
 export enum KitchenSinkPluginEventTypes {
     MessagesUpdatedEvent = "MessagesUpdatedEvent"
@@ -12,17 +11,7 @@ export interface MessagesUpdatedEvent {
     messages: QnaMessage[];
 }
 
-export interface KitchenSinkMessagesOptions {
-    kitchenSinkManager: KitchenSinkManager;
-}
-
-const logger = getContribLogger({
-    class: "KitchenSinkMessagesManager",
-    module: "qna-plugin"
-});
-
 export class KitchenSinkMessages {
-    private _kitchenSinkManager: KitchenSinkManager;
 
     //should it contain the contrib component ?
     private _qnaMessages: QnaMessage[] = [];
@@ -33,9 +22,7 @@ export class KitchenSinkMessages {
     on: EventsManager<MessagesUpdatedEvent>["on"] = this._events.on.bind(this._events);
     off: EventsManager<MessagesUpdatedEvent>["off"] = this._events.off.bind(this._events);
 
-    constructor(options: KitchenSinkMessagesOptions) {
-        this._kitchenSinkManager = options.kitchenSinkManager;
-    }
+    constructor() {}
 
     public reset(): void {
         this._qnaMessages = [];
@@ -100,10 +87,10 @@ export class KitchenSinkMessages {
         // find if the new reply is a reply for some master question
         let indexOfMaterQuestion = Utils.findIndex(this._qnaMessages, this._idComparator(parentId));
         if (indexOfMaterQuestion === -1) {
-            logger.warn("Dropping reply as there is no matching (master) question", {
-                method: "addReply",
-                data: { reply }
-            });
+            // logger.warn("Dropping reply as there is no matching (master) question", {
+            //     method: "addReply",
+            //     data: { reply }
+            // });
             return;
         }
 

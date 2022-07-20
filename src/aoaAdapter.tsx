@@ -5,7 +5,7 @@ import {
     QnaPushNotification
 } from "./qnaPushNotification";
 import { BannerManager, VisibilityMode, BannerState, ToastSeverity } from "@playkit-js-contrib/ui";
-import { CuepointEngine, getContribLogger, UpdateTimeResponse } from "@playkit-js-contrib/common";
+import { CuepointEngine, UpdateTimeResponse } from "@playkit-js-contrib/common";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
@@ -30,11 +30,6 @@ export interface AoAMessage {
     updated: boolean;
     qnaMessage: QnaMessage;
 }
-
-const logger = getContribLogger({
-    class: "AoaAdapter",
-    module: "qna-plugin"
-});
 
 const SeekThreshold: number = 7 * 1000;
 
@@ -83,7 +78,7 @@ export class AoaAdapter {
     }
 
     public destroy(): void {
-        logger.info("destroy AoaAdapter", { method: "destroy" });
+        // logger.info("destroy AoaAdapter", { method: "destroy" });
         this._removePlayerListeners();
         this._qnaPushNotification.off(
             PushNotificationEventTypes.PublicNotifications,
@@ -93,10 +88,10 @@ export class AoaAdapter {
     }
 
     private _handleAoaMessages = ({ qnaMessages }: PublicQnaNotificationsEvent): void => {
-        logger.debug("handle push notification event", {
-            method: "_handleAoaMessages",
-            data: qnaMessages
-        });
+        // logger.debug("handle push notification event", {
+        //     method: "_handleAoaMessages",
+        //     data: qnaMessages
+        // });
         let aoaMessages: AoAMessage[] = qnaMessages
             .filter((qnaMessage: QnaMessage) => {
                 return QnaMessageType.AnswerOnAir === qnaMessage.type;
@@ -129,13 +124,13 @@ export class AoaAdapter {
             ? this._cuePointEngine.cuepoints
             : [];
 
-        logger.debug("creating new cuepoint engine instance", {
-            method: "_createCuePointEngine",
-            data: {
-                newNotifications: notifications,
-                currentNotifications: engineMessages
-            }
-        });
+        // logger.debug("creating new cuepoint engine instance", {
+        //     method: "_createCuePointEngine",
+        //     data: {
+        //         newNotifications: notifications,
+        //         currentNotifications: engineMessages
+        //     }
+        // });
 
         let wasUpdated = false;
         notifications.forEach((notification: AoAMessage) => {
@@ -169,10 +164,10 @@ export class AoaAdapter {
             false
         );
 
-        logger.debug("handle cuepoint engine data", {
-            method: "_handleCuepointEngineData",
-            data: engineData
-        });
+        // logger.debug("handle cuepoint engine data", {
+        //     method: "_handleCuepointEngineData",
+        //     data: engineData
+        // });
 
         //in case player was reloaded or user seeked the video
         if (engineData.snapshot) {
@@ -208,10 +203,10 @@ export class AoaAdapter {
     }
 
     private _showCurrentNotification(newMessage: AoAMessage) {
-        logger.debug("show notification event", {
-            method: "_showCurrentNotification",
-            data: newMessage
-        });
+        // logger.debug("show notification event", {
+        //     method: "_showCurrentNotification",
+        //     data: newMessage
+        // });
         //show in banner
         if (!this._currentNotification || newMessage.id !== this._currentNotification.id) {
             this._currentNotification = newMessage;
@@ -241,9 +236,9 @@ export class AoaAdapter {
 
     private _hideBannerNotification() {
         if (!this._currentNotification) return;
-        logger.debug("hide notification event", {
-            method: "_hideBannerNotification"
-        });
+        // logger.debug("hide notification event", {
+        //     method: "_hideBannerNotification"
+        // });
         this._bannerManager.remove();
         this._currentNotification = null;
     }
@@ -274,21 +269,21 @@ export class AoaAdapter {
                 this._lastId3Timestamp = JSON.parse(
                     id3TagCues[id3TagCues.length - 1].value.data
                 ).timestamp;
-                logger.debug(
-                    `Calling cuepoint engine updateTime with id3 timestamp: ${
-                        this._lastId3Timestamp
-                    }`,
-                    {
-                        method: "_onTimedMetadataLoaded"
-                    }
-                );
+                // logger.debug(
+                //     `Calling cuepoint engine updateTime with id3 timestamp: ${
+                //         this._lastId3Timestamp
+                //     }`,
+                //     {
+                //         method: "_onTimedMetadataLoaded"
+                //     }
+                // );
                 this._handlePendingKsMessages();
                 this._triggerAndHandleCuepointsData();
             } catch (e) {
-                logger.debug("failed retrieving id3 tag metadata", {
-                    method: "_onTimedMetadataLoaded",
-                    data: e
-                });
+                // logger.debug("failed retrieving id3 tag metadata", {
+                //     method: "_onTimedMetadataLoaded",
+                //     data: e
+                // });
             }
         }
     };

@@ -5,7 +5,7 @@ import {
     QnaPushNotification,
     UserQnaNotificationsEvent
 } from "./qnaPushNotification";
-import { getContribLogger, UUID } from "@playkit-js-contrib/common";
+import { UUID } from "@playkit-js-contrib/common";
 import {
     MessageDeliveryStatus,
     QnaMessage,
@@ -46,11 +46,6 @@ interface SubmitRequestParams {
     missingProfileId: boolean;
     requestIndexCorrection: number;
 }
-
-const logger = getContribLogger({
-    class: "ChatMessagesAdapter",
-    module: "qna-plugin"
-});
 
 const NewReplyTimeDelay = 5000;
 
@@ -159,23 +154,23 @@ export class ChatMessagesAdapter {
         );
 
         if (!responses) {
-            logger.error("no response", {
-                method: "_submitQuestion",
-                data: {
-                    responses
-                }
-            });
+            // logger.error("no response", {
+            //     method: "_submitQuestion",
+            //     data: {
+            //         responses
+            //     }
+            // });
             throw new Error("no response");
         }
 
         if (responses.hasErrors() || !responses.length) {
             const firstError = responses.getFirstError();
-            logger.error("Add cue point multi-request failed", {
-                method: "_submitQuestion",
-                data: {
-                    firstError
-                }
-            });
+            // logger.error("Add cue point multi-request failed", {
+            //     method: "_submitQuestion",
+            //     data: {
+            //         firstError
+            //     }
+            // });
             throw new Error("Add cue point multi-request failed");
         }
 
@@ -202,12 +197,12 @@ export class ChatMessagesAdapter {
     }
 
     private _handleMultiRequestsError(err: any, pendingQnaMessage: QnaMessage) {
-        logger.error("Failed to submit new question", {
-            method: "_submitQuestion",
-            data: {
-                err
-            }
-        });
+        // logger.error("Failed to submit new question", {
+        //     method: "_submitQuestion",
+        //     data: {
+        //         err
+        //     }
+        // });
 
         this._kitchenSinkMessages.updateMessageById(
             pendingQnaMessage.id,

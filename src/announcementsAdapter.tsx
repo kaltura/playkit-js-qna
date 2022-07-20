@@ -5,7 +5,6 @@ import {
     QnaPushNotification
 } from "./qnaPushNotification";
 import { MessageState, QnaMessage, QnaMessageType } from "./qnaMessageFactory";
-import { getContribLogger } from "@playkit-js-contrib/common";
 import { ToastSeverity } from "@playkit-js-contrib/ui";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { h } from "preact";
@@ -19,11 +18,6 @@ export interface AnnouncementsAdapterOptions {
     updateMenuIcon: (indicatorState: boolean) => void;
     displayToast: DisplayToast;
 }
-
-const logger = getContribLogger({
-    class: "AnnouncementsAdapter",
-    module: "qna-plugin"
-});
 
 export class AnnouncementsAdapter {
     private _kitchenSinkMessages: KitchenSinkMessages;

@@ -1,4 +1,4 @@
-import { EventsManager, getContribLogger } from "@playkit-js-contrib/common";
+import { EventsManager } from "@playkit-js-contrib/common";
 import {
     PrepareRegisterRequestConfig,
     PushNotifications,
@@ -49,11 +49,6 @@ type Events =
     | QnaNotificationsErrorEvent
     | SettingsNotificationsEvent;
 
-const logger = getContribLogger({
-    class: "qnaPushNotification",
-    module: "qna-plugin"
-});
-
 /**
  * handles push notification registration and results.
  */
@@ -101,19 +96,19 @@ export class QnaPushNotification {
      */
     public registerToPushServer(entryId: string, userId: string) {
         if (this._registeredToQnaMessages) {
-            logger.error("Multiple registration error", { method: "registerToPushServer" });
+            // logger.error("Multiple registration error", { method: "registerToPushServer" });
             throw new Error("Already register to push server");
         }
 
-        logger.info("Registering for push notifications server", {
-            method: "registerToPushServer",
-            data: { entryId, userId }
-        });
+        // logger.info("Registering for push notifications server", {
+        //     method: "registerToPushServer",
+        //     data: { entryId, userId }
+        // });
 
         if (!this._pushServerInstance) {
-            logger.error("Can't register to notifications as _pushServerInstance doesn't exists", {
-                method: "registerToPushServer"
-            });
+            // logger.error("Can't register to notifications as _pushServerInstance doesn't exists", {
+            //     method: "registerToPushServer"
+            // });
             this._events.emit({
                 type: PushNotificationEventTypes.PushNotificationsError,
                 error: "Can't register to notifications as _pushServerInstance doesn't exists"
@@ -135,16 +130,16 @@ export class QnaPushNotification {
             })
             .then(
                 () => {
-                    logger.info("Registered push notification service", {
-                        method: "registerToPushServer"
-                    });
+                    // logger.info("Registered push notification service", {
+                    //     method: "registerToPushServer"
+                    // });
                     this._registeredToQnaMessages = true;
                 },
                 (err: any) => {
-                    logger.error("Registration for push notification error", {
-                        method: "registerToPushServer",
-                        data: err
-                    });
+                    // logger.error("Registration for push notification error", {
+                    //     method: "registerToPushServer",
+                    //     data: err
+                    // });
                     this._events.emit({
                         type: PushNotificationEventTypes.PushNotificationsError,
                         error: err
@@ -154,10 +149,10 @@ export class QnaPushNotification {
     }
 
     private _createPublicQnaRegistration(entryId: string): PrepareRegisterRequestConfig {
-        logger.info("Register public QnA notification", {
-            method: "_createPublicQnaRegistration",
-            data: { entryId }
-        });
+        // logger.info("Register public QnA notification", {
+        //     method: "_createPublicQnaRegistration",
+        //     data: { entryId }
+        // });
         return {
             eventName: PushNotificationEventTypes.PublicNotifications,
             eventParams: {
@@ -176,10 +171,10 @@ export class QnaPushNotification {
         entryId: string,
         userId: string
     ): PrepareRegisterRequestConfig {
-        logger.info("Register User QnA notification", {
-            method: "_createUserQnaRegistration",
-            data: { entryId, userId }
-        });
+        // logger.info("Register User QnA notification", {
+        //     method: "_createUserQnaRegistration",
+        //     data: { entryId, userId }
+        // });
         return {
             eventName: PushNotificationEventTypes.UserNotifications,
             eventParams: {
@@ -196,10 +191,10 @@ export class QnaPushNotification {
     }
 
     private _createCodeQnaRegistration(entryId: string): PrepareRegisterRequestConfig {
-        logger.info("Register Code QnA notification for receiving settings data", {
-            method: "_createCodeQnaRegistration",
-            data: { entryId }
-        });
+        // logger.info("Register Code QnA notification for receiving settings data", {
+        //     method: "_createCodeQnaRegistration",
+        //     data: { entryId }
+        // });
         return {
             eventName: PushNotificationEventTypes.CodeNotifications,
             eventParams: {

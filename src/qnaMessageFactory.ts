@@ -1,6 +1,5 @@
 import { KalturaAnnotation } from "kaltura-typescript-client/api/types/KalturaAnnotation";
 import { Utils } from "./utils";
-import { getContribLogger } from "@playkit-js-contrib/common";
 
 export enum QnaMessageType {
     Question = "Question",
@@ -60,11 +59,6 @@ export interface QnaMessage {
 
 const AOAAutoReplyTag = "aoa_auto_reply";
 
-const logger = getContribLogger({
-    class: "QnaMessageFactory",
-    module: "qna-plugin"
-});
-
 export class QnaMessageFactory {
     public static create(cuePoint: KalturaAnnotation, metadataXml: string): QnaMessage | null {
         try {
@@ -91,10 +85,10 @@ export class QnaMessageFactory {
 
             return qnaMessage;
         } catch (e) {
-            logger.error(`Error: couldn't create QnaMessage, mandatory field(s) are missing`, {
-                data: e,
-                method: "create"
-            });
+            // logger.error(`Error: couldn't create QnaMessage, mandatory field(s) are missing`, {
+            //     data: e,
+            //     method: "create"
+            // });
             return null;
         }
     }

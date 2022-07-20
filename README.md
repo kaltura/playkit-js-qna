@@ -1,46 +1,99 @@
-# Kaltura Player V7 - Q&A plugin
+# PlayKit JS QnA - plugin for the [PlayKit JS Player]
 
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://conventionalcommits.org)
+PlayKit JS QnA is written in [ECMAScript6], statically analysed using [Typescript] and transpiled in ECMAScript5 using [Babel].
 
-## Overview
-> this section will be added soon
+[typescript]: https://www.typescriptlang.org/
+[ecmascript6]: https://github.com/ericdouglas/ES6-Learning#articles--tutorials
+[babel]: https://babeljs.io
 
-## Project structure
-> this section will be added soon
+## Getting Started
+
+### Prerequisites
+
+The plugin requires [Kaltura Player] to be loaded first.
+
+[kaltura player]: https://github.com/kaltura/kaltura-player-js
+
+### Installing
+
+First, clone and run [yarn] to install dependencies:
+
+[yarn]: https://yarnpkg.com/lang/en/
+
+```
+git clone https://github.com/kaltura/playkit-js-qna.git
+cd playkit-js-qna
+yarn install
+```
+
+### Building
+
+Then, build the player
+
+```javascript
+yarn run build
+```
+
+### Embed the library in your test page
+
+Finally, add the bundle as a script tag in your page, and initialize the player
+
+```html
+<script type="text/javascript" src="/PATH/TO/FILE/kaltura-player.js"></script>
+<!--Kaltura player-->
+<script type="text/javascript" src="/PATH/TO/FILE/playkit-qna.js"></script>
+<!--PlayKit qna plugin-->
+<div id="player-placeholder" style="height:360px; width:640px">
+  <script type="text/javascript">
+    var playerContainer = document.querySelector("#player-placeholder");
+    var config = {
+     ...
+     targetId: 'player-placeholder',
+     plugins: {
+       qna: { ... }
+     }
+     ...
+    };
+    var player = KalturaPlayer.setup(config);
+    player.loadMedia(...);
+  </script>
+</div>
+```
+
+## Documentation
+
+QnA plugin configuration can been found here:
+
+- **[Configuration](docs/configuration.md)**
+
+### And coding style tests
+
+We use ESLint [recommended set](http://eslint.org/docs/rules/) with some additions for enforcing [Flow] types and other rules.
+
+See [ESLint config](.eslintrc.json) for full configuration.
+
+We also use [.editorconfig](.editorconfig) to maintain consistent coding styles and settings, please make sure you comply with the styling.
+
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/kaltura/playkit-js-qna/tags).
+
+## License
+
+This project is licensed under the AGPL-3.0 License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Commands
 
-### Serve test pages
+Run dev server: `npm run serve`;<br/>
+Update contrib: `npm run infra:latest`;<br/>
+Bump version: `npm run deploy:prepare`;<br/>
 
-This command will serve test page with your local plugin. It will watch for changes and build them automatically. 
+## Configuration
 
-```$xslt
-npm run serve  // served on http://localhost:8007
-``` 
-
-#### Serve command pre-requisite
-Until the cli library will be ready, you will need to manually create the test page, using the following guide:
-1. open folder `test` and copy file `test/index.template.ejs` as  `test/index.ejs`
-2. open `index.ejs` file and fill all places marked with `TODO` comment.
-
-### Build packages 
-This command will build the plugin create dist folder with relevant assets 
-
-```$xslt
-npm run build // dist folder will be created under `dist`
-``` 
-
-### Analyze packages bundle
-This command will build and create a static page visualizing the bundle content.
-
-```$xslt
-npm run analyze  // for plugin v7 bundle analyze to be shown automatically in the browser
-``` 
-
-### Update Player Contrib libraries
-This command will update packages to use `latest` or `next` version of the player contrib libraries.
-
-```$xslt
-npm run upgrade:latest // upgrade contrib libraries to latest version
-npm run upgrade:next // upgrade contrib libraries to next version
-```
+Plugin configuration:<br/>
+> bannerDuration: number;<br/>
+> toastDuration: number;<br/>
+> dateFormat: string;<br/>
+> expandMode: string;<br/>
+> expandOnFirstPlay: boolean;<br/>
