@@ -103,6 +103,8 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       displayToast: this._displayToast
     });
     this._chatMessagesAdapter = new ChatMessagesAdapter({
+      player: this._player,
+      logger: this.logger,
       kitchenSinkMessages: this._kitchenSinkMessages,
       qnaPushNotification: this._qnaPushNotification,
       isKitchenSinkActive: this._isKitchenSinkActive,
@@ -285,7 +287,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     });
     this._aoaAdapter.init();
     this._announcementAdapter.init();
-    this._chatMessagesAdapter.init(ks, provider.env.serviceUrl);
+    this._chatMessagesAdapter.init();
     this._delayedGiveUpLoading();
   }
 

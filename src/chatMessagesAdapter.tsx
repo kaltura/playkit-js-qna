@@ -5,33 +5,18 @@ import {
     QnaPushNotification,
     UserQnaNotificationsEvent
 } from "./qnaPushNotification";
-import { UUID } from "@playkit-js-contrib/common";
 import {
     MessageDeliveryStatus,
     QnaMessage,
     QnaMessageFactory,
     QnaMessageType
 } from "./qnaMessageFactory";
-import { ToastSeverity } from "@playkit-js-contrib/ui";
-import {
-    KalturaClient,
-    KalturaMultiRequest,
-    KalturaMultiResponse,
-    KalturaRequest
-} from "kaltura-typescript-client";
-import { CuePointAddAction } from "kaltura-typescript-client/api/types/CuePointAddAction";
-import { CuePointUpdateAction } from "kaltura-typescript-client/api/types/CuePointUpdateAction";
-import {
-    KalturaAnnotation,
-    KalturaAnnotationArgs
-} from "kaltura-typescript-client/api/types/KalturaAnnotation";
-import { KalturaMetadataObjectType } from "kaltura-typescript-client/api/types/KalturaMetadataObjectType";
-import { KalturaMetadataProfileFilter } from "kaltura-typescript-client/api/types/KalturaMetadataProfileFilter";
-import { MetadataAddAction } from "kaltura-typescript-client/api/types/MetadataAddAction";
-import { MetadataProfileListAction } from "kaltura-typescript-client/api/types/MetadataProfileListAction";
 import { Utils } from "./utils";
 import { ToastIcon, ToastsType } from "./components/toast-icon";
 import { DisplayToast } from "./qna-plugin";
+import { MessageLoader } from "./providers/message-loader";
+
+import { ToastSeverity } from "@playkit-js-contrib/ui";
 
 export interface ChatMessagesAdapterOptions {
     kitchenSinkMessages: KitchenSinkMessages;
@@ -39,10 +24,12 @@ export interface ChatMessagesAdapterOptions {
     isKitchenSinkActive: () => boolean;
     updateMenuIcon: (indicatorState: boolean) => void;
     displayToast: DisplayToast;
+    player: KalturaPlayerTypes.Player;
+    logger: KalturaPlayerTypes.Logger;
 }
 
 interface SubmitRequestParams {
-    requests: KalturaRequest<any>[];
+    requests: any;
     missingProfileId: boolean;
     requestIndexCorrection: number;
 }
@@ -50,12 +37,13 @@ interface SubmitRequestParams {
 const NewReplyTimeDelay = 5000;
 
 export class ChatMessagesAdapter {
-    private _kalturaClient = new KalturaClient();
     private _kitchenSinkMessages: KitchenSinkMessages;
     private _qnaPushNotification: QnaPushNotification;
     private _isKitchenSinkActive: () => boolean;
     private _updateMenuIcon: (indicatorState: boolean) => void;
     private _displayToast: DisplayToast;
+    private _player: KalturaPlayerTypes.Player;
+    private _logger: KalturaPlayerTypes.Logger;
 
     private _userId: string | undefined;
     private _entryId: string | undefined;
@@ -69,20 +57,16 @@ export class ChatMessagesAdapter {
         this._isKitchenSinkActive = options.isKitchenSinkActive;
         this._updateMenuIcon = options.updateMenuIcon;
         this._displayToast = options.displayToast;
+        this._player = options.player;
+        this._logger = options.logger;
     }
 
-    public init(ks: string, serviceUrl: string): void {
-        if (this._initialize) return;
+    public init(): void {
+        if (this._initialize) {
+            return;
+        }
 
         this._initialize = true;
-        this._kalturaClient.setOptions({
-            clientTag: "playkit-js-qna",
-            endpointUrl: serviceUrl
-        });
-
-        this._kalturaClient.setDefaultRequestOptions({
-            ks
-        });
         this._qnaPushNotification.on(
             PushNotificationEventTypes.UserNotifications,
             this._processMessages
@@ -118,7 +102,7 @@ export class ChatMessagesAdapter {
     };
 
     public submitQuestion = async (question: string, parentId: string | null) => {
-        const uuid = UUID.uuidV1();
+        const uuid = Utils.generateId();
 
         const pendingQnaMessage = QnaMessageFactory.createPendingQnaMessage({
             id: uuid,
@@ -147,49 +131,32 @@ export class ChatMessagesAdapter {
             parentId
         );
 
-        const multiRequest = new KalturaMultiRequest(...requests);
-
-        let responses: KalturaMultiResponse | null = await this._kalturaClient.multiRequest(
-            multiRequest
-        );
-
+        const responses = await this._player.provider.doRequest([requests]);
         if (!responses) {
-            // logger.error("no response", {
-            //     method: "_submitQuestion",
-            //     data: {
-            //         responses
-            //     }
-            // });
+            this._logger.error("no response");
             throw new Error("no response");
         }
-
-        if (responses.hasErrors() || !responses.length) {
+        const data = responses.get(MessageLoader.id);      
+        if (!data.response || !data.response.length) {
             const firstError = responses.getFirstError();
-            // logger.error("Add cue point multi-request failed", {
-            //     method: "_submitQuestion",
-            //     data: {
-            //         firstError
-            //     }
-            // });
+            this._logger.error("Add cue point multi-request failed");
             throw new Error("Add cue point multi-request failed");
         }
 
         if (missingProfileId) {
-            this._metadataProfileId = responses[0].result.objects[0].id;
+            this._metadataProfileId = data.response[0].data.objects[0].id;
         }
 
         const index = 0 + requestIndexCorrection;
-        const hasCuePoint = responses.length > index + 1;
-
+        const hasCuePoint =  data.response.length > index + 1;
         if (!hasCuePoint) {
             throw new Error(
                 "Add cue-point multi-request error: There is no cue-point object added"
             );
         }
 
-        const cuePoint = responses[index].result;
-
-        if (!cuePoint || !(cuePoint instanceof KalturaAnnotation)) {
+        const cuePoint =  data.response[index].data;
+        if (!cuePoint) {
             throw new Error(
                 "Add cue-point multi-request error: There is no KalturaAnnotation cue-point object added"
             );
@@ -197,12 +164,7 @@ export class ChatMessagesAdapter {
     }
 
     private _handleMultiRequestsError(err: any, pendingQnaMessage: QnaMessage) {
-        // logger.error("Failed to submit new question", {
-        //     method: "_submitQuestion",
-        //     data: {
-        //         err
-        //     }
-        // });
+        this._logger.error("Failed to submit new question");
 
         this._kitchenSinkMessages.updateMessageById(
             pendingQnaMessage.id,
@@ -228,7 +190,7 @@ export class ChatMessagesAdapter {
             return;
         }
 
-        const newUuid = UUID.uuidV1();
+        const newUuid = Utils.generateId();
         const newMessage = this._kitchenSinkMessages.updateMessageId(
             pendingQnaMessage.id,
             newUuid,
@@ -262,36 +224,18 @@ export class ChatMessagesAdapter {
         uuid: string,
         question: string,
         parentId: string | null
-    ): SubmitRequestParams {
-        const requests: KalturaRequest<any>[] = [];
-        const missingProfileId = !this._metadataProfileId;
-        const requestIndexCorrection = missingProfileId ? 1 : 0;
-
+    ) {
         if (!this._entryId) {
             throw new Error("Can't make requests without entryId");
         }
-
         if (!this._userId) {
             throw new Error("Can't make requests without userId");
         }
+        const missingProfileId = !this._metadataProfileId;
+        const requestIndexCorrection = missingProfileId ? 1 : 0;
 
-        /*
-            1 - Conditional: Prepare get meta data profile request
-         */
-        if (missingProfileId) {
-            const metadataProfileListAction = new MetadataProfileListAction({
-                filter: new KalturaMetadataProfileFilter({
-                    systemNameEqual: "Kaltura-QnA"
-                })
-            });
-
-            requests.push(metadataProfileListAction);
-        }
-
-        /*
-            2 - Prepare to add annotation cuePoint request
-         */
-        const kalturaAnnotationArgs: KalturaAnnotationArgs = {
+        // 2 - Prepare to add annotation cuePoint request
+        const addCuePointArgs: any = {
             entryId: this._entryId,
             startTime: Date.now(), // TODO player time (this.[_corePlugin].player.currentTime - gives wrong numbers)
             text: question,
@@ -303,11 +247,9 @@ export class ChatMessagesAdapter {
         let thread;
         if (parentId) {
             thread = this._kitchenSinkMessages.getMasterMessageById(parentId);
-
             if (!thread) {
                 throw new Error("Can't make reply requests without thread");
             }
-
             /**
              * Disclaimer Start -
              * This section which sets kalturaAnnotationArgs.parentId with the last reply is used
@@ -322,60 +264,49 @@ export class ChatMessagesAdapter {
             const cuePointParentId = createdReplyList.length
                 ? createdReplyList[createdReplyList.length - 1].id
                 : thread.id;
-            kalturaAnnotationArgs.parentId = cuePointParentId;
+                addCuePointArgs.parentId = cuePointParentId;
             /**
              * End.
              */
         }
 
-        const addAnnotationCuePointRequest = new CuePointAddAction({
-            cuePoint: new KalturaAnnotation(kalturaAnnotationArgs)
-        });
-
-        /*
-            3 - Prepare to add metadata
-         */
+        //  3 - Prepare to add metadata
         const metadata: Record<string, string> = {};
-
         if (thread) {
             metadata.ThreadId = thread.id;
         }
-
         metadata.Type = QnaMessageType.Question;
         metadata.ThreadCreatorId = this._userId;
-
         const xmlData = Utils.createXmlFromObject(metadata);
 
-        const addMetadataRequest = new MetadataAddAction({
-            metadataProfileId: this._metadataProfileId ? this._metadataProfileId : 0,
-            objectType: KalturaMetadataObjectType.annotation,
-            objectId: "",
-            xmlData: xmlData
-        }).setDependency(["objectId", 0 + requestIndexCorrection, "id"]);
-
+        let metadataProfileId: number | string = this._metadataProfileId ? this._metadataProfileId : 0;
         if (missingProfileId) {
-            addMetadataRequest.setDependency(["metadataProfileId", 0, "objects:0:id"]);
+            metadataProfileId = `{1:result:objects:0:id}`
+        }
+        const addMetadataArgs = {
+            metadataProfileId,
+            objectType: "annotationMetadata.Annotation",
+            xmlData: xmlData,
+            objectId: `{${1 + requestIndexCorrection}:result:id}`
         }
 
-        /*
-            4 - Prepare to update cuePoint with Tags
-         */
-        const updateCuePointAction = new CuePointUpdateAction({
-            id: "",
-            cuePoint: new KalturaAnnotation({
-                tags: "qna"
-            })
-        }).setDependency(["id", 0 + requestIndexCorrection, "id"]);
+        // 4 - Prepare to update cuePoint with Tags
+        const updateCuePointArgs = {
+            id: `{${1 + requestIndexCorrection}:result:id}`
+        }
 
-        // Prepare the multi request
-        requests.push(...[addAnnotationCuePointRequest, addMetadataRequest, updateCuePointAction]);
+        const multirequest = {loader: MessageLoader, params: {
+            missingProfileId,
+            addCuePointArgs,
+            addMetadataArgs,
+            updateCuePointArgs
+        }}
 
         const submitRequestParams: SubmitRequestParams = {
-            requests,
+            requests: multirequest,
             missingProfileId,
             requestIndexCorrection
         };
-
         return submitRequestParams;
     }
 
