@@ -5,46 +5,17 @@ import {
   PushNotificationsOptions,
   PushNotificationsProvider
 } from '@playkit-js-contrib/push-notifications';
-import {QnaMessage, QnaMessageFactory} from './qnaMessageFactory';
-
-import {KalturaAnnotation} from 'kaltura-typescript-client/api/types/KalturaAnnotation';
-import {KalturaCodeCuePoint} from 'kaltura-typescript-client/api/types/KalturaCodeCuePoint';
-import {KalturaMetadataListResponse} from 'kaltura-typescript-client/api/types/KalturaMetadataListResponse';
+import {QnaMessage} from './qnaMessageFactory';
+import {Utils} from './utils';
 
 export enum PushNotificationEventTypes {
-  PublicNotifications = 'PUBLIC_QNA_NOTIFICATIONS',
-  UserNotifications = 'USER_QNA_NOTIFICATIONS',
-  CodeNotifications = 'CODE_QNA_NOTIFICATIONS',
-  PushNotificationsError = 'PUSH_NOTIFICATIONS_ERROR'
-}
-
-export interface ModeratorSettings {
-  createdAt: Date;
-  qnaEnabled: boolean;
-  announcementOnly: boolean;
-}
-
-export interface UserQnaNotificationsEvent {
-  type: PushNotificationEventTypes.UserNotifications;
-  qnaMessages: QnaMessage[];
+  PublicNotifications = 'PUBLIC_QNA_NOTIFICATIONS'
 }
 
 export interface PublicQnaNotificationsEvent {
   type: PushNotificationEventTypes.PublicNotifications;
   qnaMessages: QnaMessage[];
 }
-
-export interface QnaNotificationsErrorEvent {
-  type: PushNotificationEventTypes.PushNotificationsError;
-  error: string;
-}
-
-export interface SettingsNotificationsEvent {
-  type: PushNotificationEventTypes.CodeNotifications;
-  settings: ModeratorSettings;
-}
-
-type Events = UserQnaNotificationsEvent | PublicQnaNotificationsEvent | QnaNotificationsErrorEvent | SettingsNotificationsEvent;
 
 /**
  * handles push notification registration and results.
@@ -54,12 +25,12 @@ export class QnaPushNotification {
 
   private _registeredToQnaMessages = false;
 
-  private _events: EventsManager<Events> = new EventsManager<Events>();
+  private _events: EventsManager<PublicQnaNotificationsEvent> = new EventsManager<PublicQnaNotificationsEvent>();
 
   private _initialized = false;
 
-  on: EventsManager<Events>['on'] = this._events.on.bind(this._events);
-  off: EventsManager<Events>['off'] = this._events.off.bind(this._events);
+  on: EventsManager<PublicQnaNotificationsEvent>['on'] = this._events.on.bind(this._events);
+  off: EventsManager<PublicQnaNotificationsEvent>['off'] = this._events.off.bind(this._events);
 
   constructor(private _player: KalturaPlayerTypes.Player) {}
 
@@ -95,20 +66,12 @@ export class QnaPushNotification {
     if (this._registeredToQnaMessages) {
       throw new Error('Already register to push server');
     }
-
     if (!this._pushServerInstance) {
-      this._events.emit({
-        type: PushNotificationEventTypes.PushNotificationsError,
-        error: "Can't register to notifications as _pushServerInstance doesn't exists"
-      });
-
       return;
     }
 
     let registrationConfigs = [
-      this._createPublicQnaRegistration(entryId), // notifications objects
-      this._createUserQnaRegistration(entryId, userId),
-      this._createCodeQnaRegistration(entryId)
+      this._createPublicQnaRegistration(entryId) // notifications objects
     ]; // user related QnA objects
 
     this._pushServerInstance
@@ -120,12 +83,7 @@ export class QnaPushNotification {
         () => {
           this._registeredToQnaMessages = true;
         },
-        (err: any) => {
-          // this._events.emit({
-          //   type: PushNotificationEventTypes.PushNotificationsError,
-          //   error: err
-          // });
-        }
+        (err: any) => {}
       );
   }
 
@@ -138,125 +96,9 @@ export class QnaPushNotification {
       onMessage: (response: any[]) => {
         this._events.emit({
           type: PushNotificationEventTypes.PublicNotifications,
-          qnaMessages: this._createQnaMessagesArray(response)
+          qnaMessages: Utils.createQnaMessagesArray(response)
         });
       }
     };
-  }
-
-  private _createUserQnaRegistration(entryId: string, userId: string): PrepareRegisterRequestConfig {
-    return {
-      eventName: PushNotificationEventTypes.UserNotifications,
-      eventParams: {
-        entryId: entryId,
-        userId: userId
-      },
-      onMessage: (response: any[]) => {
-        this._events.emit({
-          type: PushNotificationEventTypes.UserNotifications,
-          qnaMessages: this._createQnaMessagesArray(response)
-        });
-      }
-    };
-  }
-
-  private _createCodeQnaRegistration(entryId: string): PrepareRegisterRequestConfig {
-    return {
-      eventName: PushNotificationEventTypes.CodeNotifications,
-      eventParams: {
-        entryId: entryId
-      },
-      onMessage: (response: any[]) => {
-        const newSettings = this._getLastSettingsObject(response);
-        if (newSettings) {
-          this._events.emit({
-            type: PushNotificationEventTypes.CodeNotifications,
-            settings: newSettings
-          });
-        }
-      }
-    };
-  }
-
-  private _createQnaMessagesArray(pushResponse: any[]): QnaMessage[] {
-    return pushResponse.reduce((qnaMessages: QnaMessage[], item: any) => {
-      if (item.objectType === 'KalturaAnnotation') {
-        const kalturaAnnotation: KalturaAnnotation = new KalturaAnnotation();
-        kalturaAnnotation.fromResponseObject(item);
-        const metadataXml: string = QnaPushNotification.getMetadata(kalturaAnnotation);
-        let qnaMessage = QnaMessageFactory.create(kalturaAnnotation, metadataXml);
-        if (qnaMessage) {
-          qnaMessages.push(qnaMessage);
-        }
-      }
-      return qnaMessages;
-    }, []);
-  }
-
-  private _getLastSettingsObject(pushResponse: any[]): ModeratorSettings | null {
-    const settings = this._createQnaSettingsObjects(pushResponse);
-    settings.sort((a: ModeratorSettings, b: ModeratorSettings) => {
-      return a.createdAt.valueOf() - b.createdAt.valueOf();
-    });
-    return settings.length >= 1 ? settings[0] : null;
-  }
-
-  private _createQnaSettingsObjects(pushResponse: any[]): ModeratorSettings[] {
-    return pushResponse.reduce((settings: ModeratorSettings[], item: any) => {
-      if (item.objectType === 'KalturaCodeCuePoint') {
-        const kalturaCodeCuepoint: KalturaCodeCuePoint = new KalturaCodeCuePoint();
-        kalturaCodeCuepoint.fromResponseObject(item);
-        const settingsObject = this._createSettingsObject(kalturaCodeCuepoint);
-        if (settingsObject) {
-          settings.push(settingsObject);
-        }
-      }
-      return settings;
-    }, []);
-  }
-
-  private static getMetadata(cuePoint: KalturaAnnotation): string {
-    if (!cuePoint.relatedObjects || !cuePoint.relatedObjects['QandA_ResponseProfile']) {
-      throw new Error('Missing QandA_ResponseProfile at cuePoint.relatedObjects');
-    }
-
-    const relatedObject = cuePoint.relatedObjects['QandA_ResponseProfile'];
-
-    if (!(relatedObject instanceof KalturaMetadataListResponse)) {
-      throw new Error('QandA_ResponseProfile expected to be KalturaMetadataListResponse');
-    }
-
-    if (relatedObject.objects.length === 0) {
-      throw new Error('There are no metadata objects xml at KalturaMetadataListResponse');
-    }
-
-    const metadata = relatedObject.objects[0];
-
-    if (!('DOMParser' in window)) {
-      throw new Error('DOMParser is not exits at window, cant parse the metadata xml');
-    }
-
-    return metadata.xml;
-  }
-
-  private _createSettingsObject(settingsCuepoint: KalturaCodeCuePoint): ModeratorSettings | null {
-    try {
-      if (!settingsCuepoint || !settingsCuepoint.createdAt || !settingsCuepoint.partnerData) return null;
-      const settingsObject = JSON.parse(settingsCuepoint.partnerData);
-      if (
-        !settingsObject['qnaSettings'] ||
-        !settingsObject['qnaSettings'].hasOwnProperty('qnaEnabled') ||
-        !settingsObject['qnaSettings'].hasOwnProperty('announcementOnly')
-      )
-        return null;
-
-      return {
-        createdAt: settingsCuepoint.createdAt,
-        qnaEnabled: settingsObject['qnaSettings']['qnaEnabled'],
-        announcementOnly: settingsObject['qnaSettings']['announcementOnly']
-      };
-    } catch (e) {
-      return null;
-    }
   }
 }

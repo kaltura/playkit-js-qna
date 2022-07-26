@@ -4,8 +4,7 @@ import {ToastIcon, ToastsType} from './components/toast-icon';
 import {h} from 'preact';
 import {Utils} from './utils';
 import {DisplayToast} from './qna-plugin';
-import {ToastSeverity, TimedMetadataEvent} from './types';
-import {QnaMessageFactory} from './qnaMessageFactory';
+import {ToastSeverity, TimedMetadataEvent, CuePoint} from './types';
 
 export interface AnnouncementsAdapterOptions {
   kitchenSinkMessages: KitchenSinkMessages;
@@ -30,24 +29,11 @@ export class AnnouncementsAdapter {
   }
 
   private _handleTimedMetadata = ({payload}: TimedMetadataEvent): void => {
-    const announcementCuePoints = payload.cues.filter((cue: any) => {
-      if (cue?.type !== 'cuepoint') {
-        return false;
-      }
-      const {metadata} = cue;
-      return metadata?.cuePointType === 'annotation.Annotation' && metadata?.tags === 'qna' && metadata?.cueType === 'publicqna';
-    });
-    const qnaMessages: any = announcementCuePoints.map(cue => {
-      const {metadata} = cue;
-      const xmls = Utils.getXmlFromCue(cue);
-      return {
-        id: cue.id,
-        createdAt: new Date(metadata?.createdAt * 1000),
-        messageContent: metadata?.text,
-        ...QnaMessageFactory.parseXml(xmls[0])
-      };
-    });
-    if (qnaMessages.length) {
+    const filterFn = (metadata: any) =>
+      metadata?.cuePointType === 'annotation.Annotation' && metadata?.tags === 'qna' && metadata?.cueType === 'publicqna';
+    const announcementCuePoints: CuePoint[] = Utils.prepareCuePoints(payload.cues, filterFn);
+    if (announcementCuePoints.length) {
+      const qnaMessages: QnaMessage[] = Utils.createQnaMessagesArray(announcementCuePoints);
       this._processAnnouncements(qnaMessages);
     }
   };

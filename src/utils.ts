@@ -1,5 +1,8 @@
-import {QnaMessage, QnaMessageType} from './qnaMessageFactory';
-import {CuePoint} from './types';
+import {QnaMessage, QnaMessageType, QnaMessageFactory} from './qnaMessageFactory';
+import {CuePoint, ModeratorSettings} from './types';
+
+import {KalturaAnnotation} from 'kaltura-typescript-client/api/types/KalturaAnnotation';
+import {KalturaMetadataListResponse} from 'kaltura-typescript-client/api/types/KalturaMetadataListResponse';
 
 const NewMessageTimeDelay = 5000;
 
@@ -206,5 +209,100 @@ export class Utils {
   // TODO: move to shared utils
   public static generateId = (): string => {
     return new Date().getTime().toString(36) + Math.random().toString(36).slice(2);
+  };
+
+  public static createQnaMessagesArray(pushResponse: any[]): QnaMessage[] {
+    return pushResponse.reduce((qnaMessages: QnaMessage[], item: any) => {
+      if (item.objectType === 'KalturaAnnotation') {
+        const kalturaAnnotation: KalturaAnnotation = new KalturaAnnotation();
+        kalturaAnnotation.fromResponseObject(item);
+        const metadataXml: string = Utils.getMetadata(kalturaAnnotation);
+        let qnaMessage = QnaMessageFactory.create(kalturaAnnotation, metadataXml);
+        if (qnaMessage) {
+          qnaMessages.push(qnaMessage);
+        }
+      }
+      return qnaMessages;
+    }, []);
+  }
+
+  public static getLastSettingsObject(pushResponse: any[]): ModeratorSettings | null {
+    const settings = Utils.createQnaSettingsObjects(pushResponse);
+    settings.sort((a: ModeratorSettings, b: ModeratorSettings) => {
+      return a.createdAt.valueOf() - b.createdAt.valueOf();
+    });
+    return settings.length >= 1 ? settings[0] : null;
+  }
+
+  private static createQnaSettingsObjects(pushResponse: any[]): ModeratorSettings[] {
+    return pushResponse.reduce((settings: ModeratorSettings[], item: any) => {
+      if (item.objectType === 'KalturaCodeCuePoint') {
+        const settingsObject = Utils.createSettingsObject(item);
+        if (settingsObject) {
+          settings.push(settingsObject);
+        }
+      }
+      return settings;
+    }, []);
+  }
+
+  private static getMetadata(cuePoint: any): string {
+    if (!cuePoint.relatedObjects || !cuePoint.relatedObjects['QandA_ResponseProfile']) {
+      throw new Error('Missing QandA_ResponseProfile at cuePoint.relatedObjects');
+    }
+    const relatedObject = cuePoint.relatedObjects['QandA_ResponseProfile'];
+    if (!(relatedObject instanceof KalturaMetadataListResponse)) {
+      throw new Error('QandA_ResponseProfile expected to be KalturaMetadataListResponse');
+    }
+    if (relatedObject.objects.length === 0) {
+      throw new Error('There are no metadata objects xml at KalturaMetadataListResponse');
+    }
+    const metadata = relatedObject.objects[0];
+    if (!('DOMParser' in window)) {
+      throw new Error('DOMParser is not exits at window, cant parse the metadata xml');
+    }
+    return metadata.xml;
+  }
+
+  private static createSettingsObject(settingsCuepoint: any): ModeratorSettings | null {
+    try {
+      if (!settingsCuepoint || !settingsCuepoint.createdAt || !settingsCuepoint.partnerData) {
+        return null;
+      }
+      const settingsObject = settingsCuepoint.partnerData;
+      if (
+        !settingsObject['qnaSettings'] ||
+        !settingsObject['qnaSettings'].hasOwnProperty('qnaEnabled') ||
+        !settingsObject['qnaSettings'].hasOwnProperty('announcementOnly')
+      )
+        return null;
+
+      return {
+        createdAt: settingsCuepoint.createdAt,
+        qnaEnabled: settingsObject['qnaSettings']['qnaEnabled'],
+        announcementOnly: settingsObject['qnaSettings']['announcementOnly']
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  public static prepareCuePoints = (cues: CuePoint[], filter: (metadata: any) => boolean): CuePoint[] => {
+    return cues.reduce((acc, cue: CuePoint) => {
+      if (cue?.type !== 'cuepoint') {
+        return acc;
+      }
+      const {metadata} = cue;
+      if (filter(metadata)) {
+        return [
+          ...acc,
+          {
+            id: cue.id,
+            ...metadata
+          }
+        ];
+      }
+      return acc;
+    }, [] as CuePoint[]);
   };
 }

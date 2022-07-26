@@ -2,14 +2,15 @@ import {h, ComponentChild} from 'preact';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
 import {QnaMessage} from './qnaMessageFactory';
-import {PushNotificationEventTypes, QnaPushNotification, ModeratorSettings, SettingsNotificationsEvent} from './qnaPushNotification';
+import {QnaPushNotification} from './qnaPushNotification';
 import {AoaAdapter} from './aoaAdapter';
 import {AnnouncementsAdapter} from './announcementsAdapter';
 import {ChatMessagesAdapter} from './chatMessagesAdapter';
 import {KitchenSinkPluginEventTypes, KitchenSinkMessages, MessagesUpdatedEvent} from './kitchenSinkMessages';
 
-import {PluginStates, QnaPluginConfig, ToastSeverity, TimedMetadataEvent} from './types';
+import {PluginStates, QnaPluginConfig, ToastSeverity, TimedMetadataEvent, CuePoint, ModeratorSettings} from './types';
 import {ui} from 'kaltura-player-js';
+import {Utils} from './utils';
 const {useState} = KalturaPlayer.ui.preactHooks;
 const {SidePanelModes, SidePanelPositions, ReservedPresetNames} = ui;
 
@@ -40,7 +41,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _setShowMenuIconIndication = (value: boolean) => {};
   private _toastsDuration: number;
   private _qnaSettings: ModeratorSettings = {
-    createdAt: new Date(-8640000000000000), //oldest date
+    createdAt: 0,
     qnaEnabled: true,
     announcementOnly: false
   };
@@ -68,8 +69,9 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._toastsDuration =
       this.config.toastDuration && this.config.toastDuration >= MinToastDuration ? this.config.toastDuration : DefaultToastDuration;
     //adapters
-    this._qnaPushNotification = new QnaPushNotification(this._player);
+    this._qnaPushNotification = new QnaPushNotification(this._player); // TODO: remove
     this._kitchenSinkMessages = new KitchenSinkMessages();
+    // TODO: AoA
     this._aoaAdapter = new AoaAdapter({
       kitchenSinkMessages: this._kitchenSinkMessages,
       qnaPushNotification: this._qnaPushNotification,
@@ -90,10 +92,12 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       setDataListener: (cb: (timedMetadata: TimedMetadataEvent) => void) => {
         this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, cb);
       },
+      // TODO: move filterFn from AnnouncementsAdapter here
       isKitchenSinkActive: this._isKitchenSinkActive,
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
     });
+    // messages
     this._chatMessagesAdapter = new ChatMessagesAdapter({
       player: this._player,
       logger: this.logger,
@@ -101,6 +105,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       setDataListener: (cb: (timedMetadata: TimedMetadataEvent) => void) => {
         this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, cb);
       },
+      // TODO: move filterFn from ChatMessagesAdapter here
       isKitchenSinkActive: this._isKitchenSinkActive,
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
@@ -142,9 +147,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     //Q&A kitchenSink and push notifications are not available during VOD
     if (sources.type !== this._player.MediaType.VOD) {
       this._createQnAPlugin();
-      //push notification event handlers were set during pluginSetup,
-      //on each media load we need to register for relevant entryId / userId notifications
-      // this._qnaPushNotification.registerToPushServer(sources.id, userId);
     }
     this._chatMessagesAdapter.onMediaLoad(sources.id);
   }
@@ -229,11 +231,11 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._loading = true;
     this._threads = [];
     //reset managers
-    this._qnaPushNotification.reset();
     this._aoaAdapter.reset();
     this._kitchenSinkMessages.reset();
     this._chatMessagesAdapter.reset();
     this._pluginPanel = null;
+    this.eventManager.removeAll();
   }
 
   destroy(): void {
@@ -241,9 +243,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._loading = true;
     this._threads = [];
     //destroy managers
-    this._qnaPushNotification.off(PushNotificationEventTypes.PushNotificationsError, this._onQnaError);
-    this._qnaPushNotification.off(PushNotificationEventTypes.CodeNotifications, this._onQnaSettings);
-    this._qnaPushNotification.destroy();
     this._aoaAdapter.destroy();
     this._kitchenSinkMessages.destroy();
     //remove listeners
@@ -251,10 +250,9 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   }
 
   private _constructPluginListener(): void {
-    this._qnaPushNotification.on(PushNotificationEventTypes.PushNotificationsError, this._onQnaError);
-    this._qnaPushNotification.on(PushNotificationEventTypes.CodeNotifications, this._onQnaSettings);
     //register to kitchenSink updated qnaMessages array
     this._kitchenSinkMessages.on(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
+    this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, this._onQnaSettings);
   }
 
   private _initPluginManagers(): void {
@@ -268,15 +266,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       // });
       return;
     }
-
-    const {provider} = this._player.config;
-    // should be created once on pluginSetup (entryId/userId registration will be called onMediaLoad)
-    this._qnaPushNotification.init({
-      ks: ks,
-      serviceUrl: provider.env.serviceUrl,
-      clientTag: 'QnaPlugin_V7',
-      kalturaPlayer: this._player
-    });
     this._aoaAdapter.init();
     this._delayedGiveUpLoading();
   }
@@ -295,17 +284,27 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._updateQnAPlugin();
   };
 
+  // TODO: handle error
   private _onQnaError = () => {
     this._loading = false;
     this._hasError = true;
     this._updateQnAPlugin();
   };
 
-  private _onQnaSettings = ({settings}: SettingsNotificationsEvent): void => {
-    // settings received are out of date
-    if (this._qnaSettings.createdAt.getTime() > settings.createdAt.getTime()) return;
-    this._qnaSettings = {...settings};
-    this._handleQnaSettingsChange();
+  private _onQnaSettings = ({payload}: TimedMetadataEvent): void => {
+    const filterFn = (metadata: any) => metadata?.cuePointType === 'codeCuePoint.Code' && metadata?.tags === 'player-qna-settings-update';
+    const qnaSettings: CuePoint[] = Utils.prepareCuePoints(payload.cues, filterFn);
+    if (qnaSettings.length) {
+      const newSettings = Utils.getLastSettingsObject(qnaSettings);
+      if (newSettings) {
+        // settings received are out of date
+        if (this._qnaSettings.createdAt > newSettings.createdAt) {
+          return;
+        }
+        this._qnaSettings = {...newSettings};
+        this._handleQnaSettingsChange();
+      }
+    }
   };
 
   private _handleQnaSettingsChange(): void {

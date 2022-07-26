@@ -29,3 +29,9 @@ export interface TimedMetadataEvent {
     cues: Array<CuePoint>;
   };
 }
+
+export interface ModeratorSettings {
+  createdAt: number;
+  qnaEnabled: boolean;
+  announcementOnly: boolean;
+}

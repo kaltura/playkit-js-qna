@@ -5,7 +5,7 @@ import {Utils} from './utils';
 import {ToastIcon, ToastsType} from './components/toast-icon';
 import {DisplayToast} from './qna-plugin';
 import {MessageLoader} from './providers/message-loader';
-import {ToastSeverity, TimedMetadataEvent} from './types';
+import {ToastSeverity, TimedMetadataEvent, CuePoint} from './types';
 
 export interface ChatMessagesAdapterOptions {
   kitchenSinkMessages: KitchenSinkMessages;
@@ -45,25 +45,11 @@ export class ChatMessagesAdapter {
   }
 
   private _handleTimedMetadata = ({payload}: TimedMetadataEvent): void => {
-    const messageCuePoints = payload.cues.filter((cue: any) => {
-      if (cue?.type !== 'cuepoint') {
-        return false;
-      }
-      const {metadata} = cue;
-      return metadata?.cuePointType === 'annotation.Annotation' && metadata?.tags === 'qna' && metadata?.cueType === 'userqna';
-    });
-    const qnaMessages: any = messageCuePoints.map(cue => {
-      const {metadata} = cue;
-      return {
-        id: cue.id,
-        createdAt: new Date(metadata?.createdAt * 1000),
-        messageContent: metadata?.text,
-        ...QnaMessageFactory.parseXml(metadata.relatedObjects.QandA_ResponseProfile.objects[0].xml) // TODO
-      };
-    });
-    if (qnaMessages.length) {
-      console.log('>> qnaMessages', qnaMessages, payload.cues);
-      return;
+    const filterFn = (metadata: any) =>
+      metadata?.cuePointType === 'annotation.Annotation' && metadata?.tags === 'qna' && metadata?.cueType === 'userqna';
+    const messageCuePoints: CuePoint[] = Utils.prepareCuePoints(payload.cues, filterFn);
+    if (messageCuePoints.length) {
+      const qnaMessages: QnaMessage[] = Utils.createQnaMessagesArray(messageCuePoints);
       this._addAnyQnaMessage(qnaMessages);
     }
   };
