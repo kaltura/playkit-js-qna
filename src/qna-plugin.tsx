@@ -1,16 +1,14 @@
 import {h, ComponentChild} from 'preact';
-import {ToastSeverity} from '@playkit-js-contrib/ui';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
 import {QnaMessage} from './qnaMessageFactory';
-import {KalturaLiveServices} from '@playkit-js-contrib/common';
 import {PushNotificationEventTypes, QnaPushNotification, ModeratorSettings, SettingsNotificationsEvent} from './qnaPushNotification';
 import {AoaAdapter} from './aoaAdapter';
 import {AnnouncementsAdapter} from './announcementsAdapter';
 import {ChatMessagesAdapter} from './chatMessagesAdapter';
 import {KitchenSinkPluginEventTypes, KitchenSinkMessages, MessagesUpdatedEvent} from './kitchenSinkMessages';
 
-import {PluginStates, QnaPluginConfig} from './types';
+import {PluginStates, QnaPluginConfig, ToastSeverity, TimedMetadataEvent} from './types';
 import {ui} from 'kaltura-player-js';
 const {useState} = KalturaPlayer.ui.preactHooks;
 const {SidePanelModes, SidePanelPositions, ReservedPresetNames} = ui;
@@ -31,20 +29,12 @@ export interface MessageTheme {
   backgroundColor: string;
 }
 
-enum UserRole {
-  anonymousRole = 'anonymousRole',
-  unmoderatedAdminRole = 'unmoderatedAdminRole'
-}
-
-const DefaultAnonymousPrefix = 'Guest';
-
 export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _threads: QnaMessage[] | [] = [];
   private _hasError: boolean = false;
   private _loading: boolean = true;
   private _qnaPushNotification: QnaPushNotification;
   private _aoaAdapter: AoaAdapter;
-  private _announcementAdapter: AnnouncementsAdapter;
   private _chatMessagesAdapter: ChatMessagesAdapter;
   private _kitchenSinkMessages: KitchenSinkMessages;
   private _setShowMenuIconIndication = (value: boolean) => {};
@@ -65,8 +55,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     dateFormat: 'dd/mm/yyyy',
     position: SidePanelPositions.RIGHT,
     expandMode: SidePanelModes.ALONGSIDE,
-    expandOnFirstPlay: false,
-    userRole: UserRole.anonymousRole
+    expandOnFirstPlay: false
   };
 
   public static readonly LOADING_TIME_END = 3000;
@@ -95,9 +84,12 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
     });
-    this._announcementAdapter = new AnnouncementsAdapter({
+    // announcements
+    new AnnouncementsAdapter({
       kitchenSinkMessages: this._kitchenSinkMessages,
-      qnaPushNotification: this._qnaPushNotification,
+      setDataListener: (cb: (timedMetadata: TimedMetadataEvent) => void) => {
+        this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, cb);
+      },
       isKitchenSinkActive: this._isKitchenSinkActive,
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
@@ -106,7 +98,9 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       player: this._player,
       logger: this.logger,
       kitchenSinkMessages: this._kitchenSinkMessages,
-      qnaPushNotification: this._qnaPushNotification,
+      setDataListener: (cb: (timedMetadata: TimedMetadataEvent) => void) => {
+        this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, cb);
+      },
       isKitchenSinkActive: this._isKitchenSinkActive,
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
@@ -121,17 +115,28 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     return this._player.getService('sidePanelsManager') as any;
   }
 
+  get cuePointManager() {
+    return this._player.getService('kalturaCuepoints') as any;
+  }
+
   static isValid(): boolean {
     return true;
   }
 
   loadMedia(): void {
-    if (!this.sidePanelsManager) {
-      this.logger.warn("sidePanelsManager haven't registered");
+    if (!this.sidePanelsManager || !this.cuePointManager) {
+      this.logger.warn("sidePanelsManager or cuePointManager haven't registered");
       return;
     }
+
+    this.cuePointManager.registerTypes([
+      this.cuePointManager.CuepointType.PUBLIC_QNA,
+      this.cuePointManager.CuepointType.USER_QNA,
+      this.cuePointManager.CuepointType.CODE_QNA
+    ]);
+
     const {sources} = this._player.config;
-    const userId = this.getUserId();
+    // const userId = Utils.getAnonymousUserId();
     this._loading = true;
     this._hasError = false;
     //Q&A kitchenSink and push notifications are not available during VOD
@@ -139,9 +144,9 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       this._createQnAPlugin();
       //push notification event handlers were set during pluginSetup,
       //on each media load we need to register for relevant entryId / userId notifications
-      this._qnaPushNotification.registerToPushServer(sources.id, userId);
+      // this._qnaPushNotification.registerToPushServer(sources.id, userId);
     }
-    this._chatMessagesAdapter.onMediaLoad(userId, sources.id);
+    this._chatMessagesAdapter.onMediaLoad(sources.id);
   }
 
   private _createQnAPlugin = () => {
@@ -219,17 +224,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     return (this.config.expandOnFirstPlay && !this._pluginState) || this._pluginState === PluginStates.OPENED;
   };
 
-  private getUserId(): string {
-    const {session} = this._player.config;
-    // @ts-ignore
-    if (this.config.userRole === UserRole.anonymousRole || !session.userId) {
-      // @ts-ignore
-      return KalturaLiveServices.getAnonymousUserId(session.userId || DefaultAnonymousPrefix);
-    }
-    // @ts-ignore
-    return session.userId;
-  }
-
   reset(): void {
     this._hasError = false;
     this._loading = true;
@@ -251,8 +245,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._qnaPushNotification.off(PushNotificationEventTypes.CodeNotifications, this._onQnaSettings);
     this._qnaPushNotification.destroy();
     this._aoaAdapter.destroy();
-    this._announcementAdapter.destroy();
-    this._chatMessagesAdapter.destroy();
     this._kitchenSinkMessages.destroy();
     //remove listeners
     this._kitchenSinkMessages.off(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
@@ -286,8 +278,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       kalturaPlayer: this._player
     });
     this._aoaAdapter.init();
-    this._announcementAdapter.init();
-    this._chatMessagesAdapter.init();
     this._delayedGiveUpLoading();
   }
 

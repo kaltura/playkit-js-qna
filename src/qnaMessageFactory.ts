@@ -61,7 +61,7 @@ const AOAAutoReplyTag = 'aoa_auto_reply';
 export class QnaMessageFactory {
   public static create(cuePoint: any, metadataXml: string): QnaMessage | null {
     try {
-      const metadata = QnaMessageFactory._parseXml(metadataXml);
+      const metadata = QnaMessageFactory.parseXml(metadataXml);
       const tags = cuePoint.tags ? cuePoint.tags.split(',').map((value: any) => value.trim()) : [];
 
       const qnaMessage: QnaMessage = {
@@ -110,7 +110,7 @@ export class QnaMessageFactory {
     return qnaMessage;
   }
 
-  private static _parseXml(metadata: string) {
+  public static parseXml(metadata: string) {
     let parser = new DOMParser();
     let xmlDoc = parser.parseFromString(metadata, 'text/xml');
 

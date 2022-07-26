@@ -1,4 +1,5 @@
 import {QnaMessage, QnaMessageType} from './qnaMessageFactory';
+import {CuePoint} from './types';
 
 const NewMessageTimeDelay = 5000;
 
@@ -111,11 +112,9 @@ export class Utils {
 
   public static getValueFromXml(xmlDoc: Document, key: string): string | null {
     let node: Element = xmlDoc.getElementsByTagName(key)[0];
-
     if (!node || !node.childNodes || !node.childNodes[0]) {
       return null;
     }
-
     return node.childNodes[0].nodeValue;
   }
 
@@ -187,6 +186,24 @@ export class Utils {
     return subString.substr(0, subString.lastIndexOf(' '));
   };
 
+  public static getXmlFromCue = (cue: CuePoint): string[] => {
+    return cue.metadata?.relatedObjects?.QandA_ResponseProfile?.objects?.map((object: any) => object?.xml) || [];
+  };
+
+  // TODO: move to shared utils
+  public static getAnonymousUserId = (): string => {
+    if (typeof Storage === 'undefined') {
+      return Utils.generateId();
+    }
+    let anonymousUserId;
+    anonymousUserId = localStorage.getItem('anonymousUserId'); // anonymousUserId created by cue-point service
+    if (!anonymousUserId) {
+      anonymousUserId = Utils.generateId();
+    }
+    return anonymousUserId;
+  };
+
+  // TODO: move to shared utils
   public static generateId = (): string => {
     return new Date().getTime().toString(36) + Math.random().toString(36).slice(2);
   };

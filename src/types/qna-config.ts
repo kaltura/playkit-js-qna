@@ -5,5 +5,4 @@ export interface QnaPluginConfig {
   expandMode: any; // TODO;
   position: any; // TODO;
   expandOnFirstPlay: boolean;
-  userRole: string;
 }
