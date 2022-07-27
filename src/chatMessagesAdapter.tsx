@@ -46,7 +46,9 @@ export class ChatMessagesAdapter {
 
   private _handleTimedMetadata = ({payload}: TimedMetadataEvent): void => {
     const filterFn = (metadata: any) =>
-      metadata?.cuePointType === 'annotation.Annotation' && metadata?.tags === 'qna' && metadata?.cueType === 'userqna';
+      metadata?.cuePointType === 'annotation.Annotation' &&
+      ['qna, aoa_auto_reply', 'qna'].includes(metadata?.tags) &&
+      metadata?.cueType === 'userqna';
     const messageCuePoints: CuePoint[] = Utils.prepareCuePoints(payload.cues, filterFn);
     if (messageCuePoints.length) {
       const qnaMessages: QnaMessage[] = Utils.createQnaMessagesArray(messageCuePoints);
