@@ -2,7 +2,6 @@ import {h, ComponentChild} from 'preact';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
 import {QnaMessage} from './qnaMessageFactory';
-import {QnaPushNotification} from './qnaPushNotification';
 import {AoaAdapter} from './aoaAdapter';
 import {AnnouncementsAdapter} from './announcementsAdapter';
 import {ChatMessagesAdapter} from './chatMessagesAdapter';
@@ -34,8 +33,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _threads: QnaMessage[] | [] = [];
   private _hasError: boolean = false;
   private _loading: boolean = true;
-  private _qnaPushNotification: QnaPushNotification;
-  private _aoaAdapter: AoaAdapter;
   private _chatMessagesAdapter: ChatMessagesAdapter;
   private _kitchenSinkMessages: KitchenSinkMessages;
   private _setShowMenuIconIndication = (value: boolean) => {};
@@ -69,19 +66,22 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._toastsDuration =
       this.config.toastDuration && this.config.toastDuration >= MinToastDuration ? this.config.toastDuration : DefaultToastDuration;
     //adapters
-    this._qnaPushNotification = new QnaPushNotification(this._player); // TODO: remove
     this._kitchenSinkMessages = new KitchenSinkMessages();
-    // TODO: AoA
-    this._aoaAdapter = new AoaAdapter({
+    // AoA
+    new AoaAdapter({
       kitchenSinkMessages: this._kitchenSinkMessages,
-      qnaPushNotification: this._qnaPushNotification,
+      onCuesBecomeActive: (cb: (timedMetadata: TimedMetadataEvent) => void) => {
+        this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_CHANGE, cb);
+      },
+      setDataListener: (cb: (timedMetadata: TimedMetadataEvent) => void) => {
+        this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, cb);
+      },
       // bannerManager: this._contribServices.bannerManager, // TODO
       bannerManager: {
         add: (data: any) => console.log('>> bannerManager add ', data),
         remove: (data: any) => console.log('>> bannerManager remove ', data)
       } as any,
-      kalturaPlayer: this._player as any,
-      delayedEndTime: bannerDuration,
+      logger: this.logger,
       isKitchenSinkActive: this._isKitchenSinkActive,
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
@@ -231,7 +231,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._loading = true;
     this._threads = [];
     //reset managers
-    this._aoaAdapter.reset();
     this._kitchenSinkMessages.reset();
     this._chatMessagesAdapter.reset();
     this._pluginPanel = null;
@@ -243,7 +242,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._loading = true;
     this._threads = [];
     //destroy managers
-    this._aoaAdapter.destroy();
     this._kitchenSinkMessages.destroy();
     //remove listeners
     this._kitchenSinkMessages.off(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
@@ -266,7 +264,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       // });
       return;
     }
-    this._aoaAdapter.init();
     this._delayedGiveUpLoading();
   }
 

@@ -1,5 +1,5 @@
 import {KitchenSinkMessages} from './kitchenSinkMessages';
-import {MessageState, QnaMessage} from './qnaMessageFactory';
+import {MessageState, QnaMessage, QnaMessageType} from './qnaMessageFactory';
 import {ToastIcon, ToastsType} from './components/toast-icon';
 import {h} from 'preact';
 import {Utils} from './utils';
@@ -33,7 +33,9 @@ export class AnnouncementsAdapter {
       metadata?.cuePointType === 'annotation.Annotation' && metadata?.tags === 'qna' && metadata?.cueType === 'publicqna';
     const announcementCuePoints: CuePoint[] = Utils.prepareCuePoints(payload.cues, filterFn);
     if (announcementCuePoints.length) {
-      const qnaMessages: QnaMessage[] = Utils.createQnaMessagesArray(announcementCuePoints);
+      const qnaMessages: QnaMessage[] = Utils.createQnaMessagesArray(announcementCuePoints).filter(qnaMessage => {
+        return QnaMessageType.Announcement === qnaMessage.type;
+      });
       this._processAnnouncements(qnaMessages);
     }
   };
