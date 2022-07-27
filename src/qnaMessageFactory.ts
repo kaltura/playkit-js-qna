@@ -82,10 +82,6 @@ export class QnaMessageFactory {
 
       return qnaMessage;
     } catch (e) {
-      // logger.error(`Error: couldn't create QnaMessage, mandatory field(s) are missing`, {
-      //     data: e,
-      //     method: "create"
-      // });
       return null;
     }
   }

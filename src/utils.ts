@@ -1,9 +1,6 @@
 import {QnaMessage, QnaMessageType, QnaMessageFactory} from './qnaMessageFactory';
 import {CuePoint, ModeratorSettings} from './types';
 
-import {KalturaAnnotation} from 'kaltura-typescript-client/api/types/KalturaAnnotation';
-import {KalturaMetadataListResponse} from 'kaltura-typescript-client/api/types/KalturaMetadataListResponse';
-
 const NewMessageTimeDelay = 5000;
 
 export class Utils {
@@ -214,8 +211,11 @@ export class Utils {
   public static createQnaMessagesArray(pushResponse: any[]): QnaMessage[] {
     return pushResponse.reduce((qnaMessages: QnaMessage[], item: any) => {
       if (item.objectType === 'KalturaAnnotation') {
-        const kalturaAnnotation: KalturaAnnotation = new KalturaAnnotation();
-        kalturaAnnotation.fromResponseObject(item);
+        const kalturaAnnotation = {
+          ...item,
+          createdAt: new Date(item.createdAt * 1000),
+          updatedAt: new Date(item.updatedAt * 1000)
+        };
         const metadataXml: string = Utils.getMetadata(kalturaAnnotation);
         let qnaMessage = QnaMessageFactory.create(kalturaAnnotation, metadataXml);
         if (qnaMessage) {
@@ -251,10 +251,7 @@ export class Utils {
       throw new Error('Missing QandA_ResponseProfile at cuePoint.relatedObjects');
     }
     const relatedObject = cuePoint.relatedObjects['QandA_ResponseProfile'];
-    if (!(relatedObject instanceof KalturaMetadataListResponse)) {
-      throw new Error('QandA_ResponseProfile expected to be KalturaMetadataListResponse');
-    }
-    if (relatedObject.objects.length === 0) {
+    if (!relatedObject.hasOwnProperty('objects') || relatedObject.objects.length === 0) {
       throw new Error('There are no metadata objects xml at KalturaMetadataListResponse');
     }
     const metadata = relatedObject.objects[0];

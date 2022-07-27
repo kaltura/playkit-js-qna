@@ -51,7 +51,9 @@ export class AoaAdapter {
     const aoaCuePoints: CuePoint[] = Utils.prepareCuePoints(payload.cues, filterFn);
     if (aoaCuePoints.length) {
       const qnaMessages: QnaMessage[] = this._prepareAoaMessages(aoaCuePoints);
-      this._processAddData(qnaMessages);
+      if (qnaMessages.length) {
+        this._processAddData(qnaMessages);
+      }
     }
   };
 
@@ -61,7 +63,9 @@ export class AoaAdapter {
     const aoaCuePoints: CuePoint[] = Utils.prepareCuePoints(payload.cues, filterFn);
     if (aoaCuePoints.length) {
       const qnaMessages: QnaMessage[] = this._prepareAoaMessages(aoaCuePoints);
-      this._processChangeData(qnaMessages);
+      if (qnaMessages.length) {
+        this._processChangeData(qnaMessages);
+      }
     }
   };
 
@@ -78,9 +82,7 @@ export class AoaAdapter {
 
   private _processChangeData = (qnaMessages: QnaMessage[]): void => {
     qnaMessages.forEach((qnaMessage: QnaMessage) => {
-      if (Utils.isMessageInTimeFrame(qnaMessage)) {
-        this._showCurrentNotification(qnaMessage);
-      }
+      this._showCurrentNotification(qnaMessage);
     });
   };
 
