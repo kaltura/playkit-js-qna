@@ -145,7 +145,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._loading = true;
     this._hasError = false;
     //Q&A kitchenSink and push notifications are not available during VOD
-    if (sources.type !== this._player.MediaType.VOD) {
+    if (sources.type === this._player.MediaType.LIVE) {
       this._createQnAPlugin();
     }
     this._chatMessagesAdapter.onMediaLoad(sources.id);
