@@ -4,7 +4,7 @@ export interface MenuIconProps {
 
 import {h} from 'preact';
 import * as styles from './pluginButton.scss';
-import {A11yWrapper, OnClick} from '../a11y-wrapper';
+import {A11yWrapper, OnClick} from '@playkit-js/common';
 
 const {Tooltip, Icon} = KalturaPlayer.ui.components;
 const {withText, Text} = KalturaPlayer.ui.preacti18n;

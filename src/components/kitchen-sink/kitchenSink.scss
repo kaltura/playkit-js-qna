@@ -2,22 +2,6 @@
 
 $background-color: rgba(33, 33, 33, 0.9);
 
-/* TODO: (1) remove this once 3rd party cross-browser custom scroll bar is Added */
-// .flexible-main::-webkit-scrollbar {
-//   width: 4px;
-// }
-
-// /* Track TODO: as (1)*/
-// .flexible-main::-webkit-scrollbar-track {
-//   background: $background-color;
-// }
-
-// /* Handle TODO: as (1) */
-// .flexible-main::-webkit-scrollbar-thumb {
-//   border-radius: 3px;
-//   background-color: rgba(255, 255, 255, 0.3);
-// }
-
 .root {
   display: flex;
   flex-direction: column;

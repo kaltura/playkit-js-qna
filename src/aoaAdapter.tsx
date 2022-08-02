@@ -5,7 +5,7 @@ import {ToastIcon, ToastsType} from './components/toast-icon';
 import {h} from 'preact';
 import {Utils} from './utils';
 import {DisplayToast} from './qna-plugin';
-import { TimedMetadataEvent, CuePoint} from './types';
+import {TimedMetadataEvent, CuePoint} from './types';
 
 export interface AoaAdapterOptions {
   kitchenSinkMessages: KitchenSinkMessages;
@@ -65,6 +65,8 @@ export class AoaAdapter {
       const qnaMessages: QnaMessage[] = this._prepareAoaMessages(aoaCuePoints);
       if (qnaMessages.length) {
         this._processChangeData(qnaMessages);
+      } else {
+        this._hideBannerNotification();
       }
     }
   };
@@ -96,11 +98,11 @@ export class AoaAdapter {
           text: qnaMessage.messageContent ? qnaMessage.messageContent : ''
         }
       });
-      this._showAOANotifications(currentBannerState);
+      this._showAoANotifications(currentBannerState);
     }
   }
 
-  private _showAOANotifications(bannerState: BannerState) {
+  private _showAoANotifications(bannerState: BannerState) {
     if (bannerState.visibilityMode === VisibilityMode.HIDDEN && !this._isKitchenSinkActive()) {
       //menu icon indication
       this._updateMenuIcon(true);

@@ -190,24 +190,6 @@ export class Utils {
     return cue.metadata?.relatedObjects?.QandA_ResponseProfile?.objects?.map((object: any) => object?.xml) || [];
   };
 
-  // TODO: move to shared utils
-  public static getAnonymousUserId = (): string => {
-    if (typeof Storage === 'undefined') {
-      return Utils.generateId();
-    }
-    let anonymousUserId;
-    anonymousUserId = localStorage.getItem('anonymousUserId'); // anonymousUserId created by cue-point service
-    if (!anonymousUserId) {
-      anonymousUserId = Utils.generateId();
-    }
-    return anonymousUserId;
-  };
-
-  // TODO: move to shared utils
-  public static generateId = (): string => {
-    return new Date().getTime().toString(36) + Math.random().toString(36).slice(2);
-  };
-
   public static createQnaMessagesArray(pushResponse: any[]): QnaMessage[] {
     return pushResponse.reduce((qnaMessages: QnaMessage[], item: any) => {
       if (item.objectType === 'KalturaAnnotation') {

@@ -1,5 +1,5 @@
 import {h} from 'preact';
-import {ToastSeverity} from '@playkit-js/common';
+import {ToastSeverity, generateId, getUserId} from '@playkit-js/common';
 import {KitchenSinkMessages} from './kitchenSinkMessages';
 import {MessageDeliveryStatus, QnaMessage, QnaMessageFactory, QnaMessageType} from './qnaMessageFactory';
 import {Utils} from './utils';
@@ -76,7 +76,7 @@ export class ChatMessagesAdapter {
   };
 
   public submitQuestion = async (question: string, parentId: string | null) => {
-    const uuid = Utils.generateId();
+    const uuid = generateId();
 
     const pendingQnaMessage = QnaMessageFactory.createPendingQnaMessage({
       id: uuid,
@@ -148,7 +148,7 @@ export class ChatMessagesAdapter {
       return;
     }
 
-    const newUuid = Utils.generateId();
+    const newUuid = generateId();
     const newMessage = this._kitchenSinkMessages.updateMessageId(pendingQnaMessage.id, newUuid, pendingQnaMessage.parentId);
 
     if (!newMessage || !newMessage.messageContent) {
@@ -167,7 +167,7 @@ export class ChatMessagesAdapter {
   };
 
   private _prepareSubmitRequest(uuid: string, question: string, parentId: string | null) {
-    const userId = Utils.getAnonymousUserId();
+    const userId = getUserId();
     if (!this._entryId) {
       throw new Error("Can't make requests without entryId");
     }

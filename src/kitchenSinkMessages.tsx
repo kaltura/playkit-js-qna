@@ -87,10 +87,6 @@ export class KitchenSinkMessages {
         // find if the new reply is a reply for some master question
         let indexOfMaterQuestion = Utils.findIndex(this._qnaMessages, this._idComparator(parentId));
         if (indexOfMaterQuestion === -1) {
-            // logger.warn("Dropping reply as there is no matching (master) question", {
-            //     method: "addReply",
-            //     data: { reply }
-            // });
             return;
         }
 

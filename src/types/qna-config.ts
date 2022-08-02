@@ -2,7 +2,7 @@ export interface QnaPluginConfig {
   bannerDuration: number;
   toastDuration: number;
   dateFormat: string;
-  expandMode: any; // TODO;
-  position: any; // TODO;
+  expandMode: string;
+  position: string;
   expandOnFirstPlay: boolean;
 }

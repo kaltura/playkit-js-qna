@@ -143,7 +143,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     ]);
 
     const {sources} = this._player.config;
-    // const userId = Utils.getAnonymousUserId();
     this._loading = true;
     this._hasError = false;
     // Q&A notifications are not available during VOD
@@ -210,12 +209,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
         this._updateMenuIcon(false);
       }
     });
-
-    if (this._shouldExpandOnFirstPlay()) {
-      this.ready.then(() => {
-        this.sidePanelsManager.activateItem(this._pluginPanel);
-      });
-    }
   };
 
   private _updateQnAPlugin = () => {
@@ -254,6 +247,13 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     //register to kitchenSink updated qnaMessages array
     this._kitchenSinkMessages.on(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
     this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, this._onQnaSettings);
+    this.eventManager.listen(this._player, this._player.Event.FIRST_PLAYING, () => {
+      if (this._shouldExpandOnFirstPlay()) {
+        this.ready.then(() => {
+          this.sidePanelsManager.activateItem(this._pluginPanel);
+        });
+      }
+    });
   }
 
   private _initPluginManagers(): void {
