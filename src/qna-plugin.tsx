@@ -17,9 +17,7 @@ const {SidePanelModes, SidePanelPositions, ReservedPresetNames} = ui;
 type DisplayToastOptions = {text: string; icon: ComponentChild; severity: ToastSeverity};
 export type DisplayToast = (options: DisplayToastOptions) => void;
 
-const DefaultBannerDuration: number = 60 * 1000;
 const DefaultToastDuration: number = 5 * 1000;
-const MinBannerDuration: number = 5 * 1000;
 const MinToastDuration: number = 5 * 1000;
 
 export interface QnaTheme {
@@ -50,7 +48,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _contribServices: ContribServices;
 
   static defaultConfig: QnaPluginConfig = {
-    bannerDuration: DefaultBannerDuration,
     toastDuration: DefaultToastDuration,
     dateFormat: 'dd/mm/yyyy',
     position: SidePanelPositions.RIGHT,
@@ -107,9 +104,8 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
     });
-    //listeners
-    this._constructPluginListener();
-
+    // register to kitchenSink updated qnaMessages array
+    this._kitchenSinkMessages.on(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
     this._initPluginManagers();
   }
 
@@ -135,20 +131,21 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       this.logger.warn("sidePanelsManager or cuePointManager haven't registered");
       return;
     }
-
+    const {sources} = this._player.config;
+    if (sources.type !== this._player.MediaType.LIVE) {
+      this.logger.warn("Q&A notifications are not available during VOD");
+      return;
+    }
+    this._addListeners();
     this.cuePointManager.registerTypes([
       this.cuePointManager.CuepointType.PUBLIC_QNA,
       this.cuePointManager.CuepointType.USER_QNA,
       this.cuePointManager.CuepointType.CODE_QNA
     ]);
 
-    const {sources} = this._player.config;
     this._loading = true;
     this._hasError = false;
-    // Q&A notifications are not available during VOD
-    if (sources.type === this._player.MediaType.LIVE) {
-      this._createQnAPlugin();
-    }
+    this._createQnAPlugin();
     this._chatMessagesAdapter.onMediaLoad(sources.id);
   }
 
@@ -237,15 +234,13 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._hasError = false;
     this._loading = true;
     this._threads = [];
-    //destroy managers
+    // destroy managers
     this._kitchenSinkMessages.destroy();
-    //remove listeners
+    // remove kitchenSink listener
     this._kitchenSinkMessages.off(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
   }
 
-  private _constructPluginListener(): void {
-    //register to kitchenSink updated qnaMessages array
-    this._kitchenSinkMessages.on(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
+  private _addListeners(): void {
     this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, this._onQnaSettings);
     this.eventManager.listen(this._player, this._player.Event.FIRST_PLAYING, () => {
       if (this._shouldExpandOnFirstPlay()) {
