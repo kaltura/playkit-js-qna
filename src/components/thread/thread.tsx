@@ -1,12 +1,15 @@
-import { Component, h } from "preact";
-import * as styles from "./thread.scss";
-import { MessageDeliveryStatus, QnaMessage, QnaMessageType } from "../../qnaMessageFactory";
-import { TimeDisplay } from "../time-display";
-import classNames from "classnames";
-import { TrimmedText } from "../trimmed-text";
-import { AutoExpandTextArea } from "../auto-expand-text-area";
-import { AnsweredOnAirIcon } from "../answered-on-air-icon";
-import { MessageTheme } from "../../qna-plugin";
+import {Component, h} from 'preact';
+import * as styles from './thread.scss';
+import {MessageDeliveryStatus, QnaMessage, QnaMessageType} from '../../qnaMessageFactory';
+import {TimeDisplay} from '../time-display';
+import classNames from 'classnames';
+import {TrimmedText} from '../trimmed-text';
+import {AutoExpandTextArea} from '../auto-expand-text-area';
+import {AnsweredOnAirIcon} from '../answered-on-air-icon';
+import {MessageTheme} from '../../qna-plugin';
+import {ResendIcon} from '../icons/resend-icon';
+import {ReplyIcon} from '../icons/reply-icon';
+import {DownIcon} from '../icons/down-icon';
 
 interface ThreadProps {
   thread: QnaMessage;
@@ -35,12 +38,12 @@ export class Thread extends Component<ThreadProps, ThreadState> {
   };
 
   handleOnShowMoreClick = () => {
-    this.setState({ isThreadOpen: !this.state.isThreadOpen });
+    this.setState({isThreadOpen: !this.state.isThreadOpen});
     this.props.onHeightChange();
   };
 
   handleOnReplyButtonClick = () => {
-    this.setState({ showInputText: !this.state.showInputText }, () => {
+    this.setState({showInputText: !this.state.showInputText}, () => {
       if (this._autoExpandTextAreaRef && this.state.showInputText) {
         this._autoExpandTextAreaRef.focus();
       }
@@ -49,7 +52,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
   };
 
   handleReply = (text: string) => {
-    this.setState({ showInputText: false, isThreadOpen: true }, () => {
+    this.setState({showInputText: false, isThreadOpen: true}, () => {
       this.props.onReply(text, this.props.thread.id);
     });
     this.props.onHeightChange();
@@ -68,20 +71,15 @@ export class Thread extends Component<ThreadProps, ThreadState> {
           <button
             onClick={this.handleResend.bind(this, qnaMessage)}
             className={classNames(styles.clearStyledButton, styles.resendButton)}
-            type={"button"}
-          >
-            <span className={styles.resendTitle}>{"Resend"}</span>
-            <span className={styles.resendIcon} />
+            type={'button'}>
+            <span className={styles.resendTitle}>{'Resend'}</span>
+            <span className={styles.resendIcon}>
+              <ResendIcon />
+            </span>
           </button>
         );
       default:
-        return (
-          <TimeDisplay
-            className={styles.threadTime}
-            time={qnaMessage.createdAt}
-            dateFormat={dateFormat}
-          />
-        );
+        return <TimeDisplay className={styles.threadTime} time={qnaMessage.createdAt} dateFormat={dateFormat} />;
     }
   }
 
@@ -90,97 +88,80 @@ export class Thread extends Component<ThreadProps, ThreadState> {
   };
 
   handleAutoExpandTextAreaFocusOut = () => {
-    this.setState({ showInputText: false });
+    this.setState({showInputText: false});
     this.props.onHeightChange();
   };
 
   render() {
-    const { thread, dateFormat } = this.props;
-    const { replies } = thread;
-    const { isThreadOpen, showInputText } = this.state;
-        const { backgroundColor } = this.props.theme;
+    const {thread, dateFormat} = this.props;
+    const {replies} = thread;
+    const {isThreadOpen, showInputText} = this.state;
+    const {backgroundColor} = this.props.theme;
 
     return (
       <div
         className={classNames(styles.thread, {
           [styles.unreadThread]: thread.unRead
         })}
-        onClick={this.handleThreadClick}
-      >
-        {/* if this master question will be answered on air - add an icon */
+        onClick={this.handleThreadClick}>
+        {
+          /* if this master question will be answered on air - add an icon */
           thread.willBeAnsweredOnAir && (
             <div className={styles.aoaIconContainer}>
               <AnsweredOnAirIcon />
             </div>
-          )}
-        <div
-                    style={`background-color: ${backgroundColor};`}
-                    className={styles.messageContent}
-                >
+          )
+        }
+        <div style={`background-color: ${backgroundColor};`} className={styles.messageContent}>
           <TrimmedText maxLength={120} text={thread.messageContent} />
         </div>
 
-        <div style={`background-color: ${backgroundColor};`}
-             className={classNames(styles.secondInfoLineContainer, {
-               [styles.withReply]: replies.length > 0,
-             })}>
-          <div className={styles.secondInfoLine} >
+        <div
+          style={`background-color: ${backgroundColor};`}
+          className={classNames(styles.secondInfoLineContainer, {
+            [styles.withReply]: replies.length > 0
+          })}>
+          <div className={styles.secondInfoLine}>
             {this.showTimeOrStatus(thread, dateFormat)}
-            {/*    Show Number of Replies/Show Less button and thread time  */
+            {
+              /*    Show Number of Replies/Show Less button and thread time  */
               replies.length > 0 && (
-                <button
-                  className={styles.clearStyledButton}
-                  onClick={this.handleOnShowMoreClick}
-                  type={"button"}
-                >
-                            <span
-                              className={classNames(styles.numOfRepliesIcon, {
-                                [styles.arrowLeft]: !isThreadOpen
-                              })}
-                            />
+                <button className={styles.clearStyledButton} onClick={this.handleOnShowMoreClick} type={'button'}>
+                  <span
+                    className={classNames(styles.numOfRepliesIcon, {
+                      [styles.arrowLeft]: !isThreadOpen
+                    })}>
+                    <DownIcon />
+                  </span>
                   <span className={styles.numOfReplies}>
-                                {isThreadOpen
-                                  ? "Show less"
-                                  : replies.length +
-                                  (replies.length === 1 ? " Reply" : " Replies")}
-                            </span>
+                    {isThreadOpen ? 'Show less' : replies.length + (replies.length === 1 ? ' Reply' : ' Replies')}
+                  </span>
                 </button>
-              )}
+              )
+            }
           </div>
         </div>
 
-
-        {/*    Replies Collapsed area  */
+        {
+          /*    Replies Collapsed area  */
           isThreadOpen && (
-            <div
-                        style={`background-color: ${backgroundColor};`}
-                        className={styles.collapsedArea}
-                    >
+            <div style={`background-color: ${backgroundColor};`} className={styles.collapsedArea}>
               {replies.map((reply: QnaMessage) => {
                 return (
                   <div
                     key={reply.id}
                     className={classNames(styles.replyContainer, {
                       [styles.right]: reply.type === QnaMessageType.Question
-                    })}
-                  >
+                    })}>
                     <div>
                       <div
-                                            style={`background-color: ${backgroundColor};`}
+                        style={`background-color: ${backgroundColor};`}
                         className={classNames(styles.reply, {
                           [styles.autoReplay]: reply.isAoAAutoReply
-                        })}
-                      >
-                        {reply.type === QnaMessageType.Answer && (
-                          <div className={styles.username}>
-                            {reply.userId}
-                          </div>
-                        )}
+                        })}>
+                        {reply.type === QnaMessageType.Answer && <div className={styles.username}>{reply.userId}</div>}
                         <div className={styles.replyMessage}>
-                          <TrimmedText
-                            maxLength={120}
-                            text={reply.messageContent}
-                          />
+                          <TrimmedText maxLength={120} text={reply.messageContent} />
                         </div>
                       </div>
                       <div>{this.showTimeOrStatus(reply, dateFormat)}</div>
@@ -189,15 +170,14 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                 );
               })}
             </div>
-          )}
+          )
+        }
 
-        <div className={classNames({ [styles.displayNone]: !showInputText })}>
+        <div className={classNames({[styles.displayNone]: !showInputText})}>
           <AutoExpandTextArea
-            ref={autoExpandTextAreaRef =>
-              (this._autoExpandTextAreaRef = autoExpandTextAreaRef)
-            }
+            ref={autoExpandTextAreaRef => (this._autoExpandTextAreaRef = autoExpandTextAreaRef)}
             onSubmit={this.handleReply}
-            placeholder={"Reply"}
+            placeholder={'Reply'}
             enableBlackInputTheme={true}
             initialFocus={true}
             alwaysOpen={true}
@@ -208,17 +188,14 @@ export class Thread extends Component<ThreadProps, ThreadState> {
 
         <div
           style={`background-color: ${backgroundColor};`}
-                    className={classNames(styles.lastInfoLine, {
-                        [styles.displayNone]: showInputText|| this.props.announcementsOnly
-          })}
-        >
-          <button
-            onClick={this.handleOnReplyButtonClick}
-            className={styles.clearStyledButton}
-            type={"button"}
-          >
-            <span className={styles.replyIcon} />
-            <span className={styles.replyText}>{"Reply"}</span>
+          className={classNames(styles.lastInfoLine, {
+            [styles.displayNone]: showInputText || this.props.announcementsOnly
+          })}>
+          <button onClick={this.handleOnReplyButtonClick} className={styles.clearStyledButton} type={'button'}>
+            <span className={styles.replyIcon}>
+              <ReplyIcon />
+            </span>
+            <span className={styles.replyText}>{'Reply'}</span>
           </button>
         </div>
       </div>

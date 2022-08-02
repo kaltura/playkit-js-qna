@@ -90,6 +90,8 @@
 }
 
 .resend-button {
+  display: flex;
+  align-items: center;
   float: right;
   position: relative;
   margin-right: 1px;
@@ -105,10 +107,9 @@
   display: inline-block;
   width: 20px;
   height: 20px;
-  background: transparent url('../../assets/resend.svg') center/11px no-repeat;
   position: relative;
   left: 0;
-  top: 4px;
+  top: 3px;
 }
 
 .reply {
@@ -134,12 +135,10 @@
 .num-of-replies-icon {
   display: inline-block;
   width: 20px;
-  height: 20px;
+  height: 12px;
   position: relative;
   left: -5px;
-  background: transparent url('../../assets/down.svg') center/16px no-repeat;
   transition: all 150ms ease;
-
   &.arrow-left {
     transform: rotate(-90deg);
   }
@@ -177,7 +176,6 @@
   display: inline-block;
   width: 20px;
   height: 20px;
-  background: transparent url('../../assets/reply.svg') center/16px no-repeat;
 }
 
 .reply-text {

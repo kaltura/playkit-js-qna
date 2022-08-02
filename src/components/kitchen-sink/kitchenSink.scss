@@ -38,12 +38,16 @@ $background-color: rgba(33, 33, 33, 0.9);
   }
 
   .close-button {
-    background: transparent url('../../assets/close.svg') center/32px no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
     border: none;
     margin-top: 2px;
-    width: 24px;
+    width: 32px;
     height: 24px;
     cursor: pointer;
+    background: transparent;
   }
 }
 
@@ -81,23 +85,10 @@ $background-color: rgba(33, 33, 33, 0.9);
   width: 70%;
   max-width: 70%;
   margin: 4px 0 8px 0;
-  background: url('../../assets/no-question-yet.svg') center no-repeat;
   background-size: contain;
-}
-
-.no-question-yet-image {
-  background: url('../../assets/no-question-yet.svg') center no-repeat;
-  background-size: contain;
-}
-
-.no-announcements-yet-image {
-  background: url('../../assets/no-announcements.svg') center no-repeat;
-  background-size: contain;
-}
-
-.whoopse-error-image {
-  background: url('../../assets/whoopse-error.svg') center no-repeat;
-  background-size: contain;
+  svg {
+    width: 100%;
+  }
 }
 
 .empty-list-title {

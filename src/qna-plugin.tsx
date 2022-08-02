@@ -133,7 +133,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     }
     const {sources} = this._player.config;
     if (sources.type !== this._player.MediaType.LIVE) {
-      this.logger.warn("Q&A notifications are not available during VOD");
+      this.logger.warn('Q&A notifications are not available during VOD');
       return;
     }
     this._addListeners();
@@ -161,11 +161,11 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
         }
 
         const theme = this._getTheme();
-        const props: any = {};
-
         return (
           <KitchenSink
-            {...props}
+            onClose={() => {
+              this.sidePanelsManager.deactivateItem(this._pluginPanel);
+            }}
             dateFormat={this.config.dateFormat}
             threads={this._threads}
             hasError={this._hasError}
