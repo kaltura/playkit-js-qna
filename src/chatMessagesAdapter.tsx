@@ -1,11 +1,12 @@
 import {h} from 'preact';
+import {ToastSeverity} from '@playkit-js/common';
 import {KitchenSinkMessages} from './kitchenSinkMessages';
 import {MessageDeliveryStatus, QnaMessage, QnaMessageFactory, QnaMessageType} from './qnaMessageFactory';
 import {Utils} from './utils';
 import {ToastIcon, ToastsType} from './components/toast-icon';
 import {DisplayToast} from './qna-plugin';
 import {MessageLoader} from './providers/message-loader';
-import {ToastSeverity, TimedMetadataEvent, CuePoint} from './types';
+import {TimedMetadataEvent, CuePoint} from './types';
 
 export interface ChatMessagesAdapterOptions {
   kitchenSinkMessages: KitchenSinkMessages;

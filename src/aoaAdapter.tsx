@@ -1,11 +1,11 @@
 import {KitchenSinkMessages} from './kitchenSinkMessages';
-import {BannerManager, VisibilityMode, BannerState} from '@playkit-js-contrib/ui';
+import {BannerManager, ToastSeverity, VisibilityMode, BannerState} from '@playkit-js/common';
 import {MessageState, QnaMessage, QnaMessageType} from './qnaMessageFactory';
 import {ToastIcon, ToastsType} from './components/toast-icon';
 import {h} from 'preact';
 import {Utils} from './utils';
 import {DisplayToast} from './qna-plugin';
-import {ToastSeverity, TimedMetadataEvent, CuePoint} from './types';
+import { TimedMetadataEvent, CuePoint} from './types';
 
 export interface AoaAdapterOptions {
   kitchenSinkMessages: KitchenSinkMessages;

@@ -1,4 +1,5 @@
 import {h, ComponentChild} from 'preact';
+import {ContribServices, ToastSeverity} from '@playkit-js/common';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
 import {QnaMessage} from './qnaMessageFactory';
@@ -7,7 +8,7 @@ import {AnnouncementsAdapter} from './announcementsAdapter';
 import {ChatMessagesAdapter} from './chatMessagesAdapter';
 import {KitchenSinkPluginEventTypes, KitchenSinkMessages, MessagesUpdatedEvent} from './kitchenSinkMessages';
 
-import {PluginStates, QnaPluginConfig, ToastSeverity, TimedMetadataEvent, CuePoint, ModeratorSettings} from './types';
+import {PluginStates, QnaPluginConfig, TimedMetadataEvent, CuePoint, ModeratorSettings} from './types';
 import {ui} from 'kaltura-player-js';
 import {Utils} from './utils';
 const {useState} = KalturaPlayer.ui.preactHooks;
@@ -46,6 +47,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _player: KalturaPlayerTypes.Player;
   private _pluginPanel = null;
   private _pluginState: PluginStates | null = null;
+  private _contribServices: ContribServices;
 
   static defaultConfig: QnaPluginConfig = {
     bannerDuration: DefaultBannerDuration,
@@ -61,8 +63,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   constructor(name: string, player: KalturaPlayerTypes.Player, config: QnaPluginConfig) {
     super(name, player, config);
     this._player = player;
-    let bannerDuration =
-      this.config.bannerDuration && this.config.bannerDuration >= MinBannerDuration ? this.config.bannerDuration : DefaultBannerDuration;
+    this._contribServices = ContribServices.get({kalturaPlayer: this._player});
     this._toastsDuration =
       this.config.toastDuration && this.config.toastDuration >= MinToastDuration ? this.config.toastDuration : DefaultToastDuration;
     //adapters
@@ -76,11 +77,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       setDataListener: (cb: (timedMetadata: TimedMetadataEvent) => void) => {
         this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, cb);
       },
-      // bannerManager: this._contribServices.bannerManager, // TODO
-      bannerManager: {
-        add: (data: any) => console.log('>> bannerManager add ', data),
-        remove: (data: any) => console.log('>> bannerManager remove ', data)
-      } as any,
+      bannerManager: this._contribServices.bannerManager,
       logger: this.logger,
       isKitchenSinkActive: this._isKitchenSinkActive,
       updateMenuIcon: this._updateMenuIcon,
@@ -124,6 +121,11 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     return this._player.getService('kalturaCuepoints') as any;
   }
 
+  // TODO: remove once contribServices migrated to BasePlugin
+  getUIComponents(): any[] {
+    return this._contribServices.register();
+  }
+
   static isValid(): boolean {
     return true;
   }
@@ -144,7 +146,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     // const userId = Utils.getAnonymousUserId();
     this._loading = true;
     this._hasError = false;
-    //Q&A kitchenSink and push notifications are not available during VOD
+    // Q&A notifications are not available during VOD
     if (sources.type === this._player.MediaType.LIVE) {
       this._createQnAPlugin();
     }
@@ -235,6 +237,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._chatMessagesAdapter.reset();
     this._pluginPanel = null;
     this.eventManager.removeAll();
+    this._contribServices.reset();
   }
 
   destroy(): void {
@@ -254,16 +257,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   }
 
   private _initPluginManagers(): void {
-    const ks = this._player.config.provider.ks;
-    if (!ks) {
-      // logger.warn('Warn: Q&A Failed to initialize.' +
-      //   'Failed to retrieve ks from configuration ' +
-      //   '(both providers and session objects returned with an undefined KS),' +
-      //   ' please check your configuration file.', {
-      //   method: '_initPluginManagers'
-      // });
-      return;
-    }
     this._delayedGiveUpLoading();
   }
 
@@ -281,7 +274,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._updateQnAPlugin();
   };
 
-  // TODO: handle error
   private _onQnaError = () => {
     this._loading = false;
     this._hasError = true;
@@ -339,15 +331,14 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       return;
     }
     // display toast
-    console.log('>> display toast');
-    // this._contribServices.toastManager.add({
-    //   title: 'Notifications',
-    //   text: options.text,
-    //   icon: options.icon,
-    //   duration: this._toastsDuration,
-    //   severity: options.severity || ToastSeverity.Info,
-    //   onClick: this._activateKitchenSink
-    // });
+    this._contribServices.toastManager.add({
+      title: 'Notifications',
+      text: options.text,
+      icon: options.icon,
+      duration: this._toastsDuration,
+      severity: options.severity || ToastSeverity.Info,
+      onClick: this._activateKitchenSink
+    });
   };
 
   private _getTheme(): QnaTheme {

@@ -1,6 +1,6 @@
 import { h, Component } from "preact";
 import * as styles from "./trimmedText.scss";
-import { LinkifyString } from "@playkit-js-contrib/linkify";
+import { LinkifyString } from "@playkit-js/common";
 import { Utils } from "../../utils";
 
 interface TrimmedTextProps {

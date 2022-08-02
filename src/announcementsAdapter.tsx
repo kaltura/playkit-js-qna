@@ -1,10 +1,11 @@
+import {ToastSeverity} from '@playkit-js/common';
 import {KitchenSinkMessages} from './kitchenSinkMessages';
 import {MessageState, QnaMessage, QnaMessageType} from './qnaMessageFactory';
 import {ToastIcon, ToastsType} from './components/toast-icon';
 import {h} from 'preact';
 import {Utils} from './utils';
 import {DisplayToast} from './qna-plugin';
-import {ToastSeverity, TimedMetadataEvent, CuePoint} from './types';
+import {TimedMetadataEvent, CuePoint} from './types';
 
 export interface AnnouncementsAdapterOptions {
   kitchenSinkMessages: KitchenSinkMessages;

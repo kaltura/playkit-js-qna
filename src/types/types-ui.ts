@@ -5,14 +5,6 @@ export enum PluginStates {
   CLOSED = 'closed'
 }
 
-// TODO: move to ui managers
-export enum ToastSeverity {
-  Info = 'Info',
-  Success = 'Success',
-  Warn = 'Warn',
-  Error = 'Error'
-}
-
 // TODO: move to cue-point manager
 export interface CuePoint {
   startTime: number;
