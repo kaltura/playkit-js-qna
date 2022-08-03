@@ -77,7 +77,6 @@
   position: absolute;
   top: -5px;
   right: 2px;
-  background: url(./../../assets/private.svg) no-repeat 7px 7px;
 }
 
 .beating-private-icon {
@@ -115,7 +114,9 @@
   margin-left: 8px;
   padding: 4px 12px;
 
-  &:hover, &:active, &:focus {
+  &:hover,
+  &:active,
+  &:focus {
     background-color: #01accd;
   }
 
@@ -139,5 +140,7 @@
 }
 
 @keyframes come-in {
-  to { transform: translateY(0); }
+  to {
+    transform: translateY(0);
+  }
 }

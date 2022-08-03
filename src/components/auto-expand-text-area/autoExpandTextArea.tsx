@@ -1,6 +1,7 @@
 import { h, Component } from "preact";
 import * as styles from "./autoExpandTextArea.scss";
 import classNames from "classnames";
+import {PrivateIcon} from "../icons/private-icon";
 
 interface AutoExpandTextAreaProps {
   placeholder?: string;
