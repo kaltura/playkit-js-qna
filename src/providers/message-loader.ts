@@ -2,10 +2,10 @@ import ILoader = KalturaPlayerTypes.ILoader;
 
 const {RequestBuilder} = KalturaPlayer.providers;
 interface MessageResponse {
-  metadataprofile: Array<any>; // TODO
-  cuepointAdd: any; // TODO
-  metadata: any; // TODO
-  cuepointUpdate: any; // TODO
+  metadataprofile: Array<Object>;
+  cuepointAdd: Object;
+  metadata: Object;
+  cuepointUpdate: Object;
 }
 export class MessageLoader implements ILoader {
   _requestIndexCorrection: number;
@@ -52,7 +52,7 @@ export class MessageLoader implements ILoader {
     addCuePointRequest.action = 'add';
     addCuePointRequest.params = {
       cuePoint: {
-        objectType: "KalturaAnnotation",
+        objectType: 'KalturaAnnotation',
         ...params.addCuePointArgs
       }
     };
@@ -63,7 +63,7 @@ export class MessageLoader implements ILoader {
     addMetadataRequest.service = 'metadata_metadata';
     addMetadataRequest.action = 'add';
     addMetadataRequest.params = {
-      objectType: "annotationMetadata.Annotation",
+      objectType: 'annotationMetadata.Annotation',
       ...params.addMetadataArgs
     };
     this.requests.push(addMetadataRequest);

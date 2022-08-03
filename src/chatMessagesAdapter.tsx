@@ -104,7 +104,6 @@ export class ChatMessagesAdapter {
     }
     const data = responses.get(MessageLoader.id);
     if (!data.response || !data.response.length) {
-      const firstError = responses.getFirstError();
       this._logger.error('Add cue point multi-request failed');
       throw new Error('Add cue point multi-request failed');
     }
