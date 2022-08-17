@@ -31,7 +31,9 @@ export class AnnouncementsAdapter {
 
   private _handleTimedMetadata = ({payload}: TimedMetadataEvent): void => {
     const filterFn = (metadata: any) =>
-      metadata?.cuePointType === 'annotation.Annotation' && metadata?.tags === 'qna' && metadata?.cueType === 'publicqna';
+      metadata?.cuePointType === 'annotation.Annotation' &&
+      ['qna', 'qna, Annotation_Deleted'].includes(metadata?.tags) &&
+      metadata?.cueType === 'publicqna';
     const announcementCuePoints: CuePoint[] = Utils.prepareCuePoints(payload.cues, filterFn);
     if (announcementCuePoints.length) {
       const qnaMessages: QnaMessage[] = Utils.createQnaMessagesArray(announcementCuePoints).filter(qnaMessage => {
