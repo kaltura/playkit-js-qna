@@ -106,7 +106,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     });
     // register to kitchenSink updated qnaMessages array
     this._kitchenSinkMessages.on(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
-    this._initPluginManagers();
+    this._delayedGiveUpLoading();
   }
 
   get sidePanelsManager() {
@@ -142,12 +142,14 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       this.cuePointManager.CuepointType.USER_QNA,
       this.cuePointManager.CuepointType.CODE_QNA
     ]);
-
-    this._loading = true;
-    this._hasError = false;
     this._createQnAPlugin();
     this._chatMessagesAdapter.onMediaLoad(sources.id);
   }
+
+  private _handleCloseClick = () => {
+    this.sidePanelsManager.deactivateItem(this._pluginPanel);
+    this._pluginState = PluginStates.CLOSED;
+  };
 
   private _createQnAPlugin = () => {
     if (this._pluginPanel) {
@@ -163,9 +165,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
         const theme = this._getTheme();
         return (
           <KitchenSink
-            onClose={() => {
-              this.sidePanelsManager.deactivateItem(this._pluginPanel);
-            }}
+            onClose={this._handleCloseClick}
             dateFormat={this.config.dateFormat}
             threads={this._threads}
             hasError={this._hasError}
@@ -189,8 +189,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
             isActive={isActive}
             onClick={() => {
               if (this.sidePanelsManager.isItemActive(this._pluginPanel)) {
-                this._pluginState = PluginStates.CLOSED;
-                this.sidePanelsManager.deactivateItem(this._pluginPanel);
+                this._handleCloseClick();
               } else {
                 this.sidePanelsManager.activateItem(this._pluginPanel);
               }
@@ -225,15 +224,16 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     //reset managers
     this._kitchenSinkMessages.reset();
     this._chatMessagesAdapter.reset();
-    this._pluginPanel = null;
+    if (this._pluginPanel) {
+      this.sidePanelsManager.removeItem(this._pluginPanel);
+      this._pluginPanel = null;
+    }
     this.eventManager.removeAll();
     this._contribServices.reset();
   }
 
   destroy(): void {
-    this._hasError = false;
-    this._loading = true;
-    this._threads = [];
+    this.reset();
     // destroy managers
     this._kitchenSinkMessages.destroy();
     // remove kitchenSink listener
@@ -249,10 +249,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
         });
       }
     });
-  }
-
-  private _initPluginManagers(): void {
-    this._delayedGiveUpLoading();
   }
 
   private _delayedGiveUpLoading() {

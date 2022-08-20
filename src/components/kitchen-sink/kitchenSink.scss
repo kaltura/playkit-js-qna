@@ -9,7 +9,8 @@ $background-color: rgba(33, 33, 33, 0.9);
   color: #cccccc;
   width: 100%;
   height: 100%;
-
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
   // TODO: remove once player fix the font
   * {
     font-family: sans-serif;
@@ -86,8 +87,9 @@ $background-color: rgba(33, 33, 33, 0.9);
   max-width: 70%;
   margin: 4px 0 8px 0;
   background-size: contain;
+  display: contents;
   svg {
-    width: 100%;
+    width: 50%;
   }
 }
 
