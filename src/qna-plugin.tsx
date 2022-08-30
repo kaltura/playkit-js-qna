@@ -137,7 +137,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       return;
     }
     if (!this.player.isLive()) {
-      console.log("Q&A Plugin doesn't support non-live media");
+      this.logger.warn("QnA Plugin doesn't support non-live media");
       return;
     }
 
