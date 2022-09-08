@@ -255,7 +255,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, this._onQnaSettings);
     this.eventManager.listen(this._player, this._player.Event.FIRST_PLAYING, () => {
       if (this._shouldExpandOnFirstPlay()) {
-        this.ready.then(() => {
+        this.player.ready().then(() => {
           this.sidePanelsManager.activateItem(this._pluginPanel);
         });
       }
