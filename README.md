@@ -41,6 +41,10 @@ Finally, add the bundle as a script tag in your page, and initialize the player
 ```html
 <script type="text/javascript" src="/PATH/TO/FILE/kaltura-player.js"></script>
 <!--Kaltura player-->
+<script type="text/javascript" src="/PATH/TO/FILE/playkit-kaltura-cuepoints.js"></script>
+<!--PlayKit cuepoints plugin-->
+<script type="text/javascript" src="/PATH/TO/FILE/playkit-ui-managers.js"></script>
+<!--PlayKit ui-managers plugin-->
 <script type="text/javascript" src="/PATH/TO/FILE/playkit-qna.js"></script>
 <!--PlayKit qna plugin-->
 <div id="player-placeholder" style="height:360px; width:640px">
@@ -50,7 +54,9 @@ Finally, add the bundle as a script tag in your page, and initialize the player
      ...
      targetId: 'player-placeholder',
      plugins: {
-       qna: { ... }
+      qna: { ... },
+      uiManagers: { ... },
+      kalturaCuepoints: { ... },
      }
      ...
     };
@@ -64,7 +70,11 @@ Finally, add the bundle as a script tag in your page, and initialize the player
 
 QnA plugin configuration can been found here:
 
-- **[Configuration](docs/configuration.md)**
+- **[Configuration](#configuration)**
+
+QnA plugin dependencies can been found here:
+
+- **[Dependencies](#dependencies)**
 
 ### And coding style tests
 
@@ -85,15 +95,74 @@ This project is licensed under the AGPL-3.0 License - see the [LICENSE.md](LICEN
 
 ## Commands
 
-Run dev server: `npm run serve`;<br/>
-Update contrib: `npm run infra:latest`;<br/>
-Bump version: `npm run deploy:prepare`;<br/>
+Run dev server: `yarn dev`;<br/>
+Bump version: `yarn release`;<br/>
 
-## Configuration
 
-Plugin configuration:<br/>
-> bannerDuration: number;<br/>
-> toastDuration: number;<br/>
-> dateFormat: string;<br/>
-> expandMode: string;<br/>
-> expandOnFirstPlay: boolean;<br/>
+<a name="dependencies"></a>
+## Dependencies
+
+#### Configuration Structure
+
+```js
+//Default configuration
+"qna" = {};
+//Plugin params
+"qna" = {
+  bannerDuration?: number;<br/>
+  toastDuration?: number;<br/>
+  dateFormat?: string;<br/>
+  expandMode?: string;<br/>
+  expandOnFirstPlay?: boolean;<br/>
+  userRole?: string;<br/>
+}
+```
+
+##
+
+> ### config.bannerDuration
+>
+> ##### Type: `number`
+>
+> ##### Default: `60000`
+>
+
+##
+
+> ### config.toastDuration
+>
+> ##### Type: `number`
+>
+> ##### Default: `5000`
+>
+
+##
+
+> ### config.expandMode
+>
+> ##### Type: `string`;
+>
+> ##### Default: `over`; (‘alongside', ‘hidden’, 'over’)
+>
+
+##
+
+> ### config.dateFormat
+>
+> ##### Type: `string`;
+>
+> ##### Default: `over`; (dd/mm/yyyy)
+>
+
+##
+
+> ### config.userRole
+>
+> ##### Type: `string`
+>
+> ##### Default: `anonymousRole` (anonymousRole|unmoderatedAdminRole)
+>
+
+Plugin dependencies:<br/>
+<a href="https://github.com/kaltura/playkit-js-kaltura-cuepoints">Cue Points</a><br/>
+<a href="https://github.com/kaltura/playkit-js-ui-managers">UI Managers</a>
