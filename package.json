@@ -93,5 +93,9 @@
     "playkit-js",
     "playkit-js-qna",
     "html5 player"
+  ],
+    "kalturaDependencies" : [
+    "playkit-kaltura-cuepoints",
+    "playkit-ui-managers"
   ]
 }
