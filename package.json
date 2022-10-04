@@ -94,8 +94,11 @@
     "playkit-js-qna",
     "html5 player"
   ],
-    "kalturaDependencies" : [
-    "playkit-kaltura-cuepoints",
-    "playkit-ui-managers"
-  ]
+  "kaltura": {
+    "name": "qna",
+    "dependencies": {
+      "playkit-kaltura-cuepoints": "1.6.2",
+      "playkit-ui-managers": "1.2.2"
+    }
+  }
 }
