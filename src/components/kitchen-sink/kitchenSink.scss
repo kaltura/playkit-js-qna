@@ -122,6 +122,7 @@ $background-color: rgba(33, 33, 33, 0.9);
 }
 
 .scroll-down-button-hidden {
+  visibility: hidden;
   top: 1px;
   transition-property: top;
   transition-timing-function: cubic-bezier(0.4, 0, 1, 1);

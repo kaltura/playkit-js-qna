@@ -1,51 +1,48 @@
-import { h, Component } from "preact";
-import * as styles from "./trimmedText.scss";
-import { LinkifyString } from "@playkit-js/common";
-import { Utils } from "../../utils";
+import {h, Component} from 'preact';
+import {A11yWrapper} from '@playkit-js/common';
+import * as styles from './trimmedText.scss';
+import {LinkifyString} from '@playkit-js/common';
+import {Utils} from '../../utils';
 
 interface TrimmedTextProps {
-    maxLength: number;
-    text: string | undefined;
+  maxLength: number;
+  text: string | undefined;
 }
 
 interface TrimmedTextState {
-    isTrimmed: boolean;
+  isTrimmed: boolean;
 }
 
 export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
-    static defaultProps = {};
+  static defaultProps = {};
 
-    state = {
-        isTrimmed: true
-    };
+  state = {
+    isTrimmed: true
+  };
 
-    onTrimmedTextClick = () => {
-        this.setState({ isTrimmed: !this.state.isTrimmed });
-    };
+  onTrimmedTextClick = () => {
+    this.setState({isTrimmed: !this.state.isTrimmed});
+  };
 
-    render() {
-        const { maxLength, text } = this.props;
-        const { isTrimmed } = this.state;
+  render() {
+    const {maxLength, text} = this.props;
+    const {isTrimmed} = this.state;
 
-        return text && text.length > maxLength ? (
-            <span>
-                <span className={styles.text}>
-                    <LinkifyString
-                        text={isTrimmed ? `${Utils.wordBoundaryTrim(text, maxLength)}...` : text}
-                    />
-                </span>
-                <button
-                    className={styles.showMoreOrLess}
-                    onClick={this.onTrimmedTextClick}
-                    type={"button"}
-                >
-                    {isTrimmed ? "Show more" : "Show less"}
-                </button>
-            </span>
-        ) : (
-            <span className={styles.text}>
-                <LinkifyString text={text || ""} />
-            </span>
-        );
-    }
+    return text && text.length > maxLength ? (
+      <span>
+        <span className={styles.text}>
+          <LinkifyString text={isTrimmed ? `${Utils.wordBoundaryTrim(text, maxLength)}...` : text} />
+        </span>
+        <A11yWrapper onClick={this.onTrimmedTextClick}>
+          <button className={styles.showMoreOrLess} type={'button'}>
+            {isTrimmed ? 'Show more' : 'Show less'}
+          </button>
+        </A11yWrapper>
+      </span>
+    ) : (
+      <span className={styles.text}>
+        <LinkifyString text={text || ''} />
+      </span>
+    );
+  }
 }
