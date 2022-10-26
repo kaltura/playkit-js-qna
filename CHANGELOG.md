@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com/kaltura/playkit-js-qna/compare/v2.1.5...v3.1.0) (2022-10-26)
+
+
+### Features
+
+* **FEV-1275:** migrate QnA plugin to use V7 player services ([#285](https://github.com/kaltura/playkit-js-qna/issues/285)) ([e6fbdf6](https://github.com/kaltura/playkit-js-qna/commit/e6fbdf6965bff8c4db2928f7c05eb6cf2f37c5b4))
+
+
+### Bug Fixes
+
+* **FEV-1344:** remove icon duplication on media switch ([#288](https://github.com/kaltura/playkit-js-qna/issues/288)) ([7e84046](https://github.com/kaltura/playkit-js-qna/commit/7e840466f2be85dc0bbcdd6090835e24cedd4b97))
+* **FEV-1347:** default plugin configuration ([#286](https://github.com/kaltura/playkit-js-qna/issues/286)) ([9b5b5f2](https://github.com/kaltura/playkit-js-qna/commit/9b5b5f25d0f940962d96ac059870808666cf7277))
+* **FEV-1358:** style fixes for panel background and empty qna list ([67af68c](https://github.com/kaltura/playkit-js-qna/commit/67af68c5fc6ecd244bc285162f23e81f61e3f8d6))
+* **FEV-1361:** handle remove announcements ([#289](https://github.com/kaltura/playkit-js-qna/issues/289)) ([15fd412](https://github.com/kaltura/playkit-js-qna/commit/15fd412f118e42603fc40d6ee9098143495b3e7b))
+* **FEV-1381:** initialize plugin on mediaLoaded instead in constructor + disable when not live ([cdc756c](https://github.com/kaltura/playkit-js-qna/commit/cdc756cc121acaa82d6de57adc0d0c86e664d132))
+* **FEV-1418:** add plugin dependencies ([8e46d00](https://github.com/kaltura/playkit-js-qna/commit/8e46d009d3f2f1fa0bcb59b9ef0722b537f76668))
+* **FEV-1419:** register to player ready event instead of plugin ready event ([#293](https://github.com/kaltura/playkit-js-qna/issues/293)) ([74a1314](https://github.com/kaltura/playkit-js-qna/commit/74a13142d47e4fde2c7bb95dd54ca982fd66d0be))
+
 ### [2.1.5](https://github.com/kaltura/playkit-js-qna/compare/v2.1.4...v2.1.5) (2022-01-19)
 
 ### [2.1.4](https://github.com/kaltura/playkit-js-qna/compare/v2.1.3...v2.1.4) (2021-12-01)

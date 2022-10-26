@@ -1,6 +1,6 @@
 {
   "name": "@playkit-js/qna",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "bugs": {
     "url": "https://github.com/kaltura/playkit-js-qna/issues"
   },
@@ -97,7 +97,7 @@
   "kaltura": {
     "name": "qna",
     "dependencies": {
-      "playkit-kaltura-cuepoints": "1.6.2",
+      "playkit-kaltura-cuepoints": "3.0.0",
       "playkit-ui-managers": "1.2.2"
     }
   }
