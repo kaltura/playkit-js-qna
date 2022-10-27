@@ -1,4 +1,5 @@
 import {Component, h} from 'preact';
+import {A11yWrapper} from '@playkit-js/common';
 import * as styles from './kitchenSink.scss';
 import {QnaMessage, QnaMessageType} from '../../qnaMessageFactory';
 import {Thread} from '../thread';
@@ -153,14 +154,16 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     let renderedContent = this._generateContent(props);
 
     return (
-      <div className={styles.root}>
+      <div className={styles.root} aria-live="polite">
         {/* header */}
         <div className={styles.headerContainer}>
           <div className={styles.header}>
             <div className={styles.title}>{props.announcementsOnly ? 'Announcements' : 'Q&A'}</div>
-            <button className={styles.closeButton} onClick={onClose}>
-              <CloseIcon />
-            </button>
+            <A11yWrapper onClick={onClose}>
+              <button className={styles.closeButton} aria-label={'Hide QnA'}>
+                <CloseIcon />
+              </button>
+            </A11yWrapper>
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import {Component, h} from 'preact';
+import {A11yWrapper} from '@playkit-js/common';
 import * as styles from './thread.scss';
 import {MessageDeliveryStatus, QnaMessage, QnaMessageType} from '../../qnaMessageFactory';
 import {TimeDisplay} from '../time-display';
@@ -68,15 +69,14 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         return <span className={styles.sendingIndication}>Sending...</span>;
       case MessageDeliveryStatus.SEND_FAILED:
         return (
-          <button
-            onClick={this.handleResend.bind(this, qnaMessage)}
-            className={classNames(styles.clearStyledButton, styles.resendButton)}
-            type={'button'}>
-            <span className={styles.resendTitle}>{'Resend'}</span>
-            <span className={styles.resendIcon}>
-              <ResendIcon />
-            </span>
-          </button>
+          <A11yWrapper onClick={this.handleResend.bind(this, qnaMessage)}>
+            <button className={classNames(styles.clearStyledButton, styles.resendButton)} aria-label={'Resend'} type={'button'}>
+              <span className={styles.resendTitle}>{'Resend'}</span>
+              <span className={styles.resendIcon}>
+                <ResendIcon />
+              </span>
+            </button>
+          </A11yWrapper>
         );
       default:
         return <TimeDisplay className={styles.threadTime} time={qnaMessage.createdAt} dateFormat={dateFormat} />;
@@ -103,7 +103,8 @@ export class Thread extends Component<ThreadProps, ThreadState> {
         className={classNames(styles.thread, {
           [styles.unreadThread]: thread.unRead
         })}
-        onClick={this.handleThreadClick}>
+        onClick={this.handleThreadClick}
+        role="listitem">
         {
           /* if this master question will be answered on air - add an icon */
           thread.willBeAnsweredOnAir && (
@@ -126,17 +127,19 @@ export class Thread extends Component<ThreadProps, ThreadState> {
             {
               /*    Show Number of Replies/Show Less button and thread time  */
               replies.length > 0 && (
-                <button className={styles.clearStyledButton} onClick={this.handleOnShowMoreClick} type={'button'}>
-                  <span
-                    className={classNames(styles.numOfRepliesIcon, {
-                      [styles.arrowLeft]: !isThreadOpen
-                    })}>
-                    <DownIcon />
-                  </span>
-                  <span className={styles.numOfReplies}>
-                    {isThreadOpen ? 'Show less' : replies.length + (replies.length === 1 ? ' Reply' : ' Replies')}
-                  </span>
-                </button>
+                <A11yWrapper onClick={this.handleOnShowMoreClick}>
+                  <button className={styles.clearStyledButton} type={'button'} aria-label={isThreadOpen ? 'Show less' : 'Show more'}>
+                    <span
+                      className={classNames(styles.numOfRepliesIcon, {
+                        [styles.arrowLeft]: !isThreadOpen
+                      })}>
+                      <DownIcon />
+                    </span>
+                    <span className={styles.numOfReplies}>
+                      {isThreadOpen ? 'Show less' : replies.length + (replies.length === 1 ? ' Reply' : ' Replies')}
+                    </span>
+                  </button>
+                </A11yWrapper>
               )
             }
           </div>
@@ -191,12 +194,14 @@ export class Thread extends Component<ThreadProps, ThreadState> {
           className={classNames(styles.lastInfoLine, {
             [styles.displayNone]: showInputText || this.props.announcementsOnly
           })}>
-          <button onClick={this.handleOnReplyButtonClick} className={styles.clearStyledButton} type={'button'}>
-            <span className={styles.replyIcon}>
-              <ReplyIcon />
-            </span>
-            <span className={styles.replyText}>{'Reply'}</span>
-          </button>
+          <A11yWrapper onClick={this.handleOnReplyButtonClick}>
+            <button className={styles.clearStyledButton} type={'button'} aria-label={'Reply'}>
+              <span className={styles.replyIcon}>
+                <ReplyIcon />
+              </span>
+              <span className={styles.replyText}>{'Reply'}</span>
+            </button>
+          </A11yWrapper>
         </div>
       </div>
     );
