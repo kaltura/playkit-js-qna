@@ -1,5 +1,6 @@
 import {h, ComponentChild} from 'preact';
 import {ContribServices, ToastSeverity} from '@playkit-js/common';
+import {UpperBarManager, SidePanelsManager} from '@playkit-js/ui-managers';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
 import {QnaMessage} from './qnaMessageFactory';
@@ -7,6 +8,7 @@ import {AoaAdapter} from './aoaAdapter';
 import {AnnouncementsAdapter} from './announcementsAdapter';
 import {ChatMessagesAdapter} from './chatMessagesAdapter';
 import {KitchenSinkPluginEventTypes, KitchenSinkMessages, MessagesUpdatedEvent} from './kitchenSinkMessages';
+import {icons} from './components/icons';
 
 import {PluginStates, QnaPluginConfig, TimedMetadataEvent, CuePoint, ModeratorSettings} from './types';
 import {ui} from 'kaltura-player-js';
@@ -34,7 +36,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _loading: boolean = true;
   private _chatMessagesAdapter: ChatMessagesAdapter | undefined;
   private _kitchenSinkMessages: KitchenSinkMessages | undefined;
-  private _setShowMenuIconIndication = (value: boolean) => {};
+  private _showMenuIconIndication = false;
   private _toastsDuration: number = DefaultToastDuration;
   private _qnaSettings: ModeratorSettings = {
     createdAt: 0,
@@ -43,7 +45,8 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   };
 
   private _player: KalturaPlayerTypes.Player;
-  private _pluginPanel = null;
+  private _pluginPanel = -1;
+  private _pluginIcon = -1;
   private _pluginState: PluginStates | null = null;
   private _contribServices: ContribServices;
 
@@ -64,7 +67,11 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   }
 
   get sidePanelsManager() {
-    return this._player.getService('sidePanelsManager') as any;
+    return this.player.getService('sidePanelsManager') as SidePanelsManager | undefined;
+  }
+
+  get upperBarManager() {
+    return this.player.getService('upperBarManager') as UpperBarManager | undefined;
   }
 
   get cuePointManager() {
@@ -82,7 +89,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
 
   init(): void {
     this._toastsDuration =
-        this.config.toastDuration && this.config.toastDuration >= MinToastDuration ? this.config.toastDuration : DefaultToastDuration;
+      this.config.toastDuration && this.config.toastDuration >= MinToastDuration ? this.config.toastDuration : DefaultToastDuration;
     //adapters
     this._kitchenSinkMessages = new KitchenSinkMessages();
     // AoA
@@ -96,7 +103,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       },
       bannerManager: this._contribServices.bannerManager,
       logger: this.logger,
-      isKitchenSinkActive: this._isKitchenSinkActive,
+      isKitchenSinkActive: this._isPluginActive,
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
     });
@@ -108,7 +115,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
         this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, cb);
       },
       // TODO: move filterFn from AnnouncementsAdapter here
-      isKitchenSinkActive: this._isKitchenSinkActive,
+      isKitchenSinkActive: this._isPluginActive,
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
     });
@@ -121,19 +128,18 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
         this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, cb);
       },
       // TODO: move filterFn from ChatMessagesAdapter here
-      isKitchenSinkActive: this._isKitchenSinkActive,
+      isKitchenSinkActive: this._isPluginActive,
       updateMenuIcon: this._updateMenuIcon,
       displayToast: this._displayToast
     });
     // register to kitchenSink updated qnaMessages array
     this._kitchenSinkMessages!.on(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);
     this._delayedGiveUpLoading();
-
   }
 
   loadMedia(): void {
-    if (!this.sidePanelsManager || !this.cuePointManager) {
-      this.logger.warn("sidePanelsManager or cuePointManager haven't registered");
+    if (!this.cuePointManager || !this.sidePanelsManager || !this.upperBarManager) {
+      this.logger.warn("kalturaCuepoints, sidePanelsManager or upperBarManager haven't registered");
       return;
     }
     if (!this.player.isLive()) {
@@ -157,26 +163,20 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._chatMessagesAdapter!.onMediaLoad(sources.id);
   }
 
-  private _handleCloseClick = () => {
-    this.sidePanelsManager.deactivateItem(this._pluginPanel);
-    this._pluginState = PluginStates.CLOSED;
-  };
-
   private _createQnAPlugin = () => {
-    if (this._pluginPanel) {
+    if (this._pluginPanel > 0) {
       return;
     }
-    this._pluginPanel = this.sidePanelsManager.addItem({
+    this._pluginPanel = this.sidePanelsManager!.add({
       label: 'Q&A',
       panelComponent: () => {
         if (!this._kitchenSinkMessages) {
           return <div />;
         }
-
         const theme = this._getTheme();
         return (
           <KitchenSink
-            onClose={this._handleCloseClick}
+            onClose={this._deactivatePlugin}
             dateFormat={this.config.dateFormat}
             threads={this._threads}
             hasError={this._hasError}
@@ -189,43 +189,57 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
           />
         );
       },
-      iconComponent: ({isActive}: {isActive: boolean}) => {
-        const [showMenuIconIndication, setShowMenuIconIndication] = useState(false);
-        this._setShowMenuIconIndication = value => {
-          setShowMenuIconIndication(value);
-        };
-        return (
-          <QnaPluginButton
-            showIndication={showMenuIconIndication}
-            isActive={isActive}
-            onClick={() => {
-              if (this.sidePanelsManager.isItemActive(this._pluginPanel)) {
-                this._handleCloseClick();
-              } else {
-                this.sidePanelsManager.activateItem(this._pluginPanel);
-              }
-            }}
-          />
-        );
-      },
       presets: [ReservedPresetNames.Playback, ReservedPresetNames.Live, ReservedPresetNames.Ads],
       position: this.config.position,
       expandMode: this.config.expandMode === SidePanelModes.ALONGSIDE ? SidePanelModes.ALONGSIDE : SidePanelModes.OVER,
-      onActivate: () => {
-        this._pluginState = PluginStates.OPENED;
-        this._updateMenuIcon(false);
+      onDeactivate: this._deactivatePlugin
+    }) as number;
+
+    this._pluginIcon = this.upperBarManager!.add({
+      label: 'Q&A',
+      svgIcon: {path: icons.PLUGIN_ICON, viewBox: `0 0 ${icons.BigSize} ${icons.BigSize}`},
+      onClick: this._handleClickOnPluginIcon as () => void,
+      component: () => {
+        return (
+          <QnaPluginButton showIndication={this._showMenuIconIndication} isActive={this._isPluginActive()} onClick={this._handleClickOnPluginIcon} />
+        );
       }
-    });
+    }) as number;
   };
 
-  private _updateQnAPlugin = () => {
-    if (this._pluginPanel) {
-      this.sidePanelsManager.update(this._pluginPanel);
+  private _handleClickOnPluginIcon = () => {
+    if (this._isPluginActive()) {
+      this._deactivatePlugin();
+    } else {
+      this._activetePlugin();
+      this._updateMenuIcon(false);
     }
   };
 
-  private _shouldExpandOnFirstPlay = () => {
-    return (this.config.expandOnFirstPlay && !this._pluginState) || this._pluginState === PluginStates.OPENED;
+  private _activetePlugin = () => {
+    this.ready.then(() => {
+      this.sidePanelsManager?.activateItem(this._pluginPanel);
+      this._pluginState === PluginStates.OPENED;
+      this.upperBarManager?.update(this._pluginIcon);
+    });
+  };
+
+  private _deactivatePlugin = () => {
+    this.ready.then(() => {
+      this.sidePanelsManager?.deactivateItem(this._pluginPanel);
+      this._pluginState = PluginStates.CLOSED;
+      this.upperBarManager?.update(this._pluginIcon);
+    });
+  };
+
+  private _isPluginActive = () => {
+    return this.sidePanelsManager!.isItemActive(this._pluginPanel);
+  };
+
+  private _updateQnAPlugin = () => {
+    if (this._pluginPanel > 0) {
+      this.sidePanelsManager?.update(this._pluginPanel);
+    }
   };
 
   reset(): void {
@@ -235,9 +249,11 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     //reset managers
     this._kitchenSinkMessages?.reset();
     this._chatMessagesAdapter?.reset();
-    if (this._pluginPanel) {
-      this.sidePanelsManager.removeItem(this._pluginPanel);
-      this._pluginPanel = null;
+    if (Math.max(this._pluginPanel, this._pluginIcon) > 0) {
+      this.sidePanelsManager!.remove(this._pluginPanel);
+      this.upperBarManager!.remove(this._pluginIcon);
+      this._pluginPanel = -1;
+      this._pluginIcon = -1;
     }
     this.eventManager.removeAll();
     this._contribServices.reset();
@@ -254,10 +270,8 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _addListeners(): void {
     this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, this._onQnaSettings);
     this.eventManager.listen(this._player, this._player.Event.FIRST_PLAYING, () => {
-      if (this._shouldExpandOnFirstPlay()) {
-        this.player.ready().then(() => {
-          this.sidePanelsManager.activateItem(this._pluginPanel);
-        });
+      if ((this.config.expandOnFirstPlay && !this._pluginState) || this._pluginState === PluginStates.OPENED) {
+        this._activetePlugin();
       }
     });
   }
@@ -300,31 +314,26 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
 
   private _handleQnaSettingsChange(): void {
     //remove kitchenSink
-    if (this._pluginPanel && !this._qnaSettings.qnaEnabled) {
-      this.sidePanelsManager.removeItem(this._pluginPanel);
-      this._pluginPanel = null;
+    if (this._pluginPanel > 0 && !this._qnaSettings.qnaEnabled) {
+      this.sidePanelsManager?.remove(this._pluginPanel);
+      this._pluginPanel = -1;
     }
     //add kitchenSink
-    if (!this._pluginPanel && this._qnaSettings.qnaEnabled) {
+    if (this._pluginPanel < 0 && this._qnaSettings.qnaEnabled) {
       this._createQnAPlugin();
     }
-
     this._updateQnAPlugin();
   }
 
-  private _isKitchenSinkActive = (): boolean => {
-    if (!this._pluginPanel) return false;
-    return this.sidePanelsManager.isItemActive(this._pluginPanel);
-  };
-
   private _activateKitchenSink = (): void => {
-    if (this._pluginPanel) {
-      this.sidePanelsManager.activateItem(this._pluginPanel);
+    if (this._pluginPanel > 0) {
+      this.sidePanelsManager?.activateItem(this._pluginPanel);
     }
   };
 
   private _updateMenuIcon = (showIndication: boolean): void => {
-    this._setShowMenuIconIndication(showIndication);
+    this._showMenuIconIndication = showIndication;
+    this.upperBarManager?.update(this._pluginIcon);
   };
 
   private _displayToast = (options: DisplayToastOptions): void => {
