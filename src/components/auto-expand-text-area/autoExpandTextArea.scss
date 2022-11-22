@@ -106,8 +106,8 @@
 }
 
 .send-button {
-  background-color: $brand-color;
-  color: #ffffff;
+  background-color: var(--primary-color);
+  color: var(--primary-text-contrast-color);
   border: none;
   border-radius: $roundness-1;
   font-size: 14px;
@@ -117,12 +117,12 @@
   padding: 4px 12px;
 
   &:hover {
-    background-color: $brand-color-dark;
+    background-color: var(--primary-darker-color);
   }
 
   &:active,
   &:focus {
-    background-color: $brand-color-light;
+    background-color: var(--primary-brighter-color);
   }
 
   &:disabled {

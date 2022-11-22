@@ -1,12 +1,4 @@
-$theme-colors: (
-  'primary': #ffffff,
-  'gray': #444444
-);
-
 $roundness-1: 4px;
-$brand-color: #006EFA;
-$brand-color-dark: darken($brand-color, 15%);
-$brand-color-light: lighten($brand-color, 15%);
 
 @mixin plugin-scrollbar {
   &::-webkit-scrollbar {
