@@ -3,7 +3,7 @@
 .qnaPluginButton {
   position: relative;
   &.active {
-    background-color: #444444;
+    background-color: $tone-6-color;
   }
 
   .indicator {
