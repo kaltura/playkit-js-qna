@@ -1,5 +1,6 @@
 import {h, ComponentChild} from 'preact';
 import {ContribServices, ToastSeverity} from '@playkit-js/common';
+import {OnClickEvent} from '@playkit-js/common';
 import {UpperBarManager, SidePanelsManager} from '@playkit-js/ui-managers';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
@@ -13,7 +14,6 @@ import {icons} from './components/icons';
 import {PluginStates, QnaPluginConfig, TimedMetadataEvent, CuePoint, ModeratorSettings} from './types';
 import {ui} from 'kaltura-player-js';
 import {Utils} from './utils';
-const {useState} = KalturaPlayer.ui.preactHooks;
 const {SidePanelModes, SidePanelPositions, ReservedPresetNames} = ui;
 
 type DisplayToastOptions = {text: string; icon: ComponentChild; severity: ToastSeverity};
@@ -49,6 +49,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _pluginIcon = -1;
   private _pluginState: PluginStates | null = null;
   private _contribServices: ContribServices;
+  private _triggeredByKeyboard = false;
 
   static defaultConfig: QnaPluginConfig = {
     toastDuration: DefaultToastDuration,
@@ -186,6 +187,8 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
             onMassageRead={this._chatMessagesAdapter!.onMessageRead}
             announcementsOnly={this._qnaSettings ? this._qnaSettings.announcementOnly : false}
             theme={theme}
+            toggledByKeyboard={this._triggeredByKeyboard}
+            kitchenSinkActive={this._isPluginActive()}
           />
         );
       },
@@ -207,11 +210,13 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     }) as number;
   };
 
-  private _handleClickOnPluginIcon = () => {
+  private _handleClickOnPluginIcon = (e: OnClickEvent, byKeyboard?: boolean) => {
     if (this._isPluginActive()) {
+      this._triggeredByKeyboard = false;
       this._deactivatePlugin();
     } else {
       this._activetePlugin();
+      this._triggeredByKeyboard = Boolean(byKeyboard);
       this._updateMenuIcon(false);
     }
   };
@@ -243,6 +248,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   };
 
   reset(): void {
+    this._triggeredByKeyboard = false;
     this._hasError = false;
     this._loading = true;
     this._threads = [];
