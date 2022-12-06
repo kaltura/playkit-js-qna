@@ -19,7 +19,7 @@ export class Notification extends Component<NotificationProps> {
     const {backgroundColor} = this.props.theme;
 
     return (
-      <div style={`background-color: ${backgroundColor};`} className={styles.notification}>
+      <div style={`background-color: ${backgroundColor};`} className={styles.notification} tabIndex={0}>
         <div className={styles.leftContainer}>
           <div className={styles.iconWrapper}>
             <div className={styles.iconImage}>

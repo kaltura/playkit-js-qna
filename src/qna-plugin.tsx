@@ -165,7 +165,8 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   }
 
   private _createQnAPlugin = () => {
-    if (this._pluginPanel > 0) {
+    if (Math.max(this._pluginPanel, this._pluginIcon) > 0) {
+      // plugin already added
       return;
     }
     this._pluginPanel = this.sidePanelsManager!.add({
