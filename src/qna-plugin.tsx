@@ -319,10 +319,10 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _handleQnaSettingsChange(): void {
     if (this._qnaSettings.qnaEnabled) {
       this._createQnAPlugin();
+      this._updateQnAPlugin();
     } else {
       this._removeQnAPlugin();
     }
-    this._updateQnAPlugin();
   }
 
   private _activateKitchenSink = (): void => {
