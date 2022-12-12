@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.2.0](https://github.com/kaltura/playkit-js-qna/compare/v3.1.0...v3.2.0) (2022-12-12)
+
+
+### Features
+
+* **FEV-1555:** Add support to the More plugin ([#298](https://github.com/kaltura/playkit-js-qna/issues/298)) ([ee509bb](https://github.com/kaltura/playkit-js-qna/commit/ee509bb54e558e9bb8c0cbf15d005c25518e224a))
+
+
+### Bug Fixes
+
+* **FEC-12791:** icon id fix ([#304](https://github.com/kaltura/playkit-js-qna/issues/304)) ([e44fd21](https://github.com/kaltura/playkit-js-qna/commit/e44fd2151c2fe35ac8a428b2c3aa082c817cdbd3))
+* **FEV-1451:** a11y changes ([#297](https://github.com/kaltura/playkit-js-qna/issues/297)) ([5433b31](https://github.com/kaltura/playkit-js-qna/commit/5433b31dccd890fb2e1a5ef0aafc0bff7752cc29))
+* **FEV-1585:** when hitting space on auto scroll button it also pauses the video ([#302](https://github.com/kaltura/playkit-js-qna/issues/302)) ([fa7d7b4](https://github.com/kaltura/playkit-js-qna/commit/fa7d7b46f659cdb5c36e259baaa871b0e3896ad9))
+* **FEV-1608:** After each disable and enable of qna plugin from the wc app the plugin button is being duplicated in the player. ([#305](https://github.com/kaltura/playkit-js-qna/issues/305)) ([b876af1](https://github.com/kaltura/playkit-js-qna/commit/b876af1b1cd5c194b6f2fa3faab977c1d4404488))
+
 ## [3.1.0](https://github.com/kaltura/playkit-js-qna/compare/v2.1.5...v3.1.0) (2022-10-26)
 
 
