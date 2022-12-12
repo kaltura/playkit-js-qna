@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@playkit-js/common": "^1.0.9",
-    "@playkit-js/ui-managers": "^1.3.0",
+    "@playkit-js/ui-managers": "^1.3.1",
     "classnames": "^2.2.6"
   },
   "publishConfig": {
@@ -98,8 +98,8 @@
   "kaltura": {
     "name": "qna",
     "dependencies": {
-      "playkit-kaltura-cuepoints": "3.0.0",
-      "playkit-ui-managers": "1.3.0"
+      "playkit-kaltura-cuepoints": "3.0.2",
+      "playkit-ui-managers": "1.3.1"
     }
   }
 }
