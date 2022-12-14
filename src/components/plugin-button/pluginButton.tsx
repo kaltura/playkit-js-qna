@@ -30,7 +30,7 @@ export const QnaPluginButton = withText(translates)(({isActive, onClick, showInd
       <A11yWrapper onClick={onClick}>
         <button aria-label={otherProps.label} className={[ui.style.upperBarIcon, styles.qnaPluginButton, isActive ? styles.active : ''].join(' ')}>
           <Icon
-            id="navigation-plugin-button"
+            id="qna-plugin-button"
             height={icons.BigSize}
             width={icons.BigSize}
             viewBox={`0 0 ${icons.BigSize} ${icons.BigSize}`}

@@ -164,6 +164,15 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._chatMessagesAdapter!.onMediaLoad(sources.id);
   }
 
+  private _removeQnAPlugin = () => {
+    if (Math.max(this._pluginPanel, this._pluginIcon) > 0) {
+      this.sidePanelsManager!.remove(this._pluginPanel);
+      this.upperBarManager!.remove(this._pluginIcon);
+      this._pluginPanel = -1;
+      this._pluginIcon = -1;
+    }
+  };
+
   private _createQnAPlugin = () => {
     if (Math.max(this._pluginPanel, this._pluginIcon) > 0) {
       // plugin already added
@@ -256,12 +265,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     //reset managers
     this._kitchenSinkMessages?.reset();
     this._chatMessagesAdapter?.reset();
-    if (Math.max(this._pluginPanel, this._pluginIcon) > 0) {
-      this.sidePanelsManager!.remove(this._pluginPanel);
-      this.upperBarManager!.remove(this._pluginIcon);
-      this._pluginPanel = -1;
-      this._pluginIcon = -1;
-    }
+    this._removeQnAPlugin();
     this.eventManager.removeAll();
     this._contribServices.reset();
   }
@@ -320,16 +324,12 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   };
 
   private _handleQnaSettingsChange(): void {
-    //remove kitchenSink
-    if (this._pluginPanel > 0 && !this._qnaSettings.qnaEnabled) {
-      this.sidePanelsManager?.remove(this._pluginPanel);
-      this._pluginPanel = -1;
-    }
-    //add kitchenSink
-    if (this._pluginPanel < 0 && this._qnaSettings.qnaEnabled) {
+    if (this._qnaSettings.qnaEnabled) {
       this._createQnAPlugin();
+      this._updateQnAPlugin();
+    } else {
+      this._removeQnAPlugin();
     }
-    this._updateQnAPlugin();
   }
 
   private _activateKitchenSink = (): void => {
