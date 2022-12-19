@@ -104,6 +104,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
           [styles.unreadThread]: thread.unRead
         })}
         onClick={this.handleThreadClick}
+        tabIndex={0}
         role="listitem">
         {
           /* if this master question will be answered on air - add an icon */
@@ -128,14 +129,14 @@ export class Thread extends Component<ThreadProps, ThreadState> {
               /*    Show Number of Replies/Show Less button and thread time  */
               replies.length > 0 && (
                 <A11yWrapper onClick={this.handleOnShowMoreClick}>
-                  <button className={styles.clearStyledButton} type={'button'} aria-label={isThreadOpen ? 'Show less' : 'Show more'}>
+                  <button className={styles.clearStyledButton} type={'button'} aria-label={isThreadOpen ? 'Show less' : 'Show replies'} tabIndex={0}>
                     <span
                       className={classNames(styles.numOfRepliesIcon, {
                         [styles.arrowLeft]: !isThreadOpen
                       })}>
                       <DownIcon />
                     </span>
-                    <span className={styles.numOfReplies}>
+                    <span className={styles.numOfReplies} aria-hidden={isThreadOpen}>
                       {isThreadOpen ? 'Show less' : replies.length + (replies.length === 1 ? ' Reply' : ' Replies')}
                     </span>
                   </button>
@@ -195,11 +196,13 @@ export class Thread extends Component<ThreadProps, ThreadState> {
             [styles.displayNone]: showInputText || this.props.announcementsOnly
           })}>
           <A11yWrapper onClick={this.handleOnReplyButtonClick}>
-            <button className={styles.clearStyledButton} type={'button'} aria-label={'Reply'}>
+            <button className={styles.clearStyledButton} type={'button'} aria-label={'Reply in thread'}>
               <span className={styles.replyIcon}>
                 <ReplyIcon />
               </span>
-              <span className={styles.replyText}>{'Reply'}</span>
+              <span className={styles.replyText} aria-hidden="true">
+                {'Reply'}
+              </span>
             </button>
           </A11yWrapper>
         </div>
