@@ -25,6 +25,8 @@ export interface KitchenSinkProps {
   onMassageRead: (id: string) => void;
   announcementsOnly: boolean;
   theme: QnaTheme;
+  toggledByKeyboard: boolean;
+  kitchenSinkActive: boolean;
 }
 
 interface KitchenSinkState {}
@@ -42,6 +44,7 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     autoScroll: true
   };
 
+  private _closeButtonRef: HTMLButtonElement | null = null;
   private _messagesEnd: any;
   private _scrollingTimeoutId: any = null;
   private _animationInterval: any = null;
@@ -50,8 +53,13 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     this._scrollToBottom();
   }
 
-  componentDidUpdate() {
-    if (this.state.autoScroll) this._scrollToBottom();
+  componentDidUpdate(previousProps: KitchenSinkProps) {
+    if (this.state.autoScroll) {
+      this._scrollToBottom();
+    }
+    if (!previousProps.kitchenSinkActive && this.props.kitchenSinkActive && this.props.toggledByKeyboard) {
+      this._closeButtonRef?.focus();
+    }
   }
 
   private _handleOnSubmit = (text: string, parentId?: string | null) => {
@@ -160,7 +168,13 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
           <div className={styles.header}>
             <div className={styles.title}>{props.announcementsOnly ? 'Announcements' : 'Q&A'}</div>
             <A11yWrapper onClick={onClose}>
-              <button className={styles.closeButton} aria-label={'Hide QnA'}>
+              <button
+                className={styles.closeButton}
+                aria-label={'Hide QnA'}
+                tabIndex={0}
+                ref={node => {
+                  this._closeButtonRef = node;
+                }}>
                 <CloseIcon />
               </button>
             </A11yWrapper>

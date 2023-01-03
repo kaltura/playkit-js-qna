@@ -1,5 +1,6 @@
 import {h, ComponentChild} from 'preact';
 import {ContribServices, ToastSeverity} from '@playkit-js/common';
+import {OnClickEvent} from '@playkit-js/common';
 import {UpperBarManager, SidePanelsManager} from '@playkit-js/ui-managers';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
@@ -13,7 +14,6 @@ import {icons} from './components/icons';
 import {PluginStates, QnaPluginConfig, TimedMetadataEvent, CuePoint, ModeratorSettings} from './types';
 import {ui} from 'kaltura-player-js';
 import {Utils} from './utils';
-const {useState} = KalturaPlayer.ui.preactHooks;
 const {SidePanelModes, SidePanelPositions, ReservedPresetNames} = ui;
 
 type DisplayToastOptions = {text: string; icon: ComponentChild; severity: ToastSeverity};
@@ -49,6 +49,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _pluginIcon = -1;
   private _pluginState: PluginStates | null = null;
   private _contribServices: ContribServices;
+  private _triggeredByKeyboard = false;
 
   static defaultConfig: QnaPluginConfig = {
     toastDuration: DefaultToastDuration,
@@ -163,8 +164,18 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._chatMessagesAdapter!.onMediaLoad(sources.id);
   }
 
+  private _removeQnAPlugin = () => {
+    if (Math.max(this._pluginPanel, this._pluginIcon) > 0) {
+      this.sidePanelsManager!.remove(this._pluginPanel);
+      this.upperBarManager!.remove(this._pluginIcon);
+      this._pluginPanel = -1;
+      this._pluginIcon = -1;
+    }
+  };
+
   private _createQnAPlugin = () => {
-    if (this._pluginPanel > 0) {
+    if (Math.max(this._pluginPanel, this._pluginIcon) > 0) {
+      // plugin already added
       return;
     }
     this._pluginPanel = this.sidePanelsManager!.add({
@@ -186,6 +197,8 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
             onMassageRead={this._chatMessagesAdapter!.onMessageRead}
             announcementsOnly={this._qnaSettings ? this._qnaSettings.announcementOnly : false}
             theme={theme}
+            toggledByKeyboard={this._triggeredByKeyboard}
+            kitchenSinkActive={this._isPluginActive()}
           />
         );
       },
@@ -207,11 +220,13 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     }) as number;
   };
 
-  private _handleClickOnPluginIcon = () => {
+  private _handleClickOnPluginIcon = (e: OnClickEvent, byKeyboard?: boolean) => {
     if (this._isPluginActive()) {
+      this._triggeredByKeyboard = false;
       this._deactivatePlugin();
     } else {
       this._activetePlugin();
+      this._triggeredByKeyboard = Boolean(byKeyboard);
       this._updateMenuIcon(false);
     }
   };
@@ -243,18 +258,14 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   };
 
   reset(): void {
+    this._triggeredByKeyboard = false;
     this._hasError = false;
     this._loading = true;
     this._threads = [];
     //reset managers
     this._kitchenSinkMessages?.reset();
     this._chatMessagesAdapter?.reset();
-    if (Math.max(this._pluginPanel, this._pluginIcon) > 0) {
-      this.sidePanelsManager!.remove(this._pluginPanel);
-      this.upperBarManager!.remove(this._pluginIcon);
-      this._pluginPanel = -1;
-      this._pluginIcon = -1;
-    }
+    this._removeQnAPlugin();
     this.eventManager.removeAll();
     this._contribServices.reset();
   }
@@ -313,16 +324,12 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   };
 
   private _handleQnaSettingsChange(): void {
-    //remove kitchenSink
-    if (this._pluginPanel > 0 && !this._qnaSettings.qnaEnabled) {
-      this.sidePanelsManager?.remove(this._pluginPanel);
-      this._pluginPanel = -1;
-    }
-    //add kitchenSink
-    if (this._pluginPanel < 0 && this._qnaSettings.qnaEnabled) {
+    if (this._qnaSettings.qnaEnabled) {
       this._createQnAPlugin();
+      this._updateQnAPlugin();
+    } else {
+      this._removeQnAPlugin();
     }
-    this._updateQnAPlugin();
   }
 
   private _activateKitchenSink = (): void => {
