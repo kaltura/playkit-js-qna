@@ -1,9 +1,4 @@
-// colors
-$primary-color: var(--playkit-primary-color);
-$primary-text-contrast-color: var(--playkit-primary-text-contrast-color);
-$primary-darker-color: var(--playkit-primary-darker-color);
-$primary-brighter-color: var(--playkit-primary-brighter-color);
-$tone-6-color: var(--playkit-tone-6-color);
+@import '~@playkit-js/playkit-js-ui';
 
 // border radius
 $roundness-1: 4px;
