@@ -1,3 +1,5 @@
+@import '../../theme.scss';
+
 /* TODO: (2) remove this once 3rd party cross-browser custom scroll bar is Added */
 .textarea::-webkit-scrollbar {
   width: 11px;
@@ -104,20 +106,23 @@
 }
 
 .send-button {
-  background-color: #008297;
-  color: #ffffff;
+  background-color: $primary-color;
+  color: $primary-text-contrast-color;
   border: none;
-  border-radius: 14px;
+  border-radius: $roundness-1;
   font-size: 14px;
   text-align: center;
   cursor: pointer;
   margin-left: 8px;
   padding: 4px 12px;
 
-  &:hover,
+  &:hover {
+    background-color: $primary-darker-color;
+  }
+
   &:active,
   &:focus {
-    background-color: #01accd;
+    background-color: $primary-brighter-color;
   }
 
   &:disabled {

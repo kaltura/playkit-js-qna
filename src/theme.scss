@@ -1,7 +1,7 @@
-$theme-colors: (
-  'primary': #ffffff,
-  'gray': #444444
-);
+@import '~@playkit-js/playkit-js-ui';
+
+// border radius
+$roundness-1: 4px;
 
 @mixin plugin-scrollbar {
   &::-webkit-scrollbar {
