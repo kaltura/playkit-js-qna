@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.3.0](https://github.com/kaltura/playkit-js-qna/compare/v3.2.1...v3.3.0) (2023-01-19)
+
+
+### Features
+
+* **FEV-1570:** migrate style of plugin QnA ([#301](https://github.com/kaltura/playkit-js-qna/issues/301)) ([ebb8335](https://github.com/kaltura/playkit-js-qna/commit/ebb83358358f28901cd100636773b9e611b9dd66))
+
+
+### Bug Fixes
+
+* **FEV-1590:** Mac voice over issues ([#303](https://github.com/kaltura/playkit-js-qna/issues/303)) ([5ebc76f](https://github.com/kaltura/playkit-js-qna/commit/5ebc76fd1769681e037c0aad08a6979cb358a007))
+
 ### [3.2.1](https://github.com/kaltura/playkit-js-qna/compare/v3.2.0...v3.2.1) (2022-12-12)
 
 ## [3.2.0](https://github.com/kaltura/playkit-js-qna/compare/v3.1.0...v3.2.0) (2022-12-12)
