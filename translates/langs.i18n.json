@@ -2,7 +2,18 @@
   "en": {
     "qna": {
       "hide_plugin": "Hide QnA",
-      "show_plugin": "Show QnA"
+      "show_plugin": "Show QnA",
+      "show_less": "Show less",
+      "show_replies": "Show replies",
+      "reply_in_thread": "Reply in thread",
+      "reply": "Reply",
+      "replies": {
+        "one": "{{count}} Reply",
+        "many": "{{count}} Replies"
+      },
+      "resend": "Resend",
+      "sending": "Sending...",
+      "new_messages": "Thread contains new messages"
     }
   }
 }

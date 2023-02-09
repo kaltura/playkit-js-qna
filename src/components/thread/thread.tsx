@@ -12,6 +12,38 @@ import {ResendIcon} from '../icons/resend-icon';
 import {ReplyIcon} from '../icons/reply-icon';
 import {DownIcon} from '../icons/down-icon';
 
+const {Text, withText} = KalturaPlayer.ui.preacti18n;
+
+const translates = ({thread: {replies}}: ThreadProps) => ({
+  show_less: <Text id="qna.show_less">Show less</Text>,
+  show_replies: <Text id="qna.show_replies">Show replies</Text>,
+  reply_in_thread: <Text id="qna.reply_in_thread">Reply in thread</Text>,
+  reply: <Text id="qna.reply">Reply</Text>,
+  resend: <Text id="qna.resend">Resend</Text>,
+  new_messages: <Text id="qna.new_messages">Thread contains new messages</Text>,
+  sending: <Text id="qna.sending">Sending...</Text>,
+  replies: (
+    <Text
+      id="qna.replies"
+      plural={replies.length}
+      fields={{
+        count: replies.length
+      }}>
+      {replies.length + (replies.length === 1 ? ' Reply' : ' Replies')}
+    </Text>
+  )
+});
+interface Translates {
+  show_less?: string;
+  show_replies?: string;
+  reply_in_thread?: string;
+  reply?: string;
+  resend?: string;
+  new_messages?: string;
+  sending?: string;
+  replies?: string;
+}
+
 interface ThreadProps {
   thread: QnaMessage;
   dateFormat: string;
@@ -28,7 +60,8 @@ interface ThreadState {
   showInputText: boolean;
 }
 
-export class Thread extends Component<ThreadProps, ThreadState> {
+@withText(translates)
+export class Thread extends Component<ThreadProps & Translates, ThreadState> {
   private _autoExpandTextAreaRef: AutoExpandTextArea | null = null;
 
   static defaultProps = {};
@@ -39,6 +72,9 @@ export class Thread extends Component<ThreadProps, ThreadState> {
   };
 
   handleOnShowMoreClick = () => {
+    if (this.props.thread.unRead) {
+      this.handleThreadClick();
+    }
     this.setState({isThreadOpen: !this.state.isThreadOpen});
     this.props.onHeightChange();
   };
@@ -66,12 +102,12 @@ export class Thread extends Component<ThreadProps, ThreadState> {
   private showTimeOrStatus(qnaMessage: QnaMessage, dateFormat: string) {
     switch (qnaMessage.deliveryStatus) {
       case MessageDeliveryStatus.SENDING:
-        return <span className={styles.sendingIndication}>Sending...</span>;
+        return <span className={styles.sendingIndication}>{this.props.sending}</span>;
       case MessageDeliveryStatus.SEND_FAILED:
         return (
           <A11yWrapper onClick={this.handleResend.bind(this, qnaMessage)}>
-            <button className={classNames(styles.clearStyledButton, styles.resendButton)} aria-label={'Resend'} type={'button'}>
-              <span className={styles.resendTitle}>{'Resend'}</span>
+            <button className={classNames(styles.clearStyledButton, styles.resendButton)} aria-label={this.props.resend} type={'button'}>
+              <span className={styles.resendTitle}>{this.props.resend}</span>
               <span className={styles.resendIcon}>
                 <ResendIcon />
               </span>
@@ -98,14 +134,19 @@ export class Thread extends Component<ThreadProps, ThreadState> {
     const {isThreadOpen, showInputText} = this.state;
     const {backgroundColor} = this.props.theme;
 
+    const threadProps: Record<string, unknown> = {
+      className: classNames(styles.thread, {
+        [styles.unreadThread]: thread.unRead
+      }),
+      tabIndex: 0,
+      role: 'listitem'
+    };
+    if (thread.unRead) {
+      threadProps['aria-label'] = this.props.new_messages;
+    }
+
     return (
-      <div
-        className={classNames(styles.thread, {
-          [styles.unreadThread]: thread.unRead
-        })}
-        onClick={this.handleThreadClick}
-        tabIndex={0}
-        role="listitem">
+      <div {...threadProps}>
         {
           /* if this master question will be answered on air - add an icon */
           thread.willBeAnsweredOnAir && (
@@ -129,7 +170,11 @@ export class Thread extends Component<ThreadProps, ThreadState> {
               /*    Show Number of Replies/Show Less button and thread time  */
               replies.length > 0 && (
                 <A11yWrapper onClick={this.handleOnShowMoreClick}>
-                  <button className={styles.clearStyledButton} type={'button'} aria-label={isThreadOpen ? 'Show less' : 'Show replies'} tabIndex={0}>
+                  <button
+                    className={styles.clearStyledButton}
+                    type={'button'}
+                    aria-label={isThreadOpen ? this.props.show_less : this.props.show_replies}
+                    tabIndex={0}>
                     <span
                       className={classNames(styles.numOfRepliesIcon, {
                         [styles.arrowLeft]: !isThreadOpen
@@ -137,7 +182,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
                       <DownIcon />
                     </span>
                     <span className={styles.numOfReplies} aria-hidden={isThreadOpen}>
-                      {isThreadOpen ? 'Show less' : replies.length + (replies.length === 1 ? ' Reply' : ' Replies')}
+                      {isThreadOpen ? this.props.show_less : this.props.replies}
                     </span>
                   </button>
                 </A11yWrapper>
@@ -181,7 +226,7 @@ export class Thread extends Component<ThreadProps, ThreadState> {
           <AutoExpandTextArea
             ref={autoExpandTextAreaRef => (this._autoExpandTextAreaRef = autoExpandTextAreaRef)}
             onSubmit={this.handleReply}
-            placeholder={'Reply'}
+            placeholder={this.props.reply}
             enableBlackInputTheme={true}
             initialFocus={true}
             alwaysOpen={true}
@@ -196,12 +241,12 @@ export class Thread extends Component<ThreadProps, ThreadState> {
             [styles.displayNone]: showInputText || this.props.announcementsOnly
           })}>
           <A11yWrapper onClick={this.handleOnReplyButtonClick}>
-            <button className={styles.clearStyledButton} type={'button'} aria-label={'Reply in thread'}>
+            <button className={styles.clearStyledButton} type={'button'} aria-label={this.props.reply_in_thread}>
               <span className={styles.replyIcon}>
                 <ReplyIcon />
               </span>
               <span className={styles.replyText} aria-hidden="true">
-                {'Reply'}
+                {this.props.reply}
               </span>
             </button>
           </A11yWrapper>
