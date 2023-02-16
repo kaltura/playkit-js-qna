@@ -1,5 +1,5 @@
 import {Component, h} from 'preact';
-import {A11yWrapper} from '@playkit-js/common';
+import {A11yWrapper, OnClick} from '@playkit-js/common';
 import * as styles from './kitchenSink.scss';
 import {QnaMessage, QnaMessageType} from '../../qnaMessageFactory';
 import {Thread} from '../thread';
@@ -14,8 +14,10 @@ import {WhoopseErrorIcon} from '../icons/whoopse-error';
 import {NoAnnouncementsYetImage} from '../icons/no-announcements';
 import {NoQuestionsYetImage} from '../icons/no-questions';
 
+const {KeyMap} = KalturaPlayer.ui.utils;
+
 export interface KitchenSinkProps {
-  onClose: () => void;
+  onClose: OnClick;
   threads: QnaMessage[];
   dateFormat: string;
   hasError: boolean;
@@ -157,12 +159,18 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     }
   }
 
+  private _handleClose = (event: KeyboardEvent) => {
+    if (event.keyCode === KeyMap.ESC) {
+      this.props.onClose(event, true);
+    }
+  };
+
   render(props: KitchenSinkProps, state: any) {
     const {onClose} = props;
     let renderedContent = this._generateContent(props);
 
     return (
-      <div className={styles.root} aria-live="polite">
+      <div className={styles.root} aria-live="polite" onKeyUp={this._handleClose}>
         {/* header */}
         <div className={styles.headerContainer}>
           <div className={styles.header}>

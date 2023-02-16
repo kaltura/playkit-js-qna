@@ -50,6 +50,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _pluginState: PluginStates | null = null;
   private _contribServices: ContribServices;
   private _triggeredByKeyboard = false;
+  private _pluginButtonRef: HTMLButtonElement | null = null;
 
   static defaultConfig: QnaPluginConfig = {
     toastDuration: DefaultToastDuration,
@@ -170,6 +171,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       this.upperBarManager!.remove(this._pluginIcon);
       this._pluginPanel = -1;
       this._pluginIcon = -1;
+      this._pluginButtonRef = null;
     }
   };
 
@@ -187,7 +189,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
         const theme = this._getTheme();
         return (
           <KitchenSink
-            onClose={this._deactivatePlugin}
+            onClose={this._handleClose}
             dateFormat={this.config.dateFormat}
             threads={this._threads}
             hasError={this._hasError}
@@ -214,7 +216,12 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       onClick: this._handleClickOnPluginIcon as () => void,
       component: () => {
         return (
-          <QnaPluginButton showIndication={this._showMenuIconIndication} isActive={this._isPluginActive()} onClick={this._handleClickOnPluginIcon} />
+          <QnaPluginButton
+            showIndication={this._showMenuIconIndication}
+            isActive={this._isPluginActive()}
+            onClick={this._handleClickOnPluginIcon}
+            setRef={this._setPluginButtonRef}
+          />
         );
       }
     }) as number;
@@ -255,6 +262,17 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     if (this._pluginPanel > 0) {
       this.sidePanelsManager?.update(this._pluginPanel);
     }
+  };
+
+  private _setPluginButtonRef = (ref: HTMLButtonElement) => {
+    this._pluginButtonRef = ref;
+  };
+
+  private _handleClose = (e: OnClickEvent, byKeyboard: boolean) => {
+    if (byKeyboard) {
+      this._pluginButtonRef?.focus();
+    }
+    this._deactivatePlugin();
   };
 
   reset(): void {
