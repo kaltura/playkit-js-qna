@@ -22,13 +22,19 @@ interface QnaPluginButtonProps {
   onClick: OnClick;
   showIndication?: boolean;
   label?: string;
+  setRef: (ref: HTMLButtonElement | null) => void;
 }
 
-export const QnaPluginButton = withText(translates)(({isActive, onClick, showIndication, ...otherProps}: QnaPluginButtonProps) => {
+export const QnaPluginButton = withText(translates)(({isActive, onClick, showIndication, setRef, ...otherProps}: QnaPluginButtonProps) => {
   return (
     <Tooltip label={otherProps.label} type="bottom">
       <A11yWrapper onClick={onClick}>
-        <button aria-label={otherProps.label} className={[ui.style.upperBarIcon, styles.qnaPluginButton, isActive ? styles.active : ''].join(' ')}>
+        <button
+          aria-label={otherProps.label}
+          className={[ui.style.upperBarIcon, styles.qnaPluginButton, isActive ? styles.active : ''].join(' ')}
+          ref={node => {
+            setRef(node);
+          }}>
           <Icon
             id="qna-plugin-button"
             height={icons.BigSize}
