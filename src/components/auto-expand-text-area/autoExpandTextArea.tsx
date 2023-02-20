@@ -197,7 +197,7 @@ export class AutoExpandTextArea extends Component<AutoExpandTextAreaProps, AutoE
           ref={element => (this._actionsContainer = element)}>
           <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
           <A11yWrapper onClick={this._handleOnSend}>
-            <button className={styles.sendButton} type={'button'} disabled={!text.length || disabled} ref={button => (this._sendButtonRef = button)}>
+            <button className={styles.sendButton} disabled={!text.length || disabled} ref={button => (this._sendButtonRef = button)}>
               {'Send'}
             </button>
           </A11yWrapper>

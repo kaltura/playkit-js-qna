@@ -34,7 +34,7 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
           <LinkifyString text={isTrimmed ? `${Utils.wordBoundaryTrim(text, maxLength)}...` : text} />
         </span>
         <A11yWrapper onClick={this.onTrimmedTextClick}>
-          <button className={styles.showMoreOrLess} type={'button'} tabIndex={0}>
+          <button className={styles.showMoreOrLess} tabIndex={0}>
             {isTrimmed ? 'Show more' : 'Show less'}
           </button>
         </A11yWrapper>
