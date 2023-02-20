@@ -106,7 +106,7 @@ export class Thread extends Component<ThreadProps & Translates, ThreadState> {
       case MessageDeliveryStatus.SEND_FAILED:
         return (
           <A11yWrapper onClick={this.handleResend.bind(this, qnaMessage)}>
-            <button className={classNames(styles.clearStyledButton, styles.resendButton)} aria-label={this.props.resend} type={'button'}>
+            <button className={classNames(styles.clearStyledButton, styles.resendButton)} aria-label={this.props.resend}>
               <span className={styles.resendTitle}>{this.props.resend}</span>
               <span className={styles.resendIcon}>
                 <ResendIcon />
@@ -172,7 +172,6 @@ export class Thread extends Component<ThreadProps & Translates, ThreadState> {
                 <A11yWrapper onClick={this.handleOnShowMoreClick}>
                   <button
                     className={styles.clearStyledButton}
-                    type={'button'}
                     aria-label={isThreadOpen ? this.props.show_less : this.props.show_replies}
                     tabIndex={0}>
                     <span
@@ -241,7 +240,7 @@ export class Thread extends Component<ThreadProps & Translates, ThreadState> {
             [styles.displayNone]: showInputText || this.props.announcementsOnly
           })}>
           <A11yWrapper onClick={this.handleOnReplyButtonClick}>
-            <button className={styles.clearStyledButton} type={'button'} aria-label={this.props.reply_in_thread}>
+            <button className={styles.clearStyledButton} aria-label={this.props.reply_in_thread}>
               <span className={styles.replyIcon}>
                 <ReplyIcon />
               </span>
