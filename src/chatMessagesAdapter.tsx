@@ -34,7 +34,7 @@ export class ChatMessagesAdapter {
   private _player: KalturaPlayerTypes.Player;
   private _logger: KalturaPlayerTypes.Logger;
 
-  private _userId: string;
+  private _userId: string | undefined;
   private _entryId: string | undefined;
   private _metadataProfileId: number | null = null;
 
@@ -68,6 +68,7 @@ export class ChatMessagesAdapter {
   public reset(): void {
     this._metadataProfileId = null;
     this._entryId = undefined;
+    this._userId = undefined;
   }
 
   public onMessageRead = (messageId: string): void => {
