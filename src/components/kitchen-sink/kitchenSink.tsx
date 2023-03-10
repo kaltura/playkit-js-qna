@@ -1,5 +1,5 @@
 import {Component, h} from 'preact';
-import {A11yWrapper, OnClick} from '@playkit-js/common';
+import {A11yWrapper, OnClick} from '@playkit-js/common/dist/hoc/a11y-wrapper';
 import * as styles from './kitchenSink.scss';
 import {QnaMessage, QnaMessageType} from '../../qnaMessageFactory';
 import {Thread} from '../thread';

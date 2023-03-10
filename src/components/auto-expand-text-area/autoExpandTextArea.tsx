@@ -1,5 +1,5 @@
 import {h, Component} from 'preact';
-import {A11yWrapper} from '@playkit-js/common';
+import {A11yWrapper} from '@playkit-js/common/dist/hoc/a11y-wrapper';
 import * as styles from './autoExpandTextArea.scss';
 import classNames from 'classnames';
 import {PrivateIcon} from '../icons/private-icon';

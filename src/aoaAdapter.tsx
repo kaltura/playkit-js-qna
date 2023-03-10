@@ -1,5 +1,6 @@
 import {KitchenSinkMessages} from './kitchenSinkMessages';
-import {BannerManager, ToastSeverity, VisibilityMode, BannerState} from '@playkit-js/common';
+import {BannerManager, VisibilityMode, BannerState} from '@playkit-js/common/dist/ui-common/banner-manager';
+import {ToastSeverity} from '@playkit-js/common/dist/ui-common/toast-manager';
 import {MessageState, QnaMessage, QnaMessageType} from './qnaMessageFactory';
 import {ToastIcon, ToastsType} from './components/toast-icon';
 import {h} from 'preact';

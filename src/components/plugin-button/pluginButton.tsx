@@ -1,7 +1,7 @@
 import {h} from 'preact';
 import * as styles from './pluginButton.scss';
 import {ui} from 'kaltura-player-js';
-import {A11yWrapper, OnClick} from '@playkit-js/common';
+import {A11yWrapper, OnClick} from '@playkit-js/common/dist/hoc/a11y-wrapper';
 import {icons} from '../icons';
 
 const {Tooltip, Icon} = KalturaPlayer.ui.components;

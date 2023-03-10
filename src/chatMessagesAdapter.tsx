@@ -1,5 +1,6 @@
 import {h} from 'preact';
-import {ToastSeverity, generateId, getUserId} from '@playkit-js/common';
+import {ToastSeverity} from '@playkit-js/common/dist/ui-common/toast-manager';
+import {generateId} from '@playkit-js/common/dist/utils-common/utils';
 import {KitchenSinkMessages} from './kitchenSinkMessages';
 import {MessageDeliveryStatus, QnaMessage, QnaMessageFactory, QnaMessageType} from './qnaMessageFactory';
 import {Utils} from './utils';
@@ -16,6 +17,7 @@ export interface ChatMessagesAdapterOptions {
   displayToast: DisplayToast;
   player: KalturaPlayerTypes.Player;
   logger: KalturaPlayerTypes.Logger;
+  userId: string;
 }
 
 interface SubmitRequestParams {
@@ -32,6 +34,7 @@ export class ChatMessagesAdapter {
   private _player: KalturaPlayerTypes.Player;
   private _logger: KalturaPlayerTypes.Logger;
 
+  private _userId: string;
   private _entryId: string | undefined;
   private _metadataProfileId: number | null = null;
 
@@ -43,6 +46,7 @@ export class ChatMessagesAdapter {
     this._player = options.player;
     this._logger = options.logger;
     options.setDataListener(this._handleTimedMetadata);
+    this._userId = options.userId;
   }
 
   private _handleTimedMetadata = ({payload}: TimedMetadataEvent): void => {
@@ -166,11 +170,10 @@ export class ChatMessagesAdapter {
   };
 
   private _prepareSubmitRequest(uuid: string, question: string, parentId: string | null) {
-    const userId = getUserId();
     if (!this._entryId) {
       throw new Error("Can't make requests without entryId");
     }
-    if (!userId) {
+    if (!this._userId) {
       throw new Error("Can't make requests without userId");
     }
     const missingProfileId = !this._metadataProfileId;
@@ -216,7 +219,7 @@ export class ChatMessagesAdapter {
       metadata.ThreadId = thread.id;
     }
     metadata.Type = QnaMessageType.Question;
-    metadata.ThreadCreatorId = userId;
+    metadata.ThreadCreatorId = this._userId;
     const xmlData = Utils.createXmlFromObject(metadata);
 
     let metadataProfileId: number | string = this._metadataProfileId ? this._metadataProfileId : 0;

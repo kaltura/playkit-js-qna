@@ -1,7 +1,7 @@
 import {h, Component} from 'preact';
-import {A11yWrapper} from '@playkit-js/common';
+import {A11yWrapper} from '@playkit-js/common/dist/hoc/a11y-wrapper';
+import {LinkifyString} from '@playkit-js/common/dist/ui-common/linkify-string';
 import * as styles from './trimmedText.scss';
-import {LinkifyString} from '@playkit-js/common';
 import {Utils} from '../../utils';
 
 interface TrimmedTextProps {

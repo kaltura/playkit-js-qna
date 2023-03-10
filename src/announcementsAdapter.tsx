@@ -1,4 +1,4 @@
-import {ToastSeverity} from '@playkit-js/common';
+import {ToastSeverity} from '@playkit-js/common/dist/ui-common/toast-manager';
 import {KitchenSinkMessages} from './kitchenSinkMessages';
 import {MessageState, QnaMessage, QnaMessageType} from './qnaMessageFactory';
 import {ToastIcon, ToastsType} from './components/toast-icon';
