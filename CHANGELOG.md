@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.3.3](https://github.com/kaltura/playkit-js-qna/compare/v3.3.2...v3.3.3) (2023-03-14)
+
+
+### Bug Fixes
+
+* **SUP-34892:** When users send private messages their names appears incorrect in WC app. ([#312](https://github.com/kaltura/playkit-js-qna/issues/312)) ([f509aa0](https://github.com/kaltura/playkit-js-qna/commit/f509aa0f1d4cc8b4c4aaeaad7369cbf88df08079))
+
 ### [3.3.2](https://github.com/kaltura/playkit-js-qna/compare/v3.3.1...v3.3.2) (2023-02-23)
 
 
