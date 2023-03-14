@@ -1,6 +1,8 @@
 import {h, ComponentChild} from 'preact';
-import {ContribServices, ToastSeverity} from '@playkit-js/common';
-import {OnClickEvent} from '@playkit-js/common';
+import {ToastSeverity} from '@playkit-js/common/dist/ui-common/toast-manager';
+import {ContribServices} from '@playkit-js/common/dist/ui-common/contrib-services';
+import {getQnaUserId} from '@playkit-js/common/dist/utils-common/utils';
+import {OnClickEvent} from '@playkit-js/common/dist/hoc/a11y-wrapper';
 import {UpperBarManager, SidePanelsManager} from '@playkit-js/ui-managers';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
@@ -132,7 +134,8 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       // TODO: move filterFn from ChatMessagesAdapter here
       isKitchenSinkActive: this._isPluginActive,
       updateMenuIcon: this._updateMenuIcon,
-      displayToast: this._displayToast
+      displayToast: this._displayToast,
+      userId: getQnaUserId(this._player)
     });
     // register to kitchenSink updated qnaMessages array
     this._kitchenSinkMessages!.on(KitchenSinkPluginEventTypes.MessagesUpdatedEvent, this._onQnaMessage);

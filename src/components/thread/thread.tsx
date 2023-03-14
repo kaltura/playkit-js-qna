@@ -1,5 +1,5 @@
 import {Component, h} from 'preact';
-import {A11yWrapper} from '@playkit-js/common';
+import {A11yWrapper} from '@playkit-js/common/dist/hoc/a11y-wrapper';
 import * as styles from './thread.scss';
 import {MessageDeliveryStatus, QnaMessage, QnaMessageType} from '../../qnaMessageFactory';
 import {TimeDisplay} from '../time-display';

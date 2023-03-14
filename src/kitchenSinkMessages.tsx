@@ -1,6 +1,6 @@
 import { MessageDeliveryStatus, QnaMessage } from "./qnaMessageFactory";
 import { Utils } from "./utils";
-import { EventsManager } from "@playkit-js/common";
+import { EventsManager } from "@playkit-js/common/dist/ui-common/events-manager";
 
 export enum KitchenSinkPluginEventTypes {
     MessagesUpdatedEvent = "MessagesUpdatedEvent"
