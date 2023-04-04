@@ -1,0 +1,19 @@
+{
+  "ko": {
+    "qna": {
+      "hide_plugin": "QnA 숨기기",
+      "show_plugin": "QnA 보기",
+      "show_less": "간단히 표시",
+      "show_replies": "답변 보기",
+      "reply_in_thread": "스레드로 답변",
+      "reply": "답글",
+      "replies": {
+        "one": "{{count}} 답변",
+        "many": "{{count}} 답변"
+      },
+      "resend": "다시 보내기",
+      "sending": "전송 중...",
+      "new_messages": "스레드에 새로운 메시지가 있습니다"
+    }
+  }
+}

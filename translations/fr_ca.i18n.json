@@ -1,0 +1,19 @@
+{
+  "fr_ca": {
+    "qna": {
+      "hide_plugin": "Masquer Q&amp;R",
+      "show_plugin": "Afficher Q&amp;R",
+      "show_less": "Afficher moins",
+      "show_replies": "Afficher les réponses",
+      "reply_in_thread": "Répondre au fil de discussion",
+      "reply": "Répondre",
+      "replies": {
+        "one": "{{count}} Réponse",
+        "many": "{{count}} Réponses"
+      },
+      "resend": "Renvoyer",
+      "sending": "Envoi…",
+      "new_messages": "Le fil de discussion contient de nouveaux messages"
+    }
+  }
+}

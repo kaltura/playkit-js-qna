@@ -1,0 +1,19 @@
+{
+  "it": {
+    "qna": {
+      "hide_plugin": "Nascondi domande e risposte",
+      "show_plugin": "Mostra domande e risposte",
+      "show_less": "Mostra meno",
+      "show_replies": "Mostra risposte",
+      "reply_in_thread": "Rispondi nel thread",
+      "reply": "Rispondi",
+      "replies": {
+        "one": "{{count}} risposta",
+        "many": "{{count}} risposte"
+      },
+      "resend": "Rinvia",
+      "sending": "Invio in corso...",
+      "new_messages": "Il thread contiene nuovi messaggi"
+    }
+  }
+}

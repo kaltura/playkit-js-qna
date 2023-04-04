@@ -1,0 +1,19 @@
+{
+  "nl": {
+    "qna": {
+      "hide_plugin": "Vragen en antwoorden verbergen",
+      "show_plugin": "Vragen en antwoorden tonen",
+      "show_less": "Minder tonen",
+      "show_replies": "Antwoorden tonen",
+      "reply_in_thread": "Antwoord in thread",
+      "reply": "Antwoorden",
+      "replies": {
+        "one": "{{count}} antwoord",
+        "many": "{{count}} antwoorden"
+      },
+      "resend": "Opnieuw verzenden",
+      "sending": "Bezig met verzenden...",
+      "new_messages": "Thread bevat nieuwe berichten"
+    }
+  }
+}

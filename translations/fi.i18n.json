@@ -1,0 +1,19 @@
+{
+  "fi": {
+    "qna": {
+      "hide_plugin": "Piilota kysymykset ja vastaukset",
+      "show_plugin": "Näytä kysymykset ja vastaukset",
+      "show_less": "Näytä vähemmän",
+      "show_replies": "Näytä vastaukset",
+      "reply_in_thread": "Vastaa ketjussa",
+      "reply": "Vastaa",
+      "replies": {
+        "one": "{{count}} vastaus",
+        "many": "{{count}} vastausta"
+      },
+      "resend": "Lähetä uudelleen",
+      "sending": "Lähetetään...",
+      "new_messages": "Ketju sisältää uusia viestejä"
+    }
+  }
+}
