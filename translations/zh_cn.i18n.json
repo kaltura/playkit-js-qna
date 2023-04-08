@@ -1,0 +1,19 @@
+{
+  "zh_cn": {
+    "qna": {
+      "hide_plugin": "隐藏 QnA",
+      "show_plugin": "显示 QnA",
+      "show_less": "收起",
+      "show_replies": "显示回复",
+      "reply_in_thread": "在消息列中回复",
+      "reply": "回复",
+      "replies": {
+        "one": "{{count}} 个回复",
+        "many": "{{count}} 个回复"
+      },
+      "resend": "重新发送",
+      "sending": "正在发送……",
+      "new_messages": "消息列中包含新消息"
+    }
+  }
+}

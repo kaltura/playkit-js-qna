@@ -1,0 +1,19 @@
+{
+  "es": {
+    "qna": {
+      "hide_plugin": "Ocultar QnA",
+      "show_plugin": "Mostrar QnA",
+      "show_less": "Mostrar menos",
+      "show_replies": "Mostrar respuestas",
+      "reply_in_thread": "Responder en hilo",
+      "reply": "Responder",
+      "replies": {
+        "one": "{{count}} respuesta",
+        "many": "{{count}} respuestas"
+      },
+      "resend": "Reenviar",
+      "sending": "Enviando…",
+      "new_messages": "El hilo contiene nuevos mensajes"
+    }
+  }
+}

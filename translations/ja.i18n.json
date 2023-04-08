@@ -1,0 +1,19 @@
+{
+  "ja": {
+    "qna": {
+      "hide_plugin": "QnAを非表示にする",
+      "show_plugin": "QnAを表示する",
+      "show_less": "簡易表示",
+      "show_replies": "返答を表示する",
+      "reply_in_thread": "スレッドで返答",
+      "reply": "返答",
+      "replies": {
+        "one": "{{count}} 返答",
+        "many": "{{count}} 返答"
+      },
+      "resend": "再送信",
+      "sending": "送信しています",
+      "new_messages": "スレッドは新しいメッセージを含む"
+    }
+  }
+}

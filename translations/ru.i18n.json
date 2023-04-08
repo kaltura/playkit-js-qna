@@ -1,0 +1,19 @@
+{
+  "ru": {
+    "qna": {
+      "hide_plugin": "Скрыть QnA",
+      "show_plugin": "Показать QnA",
+      "show_less": "Показать меньше",
+      "show_replies": "Показать ответы",
+      "reply_in_thread": "Ответить в теме",
+      "reply": "Ответить",
+      "replies": {
+        "one": "{{count}} Ответ",
+        "many": "{{count}} Ответы"
+      },
+      "resend": "Повторить отправку",
+      "sending": "Отправляется...",
+      "new_messages": "В теме есть новые сообщения"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "pt_br": {
+    "qna": {
+      "hide_plugin": "Ocultar perguntas e respostas",
+      "show_plugin": "Mostrar perguntas e respostas",
+      "show_less": "Exibir menos",
+      "show_replies": "Mostrar respostas",
+      "reply_in_thread": "Responder na discussão",
+      "reply": "Responder",
+      "replies": {
+        "one": "{{count}} Resposta",
+        "many": "{{count}} Respostas"
+      },
+      "resend": "Reenviar",
+      "sending": "Enviando...",
+      "new_messages": "A discussão contém novas mensagens"
+    }
+  }
+}

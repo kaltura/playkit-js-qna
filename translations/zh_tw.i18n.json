@@ -1,0 +1,19 @@
+{
+  "zh_tw": {
+    "qna": {
+        "hide_plugin": "隱藏問與答",
+        "show_plugin": "顯示問與答",
+        "show_less": "顯示較少",
+        "show_replies": "顯示回覆",
+        "reply_in_thread": "在對話中回覆",
+        "reply": "回覆",
+        "replies": {
+          "one": "{{count}} 回覆",
+          "many": "{{count}} 回覆"
+        },
+        "resend": "重新傳送",
+        "sending": "傳送中...",
+        "new_messages": "對話包含新訊息"
+    }
+  }
+}
