@@ -628,19 +628,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@playkit-js/common@^1.1.3":
+"@playkit-js/common@^1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@playkit-js/common/-/common-1.2.2.tgz#29c9a3cdeac27ec76c8e38a32c89f8dc0811d9ed"
   integrity sha512-hGAnBRJd+mu5InXNCm5XUozUdLAUzkBQOEo1kOsGlhB2cv6nrICJU0ZXaJQICG/aChxg2I8UFfd2Zq2W8yyzIA==
-  dependencies:
-    "@playkit-js/playkit-js-ui" "^0.74.0"
-    classnames "^2.3.2"
-    linkify-it "^4.0.1"
-
-"@playkit-js/common@^1.1.5":
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/@playkit-js/common/-/common-1.1.5.tgz#20410ef8e32c4820146a2a462d5318fac6be1e96"
-  integrity sha512-NgVELo6z9+DI9aiKL8oj5p/d5pzJCZgwuk0LN3lKizPuNfvu/30lavsH4hNCrWOjgnT7o4EEFrmVK9buzqmIHQ==
   dependencies:
     "@playkit-js/playkit-js-ui" "^0.74.0"
     classnames "^2.3.2"
@@ -694,12 +685,12 @@
     js-logger "^1.6.0"
     ua-parser-js "1.0.2"
 
-"@playkit-js/ui-managers@^1.3.5":
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/@playkit-js/ui-managers/-/ui-managers-1.3.5.tgz#111f64d616ae366a300d99d2aa71e9ebc2c9991e"
-  integrity sha512-DxVN2H2ZAPqLbVrk3UxHqCEzsU0Y2KZSTZ/+aZfmD2LCUlcv+LA4osXUQAYyiv8VPLLopAbqoEl6ofmYwzTmCg==
+"@playkit-js/ui-managers@^1.3.8":
+  version "1.3.8"
+  resolved "https://registry.yarnpkg.com/@playkit-js/ui-managers/-/ui-managers-1.3.8.tgz#b40b66941d36901e260005b67741a8ace3cbe89b"
+  integrity sha512-vTQHEyQqlJ3ih2d+LbUgzWepxRuqSj2MjXw7jFxpPatqGsLVOfMtCe194vHN1xyyelZHSH1+D0g7M7q9Ng4CxQ==
   dependencies:
-    "@playkit-js/common" "^1.1.3"
+    "@playkit-js/common" "^1.2.2"
 
 "@sinclair/typebox@^0.24.1":
   version "0.24.20"
