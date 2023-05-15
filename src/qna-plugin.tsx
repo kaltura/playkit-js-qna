@@ -14,7 +14,7 @@ import {KitchenSinkPluginEventTypes, KitchenSinkMessages, MessagesUpdatedEvent} 
 import {icons} from './components/icons';
 
 import {PluginStates, QnaPluginConfig, TimedMetadataEvent, CuePoint, ModeratorSettings} from './types';
-import {ui} from 'kaltura-player-js';
+import {ui} from '@playkit-js/kaltura-player-js';
 import {Utils} from './utils';
 const {SidePanelModes, SidePanelPositions, ReservedPresetNames} = ui;
 
