@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.3.6](https://github.com/kaltura/playkit-js-qna/compare/v3.3.5...v3.3.6) (2023-05-17)
+
+
+### Bug Fixes
+
+* **FEV-13145:** upd dependencies ([#317](https://github.com/kaltura/playkit-js-qna/issues/317)) ([c523180](https://github.com/kaltura/playkit-js-qna/commit/c52318072c7a758f3eaa2911fc0a4e92102e9e80))
+
 ### [3.3.5](https://github.com/kaltura/playkit-js-qna/compare/v3.3.4...v3.3.5) (2023-04-19)
 
 
