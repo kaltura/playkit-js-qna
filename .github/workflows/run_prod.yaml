@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  #test:
-    #uses: kaltura/playkit-js-common/.github/workflows/cypress.yml@master
-    #secrets: inherit  
-    
+  test:
+    uses: kaltura/playkit-js-common/.github/workflows/cypress.yml@master
+    secrets: inherit
+
   prod:
     uses: kaltura/ovp-pipelines-pub/.github/workflows/player_cicd.yaml@master
     secrets:
@@ -22,8 +22,8 @@ jobs:
       PLAYER_MSTEAMS_WEBHOOK: ${{ secrets.PLAYER_MSTEAMS_WEBHOOK }}
       PLAYER_GITHUB_BOT_TOKEN: ${{ secrets.PLAYER_GITHUB_BOT_TOKEN }}
     with:
-      type: "plugin"
-      env: "prod"
-      schema-type: "playerV3OvpVersions"
-      node-version: "18.x"
+      type: 'plugin'
+      env: 'prod'
+      schema-type: 'playerV3OvpVersions'
+      node-version: '18.x'
       tests-yarn-run-to-execute: 'build'
