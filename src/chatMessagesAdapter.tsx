@@ -9,6 +9,8 @@ import {DisplayToast} from './qna-plugin';
 import {MessageLoader} from './providers/message-loader';
 import {TimedMetadataEvent, CuePoint} from './types';
 
+const {Text} = KalturaPlayer.ui.preacti18n;
+
 export interface ChatMessagesAdapterOptions {
   kitchenSinkMessages: KitchenSinkMessages;
   setDataListener: (args: any) => void;
@@ -273,7 +275,7 @@ export class ChatMessagesAdapter {
           if (!this._isKitchenSinkActive()) this._updateMenuIcon(true);
           //toast indication
           this._displayToast({
-            text: 'New Reply',
+            text: (<Text id="qna.new_reply">New Reply</Text>) as any,
             icon: <ToastIcon type={ToastsType.Reply} />,
             severity: ToastSeverity.Info
           });

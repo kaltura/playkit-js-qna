@@ -4,6 +4,8 @@ import {LinkifyString} from '@playkit-js/common/dist/ui-common/linkify-string';
 import * as styles from './trimmedText.scss';
 import {Utils} from '../../utils';
 
+const {Text} = KalturaPlayer.ui.preacti18n;
+
 interface TrimmedTextProps {
   maxLength: number;
   text: string | undefined;
@@ -35,7 +37,7 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
         </span>
         <A11yWrapper onClick={this.onTrimmedTextClick}>
           <button className={styles.showMoreOrLess} tabIndex={0}>
-            {isTrimmed ? 'Show more' : 'Show less'}
+            {isTrimmed ? <Text id="qna.show_more">Show more</Text> : <Text id="qna.show_less">Show less</Text>}
           </button>
         </A11yWrapper>
       </span>

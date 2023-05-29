@@ -1,4 +1,4 @@
-import {Component, h} from 'preact';
+import {Component, h, VNode} from 'preact';
 import {QnaMessage, QnaMessageType} from '../../qnaMessageFactory';
 import * as styles from './notification.scss';
 import {TrimmedText} from '../trimmed-text';
@@ -6,6 +6,8 @@ import {TimeDisplay} from '../time-display';
 import {MessageTheme} from '../../qna-plugin';
 import {AnnouncementIcon} from './announcement-icon';
 import {AoAIcon} from './aoa-icon';
+
+const {Text} = KalturaPlayer.ui.preacti18n;
 
 export interface NotificationProps {
   qnaMessage: QnaMessage;
@@ -42,7 +44,13 @@ export class Notification extends Component<NotificationProps> {
     );
   }
 
-  private getTitle(messageType: string): string {
-    return messageType === QnaMessageType.Announcement ? 'Announcement' : 'Someone asks:';
+  private getTitle(messageType: string): VNode {
+    return messageType === QnaMessageType.Announcement ? (
+      <Text id="qna.announcement" plural={1}>
+        Announcement
+      </Text>
+    ) : (
+      <Text id="qna.someone_asks">Someone asks:</Text>
+    );
   }
 }

@@ -15,6 +15,33 @@ import {NoAnnouncementsYetImage} from '../icons/no-announcements';
 import {NoQuestionsYetImage} from '../icons/no-questions';
 
 const {KeyMap} = KalturaPlayer.ui.utils;
+const {withText, Text} = KalturaPlayer.ui.preacti18n;
+
+const translates = {
+  announcementsLabel: (
+    <Text id="qna.announcement" plural={2}>
+      Announcements
+    </Text>
+  ),
+  errorTitle: <Text id="qna.error_title">Whoops!</Text>,
+  errorDescription: <Text id="qna.error_description">We couldn’t retrieve your messages. Please try again later</Text>,
+  emptyEnnouncements: <Text id="qna.empty_announcements">No Announcements Yet</Text>,
+  emptyQuestions: <Text id="qna.empty_questions">No Questions Yet</Text>,
+  typeQuestion: <Text id="qna.type_question">Type your first question below</Text>,
+  qnaLabel: <Text id="qna.qna">Q&A</Text>,
+  hidePlugin: <Text id="qna.hide_plugin">Hide QnA</Text>
+};
+
+interface KitchenSinkTranslates {
+  announcementsLabel?: string;
+  qnaLabel?: string;
+  errorTitle?: string;
+  errorDescription?: string;
+  emptyEnnouncements?: string;
+  emptyQuestions?: string;
+  typeQuestion?: string;
+  hidePlugin?: string;
+}
 
 export interface KitchenSinkProps {
   onClose: OnClick;
@@ -31,9 +58,12 @@ export interface KitchenSinkProps {
   kitchenSinkActive: boolean;
 }
 
-interface KitchenSinkState {}
+interface KitchenSinkState {
+  autoScroll: boolean;
+}
 
-export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
+@withText(translates)
+export class KitchenSink extends Component<KitchenSinkProps & KitchenSinkTranslates, KitchenSinkState> {
   // Default values only when values not been sent.
   static defaultProps = {
     hasError: false,
@@ -123,14 +153,10 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
             {props.hasError ? <WhoopseErrorIcon /> : props.announcementsOnly ? <NoAnnouncementsYetImage /> : <NoQuestionsYetImage />}
           </div>
           <div className={styles.emptyListTitle}>
-            {props.hasError ? 'Whoops!' : `No ${props.announcementsOnly ? 'Announcements' : 'Questions'} Yet`}
+            {props.hasError ? this.props.errorTitle : props.announcementsOnly ? this.props.emptyEnnouncements : this.props.emptyQuestions}
           </div>
           <div className={styles.emptyListSubTitle}>
-            {props.hasError
-              ? 'We couldn’t retrieve your messages. Please try again later'
-              : props.announcementsOnly
-              ? ''
-              : `Type your first question below`}
+            {props.hasError ? this.props.errorDescription : props.announcementsOnly ? '' : this.props.typeQuestion}
           </div>
         </div>
       );
@@ -174,11 +200,11 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
         {/* header */}
         <div className={styles.headerContainer}>
           <div className={styles.header}>
-            <div className={styles.title}>{props.announcementsOnly ? 'Announcements' : 'Q&A'}</div>
+            <div className={styles.title}>{props.announcementsOnly ? this.props.announcementsLabel : this.props.qnaLabel}</div>
             <A11yWrapper onClick={onClose}>
               <button
                 className={styles.closeButton}
-                aria-label={'Hide QnA'}
+                aria-label={this.props.hidePlugin}
                 tabIndex={0}
                 ref={node => {
                   this._closeButtonRef = node;
@@ -216,7 +242,6 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
             {!props.announcementsOnly && (
               <AutoExpandTextArea
                 onSubmit={this._handleOnSubmit}
-                placeholder={'Type a private question'}
                 enableAnimation={true}
                 onFocusIn={this._handleTextAreaFocusIn}
                 onFocusOut={this._trackScrolling}

@@ -13,7 +13,27 @@
       },
       "resend": "Resend",
       "sending": "Sending...",
-      "new_messages": "Thread contains new messages"
+      "new_messages": "Thread contains new messages",
+      "new_audience_asks": "New Audience asks",
+      "announcement": {
+        "one": "Announcement",
+        "many": "Announcements"
+      },
+      "new_announcement": "New Announcement",
+      "qna": "Q&A",
+      "someone_asks": "Someone asks:",
+      "error_title": "Whoops!",
+      "error_description": "We couldn’t retrieve your messages. Please try again later",
+      "empty_announcements": "No Announcements Yet",
+      "empty_questions": "No Questions Yet",
+      "type_question": "Type your first question below",
+      "resume_autoscroll": "Resume Auto-Scroll",
+      "loading": "Loading...",
+      "show_more": "Show more",
+      "send": "Send",
+      "type_private_question": "Type a private question",
+      "new_reply": "New Reply",
+      "notifications": "Notifications"
     }
   }
 }
