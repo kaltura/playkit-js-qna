@@ -30,6 +30,7 @@ export const QnaPluginButton = withText(translates)(({isActive, onClick, showInd
     <Tooltip label={otherProps.label} type="bottom">
       <A11yWrapper onClick={onClick}>
         <button
+          data-testid={'qna_pluginButton'}
           aria-label={otherProps.label}
           className={[ui.style.upperBarIcon, styles.qnaPluginButton, isActive ? styles.active : ''].join(' ')}
           ref={node => {

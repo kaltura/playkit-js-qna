@@ -170,13 +170,14 @@ export class KitchenSink extends Component<KitchenSinkProps, KitchenSinkState> {
     let renderedContent = this._generateContent(props);
 
     return (
-      <div className={styles.root} aria-live="polite" onKeyUp={this._handleClose}>
+      <div className={styles.root} aria-live="polite" data-testid={'qna_root'} onKeyUp={this._handleClose}>
         {/* header */}
         <div className={styles.headerContainer}>
           <div className={styles.header}>
             <div className={styles.title}>{props.announcementsOnly ? 'Announcements' : 'Q&A'}</div>
             <A11yWrapper onClick={onClose}>
               <button
+                data-testid={'qna_closeButton'}
                 className={styles.closeButton}
                 aria-label={'Hide QnA'}
                 tabIndex={0}

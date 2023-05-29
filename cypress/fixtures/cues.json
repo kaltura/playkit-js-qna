@@ -1,0 +1,14 @@
+[
+  {
+    "partnerId": 1091,
+    "ks": "",
+    "userId": 0,
+    "objectType": "KalturaStartWidgetSessionResponse"
+  },
+  {
+    "objects": [[]],
+    "totalCount": 0,
+    "objectType": "KalturaCuePointListResponse"
+  },
+  {"objects": [], "totalCount": 0, "objectType": "KalturaCuePointListResponse"}
+]
