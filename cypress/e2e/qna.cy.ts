@@ -14,7 +14,7 @@ describe('QnA plugin', () => {
   describe('plugin button and panel', () => {
     it('should open then close the QnA side panel', () => {
       mockKalturaBe();
-      loadPlayer().then(() => {
+      loadPlayer({expandOnFirstPlay: false}).then(() => {
         cy.get('[data-testid="qna_pluginButton"]').should('exist');
         cy.get('[data-testid="qna_pluginButton"]').click({force: true});
         cy.get('[data-testid="qna_root"]').should('exist');
