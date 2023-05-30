@@ -8,17 +8,11 @@ export const MANIFEST_SAFARI = `#EXTM3U
 #EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=504265,RESOLUTION=480x272,AUDIO="audio",SUBTITLES="subs"
 ${location.origin}/media/index.m3u8`;
 
-export const getPlayer = () => {
-  // @ts-ignore
-  return cy.window().then($win => $win.KalturaPlayer.getPlayers()['player-placeholder']);
-};
-
-export const preparePage = (puginConf = {}, playbackConf = {}) => {
-  cy.visit('index.html');
-  return cy.window().then(win => {
+export const preparePage = (puginConf = {}, playbackConf = {}): PromiseLike<any> => {
+  return cy.visit('index.html').then($win => {
     try {
       // @ts-ignore
-      var kalturaPlayer = win.KalturaPlayer.setup({
+      $win.kalturaPlayer = $win.KalturaPlayer.setup({
         targetId: 'player-placeholder',
         provider: {
           partnerId: -1,
@@ -34,8 +28,13 @@ export const preparePage = (puginConf = {}, playbackConf = {}) => {
         },
         playback: {muted: true, ...playbackConf}
       });
-      return kalturaPlayer.loadMedia({entryId: '0_wifqaipd'});
+      // @ts-ignore
+      return $win.kalturaPlayer.loadMedia({entryId: '0_wifqaipd'}).then(() => $win.kalturaPlayer);
     } catch (e: any) {
+      Cypress.log({
+        name: 'preparePage error',
+        message: e.message
+      });
       return Promise.reject(e.message);
     }
   });
@@ -45,15 +44,13 @@ const checkRequest = (reqBody: any, service: string, action: string) => {
   return reqBody?.service === service && reqBody?.action === action;
 };
 
-export const loadPlayer = (puginConf = {}, playbackConf: Record<string, any> = {}) => {
-  return preparePage(puginConf, playbackConf).then(() =>
-    getPlayer().then(kalturaPlayer => {
-      if (playbackConf.autoplay) {
-        return kalturaPlayer.ready().then(() => kalturaPlayer);
-      }
-      return kalturaPlayer;
-    })
-  );
+export const loadPlayer = (puginConf: Record<string, any> = {}, playbackConf: Record<string, any> = {}): PromiseLike<any> => {
+  return preparePage(puginConf, playbackConf).then(kalturaPlayer => {
+    if (playbackConf.autoplay) {
+      return kalturaPlayer.ready().then(() => kalturaPlayer);
+    }
+    return kalturaPlayer;
+  });
 };
 
 export const mockKalturaBe = (cuesFixture = 'cues.json') => {
