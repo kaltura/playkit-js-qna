@@ -8,6 +8,8 @@ import {Utils} from './utils';
 import {DisplayToast} from './qna-plugin';
 import {TimedMetadataEvent, CuePoint} from './types';
 
+const {Text} = KalturaPlayer.ui.preacti18n;
+
 export interface AoaAdapterOptions {
   kitchenSinkMessages: KitchenSinkMessages;
   setDataListener: (args: any) => void;
@@ -109,7 +111,7 @@ export class AoaAdapter {
       this._updateMenuIcon(true);
       //toast indication
       this._displayToast({
-        text: 'New Audience asks',
+        text: (<Text id="qna.new_audience_asks">New Audience asks</Text>) as any,
         icon: <ToastIcon type={ToastsType.AOA} />,
         severity: ToastSeverity.Info
       });

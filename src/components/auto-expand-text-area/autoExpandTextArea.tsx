@@ -2,10 +2,17 @@ import {h, Component} from 'preact';
 import {A11yWrapper} from '@playkit-js/common/dist/hoc/a11y-wrapper';
 import * as styles from './autoExpandTextArea.scss';
 import classNames from 'classnames';
-import {PrivateIcon} from '../icons/private-icon';
+
+const {withText, Text} = KalturaPlayer.ui.preacti18n;
+
+const translates = {
+  placeholder: <Text id="qna.type_private_question">Type a private question</Text>,
+  sendTitle: <Text id="qna.send">Send</Text>
+};
 
 interface AutoExpandTextAreaProps {
   placeholder?: string;
+  sendTitle?: string;
   onSubmit: (text: string) => void;
   enableBlackInputTheme?: boolean;
   initialFocus?: boolean;
@@ -24,6 +31,7 @@ interface AutoExpandTextAreaState {
 const MAX_NUM_OF_CHARS = 500;
 const MAX_HEIGHT = 103;
 
+@withText(translates)
 export class AutoExpandTextArea extends Component<AutoExpandTextAreaProps, AutoExpandTextAreaState> {
   private _textareaContainer: any = null;
   private _textAreaRef: HTMLTextAreaElement | null = null;
@@ -32,10 +40,8 @@ export class AutoExpandTextArea extends Component<AutoExpandTextAreaProps, AutoE
   private _allowClickTimeout: ReturnType<typeof setTimeout> | null = null;
 
   static defaultProps = {
-    placeholder: '',
     enableBlackInputTheme: false,
     disabled: false,
-
     enableAnimation: false
   };
 
@@ -164,13 +170,7 @@ export class AutoExpandTextArea extends Component<AutoExpandTextAreaProps, AutoE
 
   render() {
     const {text, open} = this.state;
-    const {
-      enableBlackInputTheme,
-      placeholder,
-      disabled,
-
-      enableAnimation
-    } = this.props;
+    const {enableBlackInputTheme, placeholder, disabled, enableAnimation} = this.props;
 
     return (
       <div className={styles.textareaContainer} ref={textareaContainer => (this._textareaContainer = textareaContainer)}>
@@ -199,7 +199,7 @@ export class AutoExpandTextArea extends Component<AutoExpandTextAreaProps, AutoE
           <span>{`${text.length}/${MAX_NUM_OF_CHARS}`}</span>
           <A11yWrapper onClick={this._handleOnSend}>
             <button className={styles.sendButton} disabled={!text.length || disabled} ref={button => (this._sendButtonRef = button)}>
-              {'Send'}
+              {this.props.sendTitle}
             </button>
           </A11yWrapper>
         </div>
