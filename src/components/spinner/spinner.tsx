@@ -15,7 +15,7 @@ interface SpinnerProps {
 export class Spinner extends Component<SpinnerProps> {
   render() {
     return (
-      <div className={styles.spinnerBall} aria-label={this.props.loadingText}>
+      <div className={styles.spinnerBall} aria-label={this.props.loadingText} data-testid={'qna_spinner'}>
         <div className={styles.doubleBounce1} />
         <div className={styles.doubleBounce2} />
       </div>

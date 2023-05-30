@@ -186,6 +186,7 @@ export class AutoExpandTextArea extends Component<AutoExpandTextAreaProps, AutoE
           aria-label={placeholder}
           rows={1}
           maxLength={MAX_NUM_OF_CHARS}
+          data-testid={'qna_textArea'}
         />
         <div
           className={classNames({
