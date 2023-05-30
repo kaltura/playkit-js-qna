@@ -7,6 +7,8 @@ import {Utils} from './utils';
 import {DisplayToast} from './qna-plugin';
 import {TimedMetadataEvent, CuePoint} from './types';
 
+const {Text} = KalturaPlayer.ui.preacti18n;
+
 export interface AnnouncementsAdapterOptions {
   kitchenSinkMessages: KitchenSinkMessages;
   setDataListener: (args: any) => void;
@@ -63,7 +65,7 @@ export class AnnouncementsAdapter {
       this._updateMenuIcon(true);
       //toast indication
       this._displayToast({
-        text: 'New Announcement',
+        text: (<Text id="qna.new_announcement">New Announcement</Text>) as any,
         icon: <ToastIcon type={ToastsType.Announcement} />,
         severity: ToastSeverity.Info
       });

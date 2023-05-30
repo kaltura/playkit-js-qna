@@ -18,6 +18,8 @@ import {ui} from '@playkit-js/kaltura-player-js';
 import {Utils} from './utils';
 const {SidePanelModes, SidePanelPositions, ReservedPresetNames} = ui;
 
+const {Text} = KalturaPlayer.ui.preacti18n;
+
 type DisplayToastOptions = {text: string; icon: ComponentChild; severity: ToastSeverity};
 export type DisplayToast = (options: DisplayToastOptions) => void;
 
@@ -371,7 +373,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     }
     // display toast
     this._contribServices.toastManager.add({
-      title: 'Notifications',
+      title: (<Text id="qna.notifications">Notifications</Text>) as any,
       text: options.text,
       icon: options.icon,
       duration: this._toastsDuration,
