@@ -32,7 +32,7 @@ export const preparePage = (puginConf = {}, playbackConf = {}): PromiseLike<any>
       return $win.kalturaPlayer.loadMedia({entryId: '0_wifqaipd'}).then(() => $win.kalturaPlayer);
     } catch (e: any) {
       Cypress.log({
-        name: 'preparePage got error',
+        name: 'preparePage got the error',
         message: e.message
       });
       return Promise.reject(e.message);
