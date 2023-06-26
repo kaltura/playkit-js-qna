@@ -1,7 +1,6 @@
 import {h} from 'preact';
 import * as styles from './pluginButton.scss';
 import {ui} from '@playkit-js/kaltura-player-js';
-import {A11yWrapper, OnClick} from '@playkit-js/common/dist/hoc/a11y-wrapper';
 import {icons} from '../icons';
 
 const {Tooltip, Icon} = KalturaPlayer.ui.components;
@@ -19,16 +18,14 @@ const translates = ({isActive}: QnaPluginButtonProps) => {
 
 interface QnaPluginButtonProps {
   isActive: boolean;
-  onClick: OnClick;
   showIndication?: boolean;
   label?: string;
   setRef: (ref: HTMLButtonElement | null) => void;
 }
 
-export const QnaPluginButton = withText(translates)(({isActive, onClick, showIndication, setRef, ...otherProps}: QnaPluginButtonProps) => {
+export const QnaPluginButton = withText(translates)(({isActive, showIndication, setRef, ...otherProps}: QnaPluginButtonProps) => {
   return (
     <Tooltip label={otherProps.label} type="bottom">
-      <A11yWrapper onClick={onClick}>
         <button
           data-testid={'qna_pluginButton'}
           aria-label={otherProps.label}
@@ -45,7 +42,6 @@ export const QnaPluginButton = withText(translates)(({isActive, onClick, showInd
           />
           {showIndication && <span className={styles.indicator} />}
         </button>
-      </A11yWrapper>
     </Tooltip>
   );
 });

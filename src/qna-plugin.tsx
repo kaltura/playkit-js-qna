@@ -224,7 +224,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
           <QnaPluginButton
             showIndication={this._showMenuIconIndication}
             isActive={this._isPluginActive()}
-            onClick={this._handleClickOnPluginIcon}
             setRef={this._setPluginButtonRef}
           />
         );
