@@ -3,13 +3,6 @@ import {A11yWrapper} from '@playkit-js/common/dist/hoc/a11y-wrapper';
 import * as styles from './autoExpandTextArea.scss';
 import classNames from 'classnames';
 
-const {withText, Text} = KalturaPlayer.ui.preacti18n;
-
-const translates = {
-  placeholder: <Text id="qna.type_private_question">Type a private question</Text>,
-  sendTitle: <Text id="qna.send">Send</Text>
-};
-
 interface AutoExpandTextAreaProps {
   placeholder?: string;
   sendTitle?: string;
@@ -31,7 +24,6 @@ interface AutoExpandTextAreaState {
 const MAX_NUM_OF_CHARS = 500;
 const MAX_HEIGHT = 103;
 
-@withText(translates)
 export class AutoExpandTextArea extends Component<AutoExpandTextAreaProps, AutoExpandTextAreaState> {
   private _textareaContainer: any = null;
   private _textAreaRef: HTMLTextAreaElement | null = null;
