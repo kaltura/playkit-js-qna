@@ -29,7 +29,9 @@ const translates = {
   emptyQuestions: <Text id="qna.empty_questions">No Questions Yet</Text>,
   typeQuestion: <Text id="qna.type_question">Type your first question below</Text>,
   qnaLabel: <Text id="qna.qna">Q&A</Text>,
-  hidePlugin: <Text id="qna.hide_plugin">Hide QnA</Text>
+  hidePlugin: <Text id="qna.hide_plugin">Hide QnA</Text>,
+  placeholder: <Text id="qna.type_private_question">Type a private question</Text>,
+  sendTitle: <Text id="qna.send">Send</Text>
 };
 
 interface KitchenSinkTranslates {
@@ -41,6 +43,8 @@ interface KitchenSinkTranslates {
   emptyQuestions?: string;
   typeQuestion?: string;
   hidePlugin?: string;
+  placeholder?:string;
+  sendTitle?: string;
 }
 
 export interface KitchenSinkProps {
@@ -246,6 +250,8 @@ export class KitchenSink extends Component<KitchenSinkProps & KitchenSinkTransla
                 enableAnimation={true}
                 onFocusIn={this._handleTextAreaFocusIn}
                 onFocusOut={this._trackScrolling}
+                placeholder={this.props.placeholder}
+                sendTitle={this.props.sendTitle}
               />
             )}
           </div>

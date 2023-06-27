@@ -22,6 +22,7 @@ const translates = ({thread: {replies}}: ThreadProps) => ({
   resend: <Text id="qna.resend">Resend</Text>,
   new_messages: <Text id="qna.new_messages">Thread contains new messages</Text>,
   sending: <Text id="qna.sending">Sending...</Text>,
+  sendTitle: <Text id="qna.send">Send</Text>,
   replies: (
     <Text
       id="qna.replies"
@@ -41,6 +42,7 @@ interface Translates {
   resend?: string;
   new_messages?: string;
   sending?: string;
+  sendTitle?: string;
   replies?: string;
 }
 
@@ -231,6 +233,7 @@ export class Thread extends Component<ThreadProps & Translates, ThreadState> {
             alwaysOpen={true}
             disabled={thread.deliveryStatus !== MessageDeliveryStatus.CREATED}
             onFocusOut={this.handleAutoExpandTextAreaFocusOut}
+            sendTitle={this.props.sendTitle}
           />
         </div>
 
