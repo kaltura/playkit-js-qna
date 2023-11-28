@@ -1,9 +1,7 @@
 import {h, ComponentChild} from 'preact';
-import {ToastSeverity} from '@playkit-js/common/dist/ui-common/toast-manager';
-import {ContribServices} from '@playkit-js/common/dist/ui-common/contrib-services';
 import {getQnaUserId} from '@playkit-js/common/dist/utils-common/utils';
 import {OnClickEvent} from '@playkit-js/common/dist/hoc/a11y-wrapper';
-import {UpperBarManager, SidePanelsManager} from '@playkit-js/ui-managers';
+import {UpperBarManager, SidePanelsManager, ToastSeverity} from '@playkit-js/ui-managers';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
 import {QnaMessage} from './qnaMessageFactory';
@@ -52,7 +50,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   private _pluginPanel = -1;
   private _pluginIcon = -1;
   private _pluginState: PluginStates | null = null;
-  private _contribServices: ContribServices;
   private _triggeredByKeyboard = false;
   private _pluginButtonRef: HTMLButtonElement | null = null;
 
@@ -69,7 +66,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
   constructor(name: string, player: KalturaPlayerTypes.Player, config: QnaPluginConfig) {
     super(name, player, config);
     this._player = player;
-    this._contribServices = ContribServices.get({kalturaPlayer: this._player});
   }
 
   get sidePanelsManager() {
@@ -84,9 +80,12 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     return this._player.getService('kalturaCuepoints') as any;
   }
 
-  // TODO: remove once contribServices migrated to BasePlugin
-  getUIComponents(): any[] {
-    return this._contribServices.register();
+  get toastManager() {
+    return this._player.getService('toastManager') as any;
+  }
+
+  get bannerManager() {
+    return this._player.getService('bannerManager') as any;
   }
 
   static isValid(): boolean {
@@ -107,7 +106,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       setDataListener: (cb: (timedMetadata: TimedMetadataEvent) => void) => {
         this.eventManager.listen(this._player, this._player.Event.TIMED_METADATA_ADDED, cb);
       },
-      bannerManager: this._contribServices.bannerManager,
+      bannerManager: this.bannerManager,
       logger: this.logger,
       isKitchenSinkActive: this._isPluginActive,
       updateMenuIcon: this._updateMenuIcon,
@@ -220,13 +219,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       svgIcon: {path: icons.PLUGIN_ICON, viewBox: `0 0 ${icons.BigSize} ${icons.BigSize}`},
       onClick: this._handleClickOnPluginIcon as () => void,
       component: () => {
-        return (
-          <QnaPluginButton
-            showIndication={this._showMenuIconIndication}
-            isActive={this._isPluginActive()}
-            setRef={this._setPluginButtonRef}
-          />
-        );
+        return <QnaPluginButton showIndication={this._showMenuIconIndication} isActive={this._isPluginActive()} setRef={this._setPluginButtonRef} />;
       }
     }) as number;
   };
@@ -289,7 +282,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._chatMessagesAdapter?.reset();
     this._removeQnAPlugin();
     this.eventManager.removeAll();
-    this._contribServices.reset();
   }
 
   destroy(): void {
@@ -371,12 +363,12 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       return;
     }
     // display toast
-    this._contribServices.toastManager.add({
+    this.toastManager.add({
       title: (<Text id="qna.notifications">Notifications</Text>) as any,
       text: options.text,
       icon: options.icon,
       duration: this._toastsDuration,
-      severity: options.severity || ToastSeverity.Info,
+      severity: options.severity || 'Info',
       onClick: this._activateKitchenSink
     });
   };
