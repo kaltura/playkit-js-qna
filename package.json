@@ -61,7 +61,7 @@
     "webpack": "^5.66.0",
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.9.0",
-    "@playkit-js/ui-managers": "1.4.3-canary.0-4660a3f"
+    "@playkit-js/ui-managers": "1.4.3-canary.0-b33eab0"
   },
   "dependencies": {
     "@playkit-js/common": "^1.2.10",
