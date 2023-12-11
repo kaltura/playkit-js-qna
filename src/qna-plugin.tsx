@@ -1,7 +1,7 @@
 import {h, ComponentChild} from 'preact';
 import {getQnaUserId} from '@playkit-js/common/dist/utils-common/utils';
 import {OnClickEvent} from '@playkit-js/common/dist/hoc/a11y-wrapper';
-import {UpperBarManager, SidePanelsManager, ToastSeverity} from '@playkit-js/ui-managers';
+import {UpperBarManager, SidePanelsManager} from '@playkit-js/ui-managers';
 import {KitchenSink} from './components/kitchen-sink';
 import {QnaPluginButton} from './components/plugin-button';
 import {QnaMessage} from './qnaMessageFactory';
@@ -18,7 +18,7 @@ const {SidePanelModes, SidePanelPositions, ReservedPresetNames} = ui;
 
 const {Text} = KalturaPlayer.ui.preacti18n;
 
-type DisplayToastOptions = {text: string; icon: ComponentChild; severity: ToastSeverity};
+type DisplayToastOptions = {text: string; icon: ComponentChild; severity: string};
 export type DisplayToast = (options: DisplayToastOptions) => void;
 
 const DefaultToastDuration: number = 5 * 1000;
