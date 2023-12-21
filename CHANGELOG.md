@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.3.12 (2023-12-21)
+
+
+### Bug Fixes
+
+* **FEC-13490:** Move manager services from common into ui-managers ([bfc8112](https://github.com/kaltura/playkit-js-qna/commit/bfc8112750851c1a1089b08aa83e8742673d17ab))
+
 ### 3.3.11 (2023-12-10)
 
 ### 3.3.10 (2023-09-11)
