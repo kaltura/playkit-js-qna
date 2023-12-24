@@ -171,3 +171,4 @@ Bump version: `yarn release`;<br/>
 Plugin dependencies:<br/>
 <a href="https://github.com/kaltura/playkit-js-kaltura-cuepoints">Cue Points</a><br/>
 <a href="https://github.com/kaltura/playkit-js-ui-managers">UI Managers</a>
+
