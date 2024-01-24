@@ -14,6 +14,7 @@ import {icons} from './components/icons';
 import {PluginStates, QnaPluginConfig, TimedMetadataEvent, CuePoint, ModeratorSettings} from './types';
 import {ui} from '@playkit-js/kaltura-player-js';
 import {Utils} from './utils';
+import { pluginName } from "./index";
 const {SidePanelModes, SidePanelPositions, ReservedPresetNames} = ui;
 
 const {Text} = KalturaPlayer.ui.preacti18n;
@@ -213,9 +214,14 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       expandMode: this.config.expandMode === SidePanelModes.ALONGSIDE ? SidePanelModes.ALONGSIDE : SidePanelModes.OVER,
       onDeactivate: this._deactivatePlugin
     }) as number;
-
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     this._pluginIcon = this.upperBarManager!.add({
-      label: 'Q&A',
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      displayName: 'Q&A',
+      ariaLabel: 'Q&A',
+      order: 20,
       svgIcon: {path: icons.PLUGIN_ICON, viewBox: `0 0 ${icons.BigSize} ${icons.BigSize}`},
       onClick: this._handleClickOnPluginIcon as () => void,
       component: () => {
