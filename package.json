@@ -100,7 +100,7 @@
   "kaltura": {
     "name": "qna",
     "dependencies": {
-      "playkit-kaltura-cuepoints": "3.0.7",
+      "playkit-kaltura-cuepoints": "3.0.8",
       "playkit-ui-managers": "1.5.2"
     }
   }
