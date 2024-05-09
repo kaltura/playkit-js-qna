@@ -212,7 +212,6 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       presets: [ReservedPresetNames.Playback, ReservedPresetNames.Live, ReservedPresetNames.Ads],
       position: this.config.position,
       expandMode: this.config.expandMode === SidePanelModes.ALONGSIDE ? SidePanelModes.ALONGSIDE : SidePanelModes.OVER,
-      onDeactivate: this._deactivatePlugin
     }) as number;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
