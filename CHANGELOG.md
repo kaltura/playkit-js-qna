@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### 3.3.23 (2024-05-19)
+
+
+### Bug Fixes
+
+* **FEC-13889:** Download_close being reported to many times to application events ([#342](https://github.com/kaltura/playkit-js-qna/issues/342)) ([d77a59f](https://github.com/kaltura/playkit-js-qna/commit/d77a59f7e598f23fc451a69ee30ab7ce1a03f796))
+
 ### 3.3.22 (2024-05-05)
 
 ### 3.3.21 (2024-05-02)
