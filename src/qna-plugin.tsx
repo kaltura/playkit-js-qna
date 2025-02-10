@@ -224,7 +224,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
       svgIcon: {path: icons.PLUGIN_ICON, viewBox: `0 0 ${icons.BigSize} ${icons.BigSize}`},
       onClick: this._handleClickOnPluginIcon as () => void,
       component: () => {
-        return <QnaPluginButton showIndication={this._showMenuIconIndication} isActive={this._isPluginActive()} setRef={this._setPluginButtonRef} />;
+        return (<QnaPluginButton showIndication={this._showMenuIconIndication} isActive={this._isPluginActive()} setRef={this._setPluginButtonRef} />) as any;
       }
     }) as number;
   };

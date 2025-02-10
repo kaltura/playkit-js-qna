@@ -25,24 +25,26 @@ interface QnaPluginButtonProps {
 
 export const QnaPluginButton = withText(translates)(({isActive, showIndication, setRef, ...otherProps}: QnaPluginButtonProps) => {
   return (
-    <Tooltip label={otherProps.label} type="bottom">
-        <button
-          data-testid={'qna_pluginButton'}
-          aria-label={otherProps.label}
-          className={[ui.style.upperBarIcon, styles.qnaPluginButton, isActive ? styles.active : ''].join(' ')}
-          ref={node => {
-            setRef(node);
-          }}>
-          <Icon
-            id="qna-plugin-button"
-            height={icons.BigSize}
-            width={icons.BigSize}
-            viewBox={`0 0 ${icons.BigSize} ${icons.BigSize}`}
-            path={icons.PLUGIN_ICON}
-          />
-          {showIndication && <span className={styles.indicator} />}
-        </button>
-    </Tooltip>
+    <div data-testid="qna-plugin-wrapper">
+      <Tooltip label={otherProps.label} type="bottom">
+          <button
+            data-testid={'qna_pluginButton'}
+            aria-label={otherProps.label}
+            className={[ui.style.upperBarIcon, styles.qnaPluginButton, isActive ? styles.active : ''].join(' ')}
+            ref={node => {
+              setRef(node);
+            }}>
+            <Icon
+              id="qna-plugin-button"
+              height={icons.BigSize}
+              width={icons.BigSize}
+              viewBox={`0 0 ${icons.BigSize} ${icons.BigSize}`}
+              path={icons.PLUGIN_ICON}
+            />
+            {showIndication && <span className={styles.indicator} />}
+          </button>
+      </Tooltip>
+    </div>
   );
 });
 
