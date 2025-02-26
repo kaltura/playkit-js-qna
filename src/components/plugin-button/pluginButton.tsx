@@ -25,7 +25,7 @@ interface QnaPluginButtonProps {
 
 export const QnaPluginButton = withText(translates)(({isActive, showIndication, setRef, ...otherProps}: QnaPluginButtonProps) => {
   return (
-    <Tooltip label={otherProps.label} type="bottom">
+    <Tooltip label={otherProps.label} type="bottom-left" strictPosition={true}>
         <button
           data-testid={'qna_pluginButton'}
           aria-label={otherProps.label}
