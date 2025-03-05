@@ -218,7 +218,7 @@ export class QnaPlugin extends KalturaPlayer.core.BasePlugin {
     this._pluginIcon = this.upperBarManager!.add({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      displayName: 'Q&A',
+      displayName: 'QnA',
       ariaLabel: 'Q&A',
       order: 20,
       svgIcon: {path: icons.PLUGIN_ICON, viewBox: `0 0 ${icons.BigSize} ${icons.BigSize}`},
