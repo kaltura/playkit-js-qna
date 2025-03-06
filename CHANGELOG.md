@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 3.4.0 (2025-03-06)
+
+
+### Features
+
+* **FEC-14380:** update package.json ([#356](https://github.com/kaltura/playkit-js-qna/issues/356)) ([4150587](https://github.com/kaltura/playkit-js-qna/commit/4150587acff10efedee08dd030e6efbb943b3f3f))
+
 ### 3.3.33 (2025-01-09)
 
 ### 3.3.32 (2024-12-19)
