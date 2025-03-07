@@ -65,7 +65,11 @@ export class AnnouncementsAdapter {
       this._updateMenuIcon(true);
       //toast indication
       this._displayToast({
-        text: (<Text id="qna.new_announcement">New Announcement</Text>) as any,
+        text: (        
+        <span role="alert" aria-live="polite" aria-label="Notifications">
+          <Text id="qna.new_announcement">New Announcement</Text>
+        </span>
+        ) as any,
         icon: <ToastIcon type={ToastsType.Announcement} />,
         severity: ToastSeverity.Info
       });
