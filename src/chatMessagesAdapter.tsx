@@ -275,7 +275,11 @@ export class ChatMessagesAdapter {
           if (!this._isKitchenSinkActive()) this._updateMenuIcon(true);
           //toast indication
           this._displayToast({
-            text: (<Text id="qna.new_reply">New Reply</Text>) as any,
+            text: (        
+              <span role="alert" aria-live="polite" aria-label="Notifications">
+                <Text id="qna.new_reply">New Reply</Text>
+              </span>
+              ) as any,
             icon: <ToastIcon type={ToastsType.Reply} />,
             severity: ToastSeverity.Info
           });
