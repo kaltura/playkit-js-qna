@@ -33,7 +33,7 @@ export class Notification extends Component<NotificationProps> {
 
         <div className={styles.rightContainer}>
           <div className={styles.title}>{this.getTitle(qnaMessage.type)}</div>
-          <div className={`${styles.messageContent} no-select`}>
+          <div className={`${styles.messageContent} no-copy`}>
             <TrimmedText maxLength={120} text={qnaMessage.messageContent} />
           </div>
           <div className={styles.secondInfoLine}>
