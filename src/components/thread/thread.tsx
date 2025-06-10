@@ -157,7 +157,7 @@ export class Thread extends Component<ThreadProps & Translates, ThreadState> {
             </div>
           )
         }
-        <div style={`background-color: ${backgroundColor};`} className={styles.messageContent}>
+        <div style={`background-color: ${backgroundColor};`} className={`${styles.messageContent} no-select`}>
           <TrimmedText maxLength={120} text={thread.messageContent} />
         </div>
 
