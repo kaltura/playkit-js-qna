@@ -32,7 +32,7 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
 
     return text && text.length > maxLength ? (
       <span>
-        <span className={styles.text}>
+        <span className={`${styles.text} no-copy`}>
           <LinkifyString text={isTrimmed ? `${Utils.wordBoundaryTrim(text, maxLength)}...` : text} />
         </span>
         <A11yWrapper onClick={this.onTrimmedTextClick}>
@@ -42,7 +42,7 @@ export class TrimmedText extends Component<TrimmedTextProps, TrimmedTextState> {
         </A11yWrapper>
       </span>
     ) : (
-      <span className={styles.text}>
+      <span className={`${styles.text} no-copy`}>
         <LinkifyString text={text || ''} />
       </span>
     );
