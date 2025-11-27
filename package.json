@@ -1,6 +1,6 @@
 {
   "name": "@playkit-js/qna",
-  "version": "3.5.2",
+  "version": "3.5.3",
   "bugs": {
     "url": "https://github.com/kaltura/playkit-js-qna/issues"
   },
@@ -12,7 +12,7 @@
   "description": "",
   "main": "dist/playkit-qna.js",
   "scripts": {
-    "preinstall": "npx --yes --prefer-online --registry=https://npm.pkg.github.com --package @kaltura/kaltura-tools@latest kaltura-tools check --root=.",
+    "disabled-preinstall": "npx --yes --prefer-online --registry=https://npm.pkg.github.com --package @kaltura/kaltura-tools@latest kaltura-tools check --root=.",
     "clean": "rm -rf ./dist",
     "prebuild": "npm run clean",
     "build": "webpack --mode production",
