@@ -1,4 +1,5 @@
 import {QnaPlugin} from './qna-plugin';
+import {registerPlugin} from '@playkit-js/kaltura-player-js';
 
 declare var __VERSION__: string;
 declare var __NAME__: string;
@@ -10,4 +11,4 @@ export {QnaPlugin as Plugin};
 export {VERSION, NAME};
 
 export const pluginName: string = 'qna';
-KalturaPlayer.core.registerPlugin(pluginName, QnaPlugin);
+registerPlugin(pluginName, QnaPlugin as any);
