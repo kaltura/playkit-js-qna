@@ -1,0 +1,221 @@
+{
+  "name": "playkit-js-qna",
+  "version": "3.5.4",
+  "packageName": "@playkit-js/qna",
+  "coreResponsibility": {
+    "summary": "A Kaltura Player plugin that provides live Q&A (Questions & Answers) functionality for live streaming sessions, enabling viewers to submit questions, receive answers, view announcements, and interact with 'Answer on Air' (AoA) features during live broadcasts.",
+    "type": "UI Plugin",
+    "category": "Live Interactivity"
+  },
+  "domainAndLogicOwnership": {
+    "featureOwnership": [
+      "Live Q&A question submission and display",
+      "Q&A thread management (master questions and replies)",
+      "Announcements display and notifications",
+      "Answer on Air (AoA) banner notifications",
+      "Toast notifications for new replies, announcements, and AoA events",
+      "KitchenSink side panel UI for Q&A interface",
+      "Message delivery status tracking (pending, sending, failed, created)",
+      "Message read/unread status management",
+      "Moderator settings handling (qnaEnabled, announcementOnly modes)",
+      "Auto-scroll behavior in message threads",
+      "Multi-language support (17 locales)"
+    ],
+    "dataHandling": {
+      "stateManagement": [
+        "QnaMessage threads and replies array",
+        "Message delivery status (CREATED, SENDING, SEND_FAILED)",
+        "Message state (Pending, Answered, Deleted, None)",
+        "Plugin panel visibility state (OPENED, CLOSED)",
+        "Menu icon indication state for unread notifications",
+        "Moderator settings (qnaEnabled, announcementOnly)",
+        "Loading and error states"
+      ],
+      "dataObjects": [
+        "QnaMessage - Question, Answer, Announcement, AnswerOnAir types",
+        "CuePoint - Kaltura annotation and code cue points",
+        "MetadataInfo - Message type, state, parentId from XML metadata",
+        "ModeratorSettings - QnA feature toggles",
+        "TimedMetadataEvent - Player timed metadata payloads"
+      ],
+      "messageTypes": [
+        "Question - User-submitted questions",
+        "Answer - Moderator/producer replies",
+        "Announcement - Broadcast announcements",
+        "AnswerOnAir - Questions being answered live on air"
+      ]
+    }
+  },
+  "integrationPoints": {
+    "upstream": {
+      "repositories": [
+        {
+          "name": "playkit-js-kaltura-cuepoints",
+          "purpose": "Provides cue point registration and timed metadata events (PUBLIC_QNA, USER_QNA, CODE_QNA types)"
+        },
+        {
+          "name": "playkit-js-ui-managers",
+          "purpose": "Provides SidePanelsManager, UpperBarManager, ToastManager, and BannerManager services"
+        },
+        {
+          "name": "kaltura-player-js",
+          "purpose": "Core player providing BasePlugin, event system, provider layer, and UI framework"
+        },
+        {
+          "name": "playkit-js-common",
+          "purpose": "Shared utilities, A11yWrapper, EventsManager, ToastManager, and BannerManager components"
+        }
+      ],
+      "services": [
+        "Kaltura Backend - cuepoint_cuepoint service for adding/updating Q&A cue points",
+        "Kaltura Backend - metadata_metadata service for adding Q&A metadata",
+        "Kaltura Backend - metadata_metadataprofile service for fetching Kaltura-QnA profile"
+      ]
+    },
+    "downstream": {
+      "consumers": [
+        "Kaltura Player embedded in web applications",
+        "MediaSpace (KMS) live event pages",
+        "Virtual Events platforms using Kaltura Player"
+      ]
+    },
+    "externalAPIs": [
+      {
+        "name": "Kaltura Cue Point API",
+        "service": "cuepoint_cuepoint",
+        "actions": ["add", "update"],
+        "purpose": "Create and update Q&A annotation cue points"
+      },
+      {
+        "name": "Kaltura Metadata API",
+        "service": "metadata_metadata",
+        "actions": ["add"],
+        "purpose": "Add metadata XML to cue points containing Q&A type and state"
+      },
+      {
+        "name": "Kaltura Metadata Profile API",
+        "service": "metadata_metadataprofile",
+        "actions": ["list"],
+        "purpose": "Retrieve Kaltura-QnA metadata profile ID"
+      }
+    ]
+  },
+  "technicalStack": {
+    "languages": ["TypeScript", "SCSS"],
+    "frameworks": ["Preact (via @playkit-js/playkit-js-ui)"],
+    "buildTools": ["Webpack", "TypeScript Compiler"],
+    "testingTools": ["Cypress"],
+    "packageManager": "Yarn",
+    "entryPoints": {
+      "main": "src/index.ts",
+      "plugin": "src/qna-plugin.tsx",
+      "output": "dist/playkit-qna.js"
+    },
+    "sourceOfTruth": [
+      {
+        "file": "src/qna-plugin.tsx",
+        "purpose": "Main plugin class with initialization, event handling, and UI management"
+      },
+      {
+        "file": "src/qnaMessageFactory.ts",
+        "purpose": "QnaMessage creation and XML metadata parsing"
+      },
+      {
+        "file": "src/kitchenSinkMessages.tsx",
+        "purpose": "Central message state management with add, update, delete operations"
+      },
+      {
+        "file": "src/chatMessagesAdapter.tsx",
+        "purpose": "User Q&A message handling, submission, and server communication"
+      },
+      {
+        "file": "src/aoaAdapter.tsx",
+        "purpose": "Answer on Air notification handling and banner display"
+      },
+      {
+        "file": "src/announcementsAdapter.tsx",
+        "purpose": "Announcement message processing and notifications"
+      },
+      {
+        "file": "src/providers/message-loader.ts",
+        "purpose": "Multi-request builder for Kaltura API calls"
+      },
+      {
+        "file": "src/components/kitchen-sink/kitchenSink.tsx",
+        "purpose": "Main Q&A UI panel component"
+      }
+    ],
+    "configurationOptions": [
+      "bannerDuration - Duration for AoA banner display",
+      "toastDuration - Duration for toast notifications (min 5000ms)",
+      "dateFormat - Date display format (dd/mm/yyyy, etc.)",
+      "expandMode - Side panel mode (alongside, over, hidden)",
+      "expandOnFirstPlay - Auto-expand plugin on first play",
+      "position - Side panel position (LEFT, RIGHT)",
+      "userRole - User role (anonymousRole, unmoderatedAdminRole)"
+    ]
+  },
+  "triageKeywords": [
+    "Q&A",
+    "QnA",
+    "qna",
+    "question",
+    "answer",
+    "announcement",
+    "AnswerOnAir",
+    "AoA",
+    "live Q&A",
+    "kitchenSink",
+    "side panel",
+    "thread",
+    "reply",
+    "toast notification",
+    "banner notification",
+    "cuepoint annotation",
+    "KalturaAnnotation",
+    "QandA_ResponseProfile",
+    "publicqna",
+    "userqna",
+    "player-qna-settings",
+    "moderator settings",
+    "announcementOnly",
+    "message submission",
+    "message failed",
+    "SEND_FAILED",
+    "pendingMessage",
+    "unread message"
+  ],
+  "errorPatterns": [
+    "QnA Plugin doesn't support non-live media",
+    "Q&A notifications are not available during VOD",
+    "kalturaCuepoints, sidePanelsManager or upperBarManager haven't registered",
+    "Add cue point multi-request failed",
+    "Add cue-point multi-request error",
+    "Type is missing at metadata xml",
+    "Unknown QnA type",
+    "Missing QandA_ResponseProfile at cuePoint.relatedObjects",
+    "There are no metadata objects xml at KalturaMetadataListResponse",
+    "DOMParser is not exits at window",
+    "Can't make requests without entryId",
+    "Can't make requests without userId",
+    "Can't make reply requests without thread",
+    "Couldn't sent message",
+    "We couldn't retrieve your messages"
+  ],
+  "dependencies": {
+    "runtime": {
+      "@playkit-js/common": "^1.2.10",
+      "@playkit-js/playkit-js-ui": "^0.77.3",
+      "classnames": "^2.2.6"
+    },
+    "peer": {
+      "playkit-kaltura-cuepoints": "3.0.19",
+      "playkit-ui-managers": "1.8.5"
+    }
+  },
+  "supportedMediaTypes": ["LIVE"],
+  "i18nLocales": [
+    "ar", "de", "en", "es", "fi", "fr", "fr_ca", "he", "hi_in",
+    "it", "ja", "ko", "nl", "pt_br", "ru", "zh_cn", "zh_tw"
+  ]
+}
