@@ -172,3 +172,28 @@ Plugin dependencies:<br/>
 <a href="https://github.com/kaltura/playkit-js-kaltura-cuepoints">Cue Points</a><br/>
 <a href="https://github.com/kaltura/playkit-js-ui-managers">UI Managers</a>
 
+## CSS Customization
+
+The plugin exposes a stable root class `playkit-qna` and the following CSS custom properties for theming. Set them on `.playkit-qna` (or any ancestor) in your own stylesheet.
+
+| Custom property | Default | Description |
+|---|---|---|
+| `--qna-message-font-size` | `15px` | Font size of message text |
+| `--qna-message-line-height` | `1px` | Line height of message text |
+| `--qna-author-font-size` | `12px` | Font size of the author/username label |
+| `--qna-timestamp-font-size` | `12px` | Font size of the timestamp |
+| `--qna-input-font-size` | `15px` | Font size of the input textarea |
+| `--qna-input-min-height` | `36px` | Minimum height of the input textarea |
+| `--qna-input-padding` | `7px 8px 8px 8px` | Padding inside the input textarea |
+| `--qna-input-border-radius` | `4px` | Border radius of the input textarea |
+| `--qna-panel-background` | `rgba(0,0,0,0.7)` | Background color of the Q&A panel |
+| `--qna-panel-blur` | `10px` | Backdrop blur amount of the Q&A panel |
+
+**Example:**
+```css
+.playkit-qna {
+  --qna-panel-background: rgba(20, 20, 40, 0.85);
+  --qna-message-font-size: 16px;
+}
+```
+

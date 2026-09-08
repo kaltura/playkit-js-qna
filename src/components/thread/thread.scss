@@ -19,8 +19,7 @@
   border-top-right-radius: 4px;
   padding: 8px 0 0 8px;
   min-height: 15px;
-  font-size: 15px;
-  line-height: 1;
+  line-height: var(--qna-message-line-height, 1);
   color: #ffffff;
   white-space: pre-wrap;
   word-break: break-all;
@@ -147,15 +146,14 @@
 }
 
 .username {
-  font-size: 12px;
+  font-size: var(--qna-author-font-size, 12px);
   font-weight: bold;
   line-height: 1.17;
   color: #cccccc;
 }
 
 .reply-message {
-  font-size: 15px;
-  line-height: 1.27;
+  line-height: var(--qna-message-line-height, 1.27);
   color: #ffffff;
 }
 
