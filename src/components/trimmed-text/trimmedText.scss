@@ -2,6 +2,8 @@
   display: table-cell;
   word-break: normal;
   white-space: pre-wrap;
+  font-size: var(--qna-message-font-size, 15px);
+  line-height: var(--qna-message-line-height, inherit);
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;
