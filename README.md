@@ -179,7 +179,7 @@ The plugin exposes a stable root class `playkit-qna` and the following CSS custo
 | Custom property | Default | Description |
 |---|---|---|
 | `--qna-message-font-size` | `15px` | Font size of message text |
-| `--qna-message-line-height` | Line height of message text |
+| `--qna-message-line-height` | `1px` | Line height of message text |
 | `--qna-author-font-size` | `12px` | Font size of the author/username label |
 | `--qna-timestamp-font-size` | `12px` | Font size of the timestamp |
 | `--qna-input-font-size` | `15px` | Font size of the input textarea |
