@@ -23,7 +23,7 @@
 
 .textarea {
   height: 34px;
-  min-height: 36px;
+  min-height: var(--qna-input-min-height, 36px);
   width: 100%;
 
   overflow: hidden;
@@ -33,11 +33,11 @@
   border: none;
 
   border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 4px;
-  padding: 7px 8px 8px 8px;
+  border-radius: var(--qna-input-border-radius, 4px);
+  padding: var(--qna-input-padding, 7px 8px 8px 8px);
   color: rgb(255, 255, 255);
   background-color: rgb(86, 86, 86);
-  font-size: 15px;
+  font-size: var(--qna-input-font-size, 15px);
 
   &::selection {
     background-color: white;
@@ -51,7 +51,7 @@
 
   &::placeholder {
     color: #cccccc;
-    font-size: 15px;
+    font-size: var(--qna-input-font-size, 15px);
   }
 
   &.black-input-theme {
@@ -69,7 +69,7 @@
 
 .textarea::-ms-input-placeholder {
   color: #cccccc;
-  font-size: 15px;
+  font-size: var(--qna-input-font-size, 15px);
 }
 
 .private-icon {

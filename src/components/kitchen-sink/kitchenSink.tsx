@@ -200,7 +200,7 @@ export class KitchenSink extends Component<KitchenSinkProps & KitchenSinkTransla
     let renderedContent = this._generateContent(props);
 
     return (
-      <div className={styles.root} aria-live="polite" data-testid={'qna_root'} onKeyUp={this._handleClose}>
+      <div className={`playkit-qna ${styles.root}`} aria-live="polite" data-testid={'qna_root'} onKeyUp={this._handleClose}>
         {/* header */}
         <div className={styles.headerContainer}>
           <div className={styles.header}>

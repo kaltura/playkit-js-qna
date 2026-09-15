@@ -3,7 +3,7 @@
 }
 
 .date-time-prop {
-  font-size: 12px;
+  font-size: var(--qna-timestamp-font-size, 12px);
   font-weight: bold;
 }
 
