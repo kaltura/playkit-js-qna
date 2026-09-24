@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## 3.6.0 (2026-09-24)
+
+
+### Features
+
+* **FEC-14945:** Q&A plugin: expose CSS custom properties and stable root class for theming ([#368](https://github.com/kaltura/playkit-js-qna/issues/368)) ([1e3c346](https://github.com/kaltura/playkit-js-qna/commit/1e3c346503d2cbfb2525c41db3bc50fcf24c4d96))
+
 ### 3.5.7 (2026-09-03)
 
 ### 3.5.6 (2026-08-28)
